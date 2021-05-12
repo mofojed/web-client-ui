@@ -27,6 +27,7 @@ import DashboardContainer from '../dashboard/DashboardContainer';
 import ControlType from '../controls/ControlType';
 import Logo from '../settings/LogoMiniDark.svg';
 import './AppMainContainer.scss';
+import CoreDashboardPlugin from './CoreDashboardPlugin';
 
 const log = Log.module('AppMainContainer');
 
@@ -93,6 +94,48 @@ export class AppMainContainer extends Component {
     this.state = {
       showSettingsMenu: false,
       layoutConfig: DEFAULT_LAYOUT_CONFIG,
+      contextActions: [
+        {
+          action: () => {
+            this.handleToolSelect(ToolType.LINKER);
+          },
+          shortcut: '⌃L',
+          macShortcut: '⌘L',
+          isGlobal: true,
+        },
+        {
+          action: () => {
+            // triggers clear all filters tab event, which in turn triggers a glEventhub event
+            // widget panels can subscribe to his event, and execute their own clearing logic
+            this.sendClearFilter();
+          },
+          order: 50,
+          shortcut: '⌃E',
+          macShortcut: '⌘E',
+        },
+        {
+          action: () => {
+            log.debug('Consume unhandled save shortcut');
+          },
+          shortcut: '⌃S',
+          macShortcut: '⌘S',
+        },
+        {
+          action: () => {
+            this.sendRestartSession();
+          },
+          shortcut: '⌃D',
+          macShortcut: '⌘D',
+        },
+        {
+          action: () => {
+            this.sendDisconnectSession();
+          },
+          shortcut: '⌃⇧D',
+          macShortcut: '⌘⇧D',
+        },
+      ],
+      plugins: [new CoreDashboardPlugin()],
     };
   }
 
@@ -207,78 +250,12 @@ export class AppMainContainer extends Component {
 
   render() {
     const { activeTool, user } = this.props;
-    const { layoutConfig, showSettingsMenu } = this.state;
-    const contextActions = [
-      {
-        action: () => {
-          this.handleToolSelect(ToolType.LINKER);
-        },
-        shortcut: '⌃L',
-        macShortcut: '⌘L',
-        isGlobal: true,
-      },
-      {
-        action: () => {
-          // triggers clear all filters tab event, which in turn triggers a glEventhub event
-          // widget panels can subscribe to his event, and execute their own clearing logic
-          this.sendClearFilter();
-        },
-        order: 50,
-        shortcut: '⌃E',
-        macShortcut: '⌘E',
-      },
-      {
-        action: () => {
-          log.debug('Consume unhandled save shortcut');
-        },
-        shortcut: '⌃S',
-        macShortcut: '⌘S',
-      },
-      {
-        action: () => {
-          this.sendRestartSession();
-        },
-        shortcut: '⌃D',
-        macShortcut: '⌘D',
-      },
-      {
-        action: () => {
-          this.sendDisconnectSession();
-        },
-        shortcut: '⌃⇧D',
-        macShortcut: '⌘⇧D',
-      },
-    ];
-
-    const tabBarMenu = (
-      <div>
-        <button type="button" className="btn btn-link btn-panels-menu">
-          <FontAwesomeIcon icon={dhShapes} />
-          Controls
-          <AppControlsMenu
-            handleControlSelect={this.handleControlSelect}
-            handleToolSelect={this.handleToolSelect}
-            onClearFilter={this.handleClearFilter}
-          />
-        </button>
-
-        <button
-          type="button"
-          className={classNames(
-            'btn btn-link btn-link-icon btn-settings-menu',
-            { 'text-warning': user.operateAs !== user.name }
-          )}
-          onClick={this.handleSettingsMenuShow}
-        >
-          <FontAwesomeIcon icon={vsGear} transform="grow-3 right-1 down-1" />
-          <Tooltip>User Settings</Tooltip>
-        </button>
-      </div>
-    );
-
-    const toolClassName = activeTool
-      ? `active-tool-${activeTool.toLowerCase()}`
-      : '';
+    const {
+      layoutConfig,
+      showSettingsMenu,
+      contextActions,
+      plugins,
+    } = this.state;
 
     return (
       <div
@@ -288,7 +265,7 @@ export class AppMainContainer extends Component {
           'h-100',
           'd-flex',
           'flex-column',
-          toolClassName
+          activeTool ? `active-tool-${activeTool.toLowerCase()}` : ''
         )}
         onPaste={this.handlePaste}
         tabIndex={-1}
@@ -296,13 +273,39 @@ export class AppMainContainer extends Component {
         <nav className="nav-container">
           <div className="app-main-top-nav-menus">
             <img src={Logo} alt="Deephaven Data Labs" width="152px" />
-            {tabBarMenu}
+            <div>
+              <button type="button" className="btn btn-link btn-panels-menu">
+                <FontAwesomeIcon icon={dhShapes} />
+                Controls
+                <AppControlsMenu
+                  handleControlSelect={this.handleControlSelect}
+                  handleToolSelect={this.handleToolSelect}
+                  onClearFilter={this.handleClearFilter}
+                />
+              </button>
+
+              <button
+                type="button"
+                className={classNames(
+                  'btn btn-link btn-link-icon btn-settings-menu',
+                  { 'text-warning': user.operateAs !== user.name }
+                )}
+                onClick={this.handleSettingsMenuShow}
+              >
+                <FontAwesomeIcon
+                  icon={vsGear}
+                  transform="grow-3 right-1 down-1"
+                />
+                <Tooltip>User Settings</Tooltip>
+              </button>
+            </div>
           </div>
         </nav>
         <DashboardContainer
           data={{}}
           layoutConfig={layoutConfig}
           onGoldenLayoutChange={this.handleGoldenLayoutChanged}
+          plugins={plugins}
         />
         <CSSTransition
           in={showSettingsMenu}
