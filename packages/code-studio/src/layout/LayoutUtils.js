@@ -313,7 +313,7 @@ class LayoutUtils {
 
   /**
    * Adds dynamic props to components in the given config so this config could be used to initialize a layout
-   * @param {Array} config Dehydrated config object
+   * @param {GoldenLayout.Config} config Dehydrated config object
    * @param {(name: string, config: PanelProps) => PanelProps} hydrateComponent Function to hydrate the component
    * @returns {Array} Hydrated config
    */

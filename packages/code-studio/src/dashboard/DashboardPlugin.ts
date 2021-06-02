@@ -18,10 +18,24 @@ export type DashboardConfig = {
   layout: GoldenLayout;
   panelManager: PanelManager;
 };
+
 export interface DashboardPanelDefinition {
   name: string;
   definition: ComponentType;
 }
+
+export type DashboardPluginComponentProps = {
+  id: string;
+  layout: GoldenLayout;
+  panelManager: PanelManager;
+  registerComponent: (
+    name: string,
+    ComponentType: ComponentType,
+    hydrate: (props: PanelProps) => PanelProps,
+    dehydrate: (config: PanelConfig) => PanelConfig | null
+  ) => void;
+};
+
 export interface DashboardPlugin {
   panels?: DashboardPanelDefinition[];
 

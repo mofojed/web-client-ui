@@ -102,6 +102,8 @@ export class DashboardContainer extends Component {
     this.setState({
       dashboardIsEmpty: layoutConfig.length === 0,
     });
+    // TODO: We're hydrating our config before creating the layout...
+    // Instead, initialize with an empty layout, then add the content after
     const content = LayoutUtils.hydrateLayoutConfig(
       layoutConfig,
       this.hydrateComponent

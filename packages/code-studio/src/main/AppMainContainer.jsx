@@ -24,10 +24,12 @@ import { IrisPropTypes } from '../include/prop-types';
 import AppControlsMenu from './AppControlsMenu';
 import { CommandHistoryPanel, ConsolePanel } from '../dashboard/panels';
 import DashboardContainer from '../dashboard/DashboardContainer';
+import Dashboard from '../dashboard/Dashboard';
 import ControlType from '../controls/ControlType';
 import Logo from '../settings/LogoMiniDark.svg';
 import './AppMainContainer.scss';
 import CoreDashboardPlugin from './CoreDashboardPlugin';
+import DashboardCorePlugin from './DashboardCorePlugin';
 
 const log = Log.module('AppMainContainer');
 
@@ -135,7 +137,7 @@ export class AppMainContainer extends Component {
           macShortcut: '⌘⇧D',
         },
       ],
-      plugins: [new CoreDashboardPlugin()],
+      // plugins: [new CoreDashboardPlugin()],
     };
   }
 
@@ -301,12 +303,13 @@ export class AppMainContainer extends Component {
             </div>
           </div>
         </nav>
-        <DashboardContainer
+        <Dashboard
           data={{}}
           layoutConfig={layoutConfig}
           onGoldenLayoutChange={this.handleGoldenLayoutChanged}
-          plugins={plugins}
-        />
+        >
+          <DashboardCorePlugin />
+        </Dashboard>
         <CSSTransition
           in={showSettingsMenu}
           timeout={ThemeExport.transitionMidMs}
