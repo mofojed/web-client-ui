@@ -19,6 +19,7 @@ import MarkdownUtils from '../controls/markdown/MarkdownUtils';
 import {
   DashboardConfig,
   DashboardPlugin,
+  DashboardPluginComponentProps,
   PanelConfig,
   PanelProps,
 } from '../dashboard/DashboardPlugin';
@@ -36,14 +37,15 @@ import {
   CommandHistoryPanel,
   ConsolePanel,
   DropdownFilterPanel,
+  FileExplorerPanel,
   InputFilterPanel,
   IrisGridPanel,
   LogPanel,
   MarkdownPanel,
   NotebookPanel,
   PandasPanel,
+  PanelManager,
 } from '../dashboard/panels';
-import { DashboardPluginComponentProps } from '../dashboard/DashboardPlugin';
 import Linker from '../dashboard/linker/Linker';
 
 export const DashboardCorePlugin = ({
@@ -89,7 +91,24 @@ export const DashboardCorePlugin = ({
       hydrateDefault,
       dehydrateDefault
     );
-    // TODO: Add all the types
+    registerComponent(
+      DropdownFilterPanel.COMPONENT,
+      (DropdownFilterPanel as unknown) as ComponentType,
+      hydrateDefault,
+      dehydrateDefault
+    );
+    registerComponent(
+      FileExplorerPanel.COMPONENT,
+      (FileExplorerPanel as unknown) as ComponentType,
+      hydrateDefault,
+      dehydrateDefault
+    );
+    registerComponent(
+      InputFilterPanel.COMPONENT,
+      (InputFilterPanel as unknown) as ComponentType,
+      hydrateDefault,
+      dehydrateDefault
+    );
     registerComponent(
       IrisGridPanel.COMPONENT,
       (IrisGridPanel as unknown) as ComponentType,
@@ -102,17 +121,48 @@ export const DashboardCorePlugin = ({
       hydrateDefault,
       dehydrateDefault
     );
-  }, [registerComponent]);
+    registerComponent(
+      MarkdownPanel.COMPONENT,
+      (MarkdownPanel as unknown) as ComponentType,
+      hydrateDefault,
+      dehydrateDefault
+    );
+    registerComponent(
+      NotebookPanel.COMPONENT,
+      NotebookPanel,
+      hydrateDefault,
+      dehydrateDefault
+    );
+    registerComponent(
+      PandasPanel.COMPONENT,
+      PandasPanel,
+      hydrateDefault,
+      dehydrateDefault
+    );
+  }, [
+    dehydrateDefault,
+    hydrateDefault,
+    hydrateWithMetadata,
+    registerComponent,
+  ]);
 
   useEffect(() => {
     registerComponents();
   }, [registerComponents]);
 
-  return null;
-  // return (
-  //  Need to figure out TypeScript errors with redux connected component here...
-  //   <Linker layout={layout} localDashboardId={id} panelManager={panelManager} />
-  // );
+  // TODO: Convert Linker to TypeScript, then we shouldn't need to do this
+  const UnknownLinker = (Linker as unknown) as React.ComponentType<{
+    layout: GoldenLayout;
+    localDashboardId: string;
+    panelManager: PanelManager;
+  }>;
+  return (
+    <UnknownLinker
+      layout={layout}
+      localDashboardId={id}
+      panelManager={panelManager}
+    />
+  );
 };
 
 export default DashboardCorePlugin;

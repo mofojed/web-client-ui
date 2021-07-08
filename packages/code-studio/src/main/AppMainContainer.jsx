@@ -30,12 +30,10 @@ import ToolType from '../tools/ToolType';
 import { IrisPropTypes } from '../include/prop-types';
 import AppControlsMenu from './AppControlsMenu';
 import { CommandHistoryPanel, ConsolePanel } from '../dashboard/panels';
-import DashboardContainer from '../dashboard/DashboardContainer';
 import Dashboard from '../dashboard/Dashboard';
 import ControlType from '../controls/ControlType';
 import Logo from '../settings/LogoMiniDark.svg';
 import './AppMainContainer.scss';
-import CoreDashboardPlugin from './CoreDashboardPlugin';
 import DashboardCorePlugin from './DashboardCorePlugin';
 
 const log = Log.module('AppMainContainer');
