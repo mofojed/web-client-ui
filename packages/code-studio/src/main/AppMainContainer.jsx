@@ -108,7 +108,6 @@ export class AppMainContainer extends Component {
 
     this.state = {
       showSettingsMenu: false,
-      layoutConfig: DEFAULT_LAYOUT_CONFIG,
       contextActions: [
         {
           action: () => {
@@ -270,7 +269,7 @@ export class AppMainContainer extends Component {
     const { activeTool, user, workspace } = this.props;
     const { data: workspaceData = {} } = workspace;
     const { data = {}, layoutConfig = DEFAULT_LAYOUT_CONFIG } = workspaceData;
-    const { showSettingsMenu, layoutConfig, plugins } = this.state;
+    const { showSettingsMenu, plugins } = this.state;
 
     const tabBarMenu = (
       <div>

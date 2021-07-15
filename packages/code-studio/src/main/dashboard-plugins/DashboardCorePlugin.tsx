@@ -15,14 +15,14 @@ import {
   setDashboardPanelTableMap,
   store,
 } from '@deephaven/redux';
-import MarkdownUtils from '../controls/markdown/MarkdownUtils';
+import MarkdownUtils from '../../controls/markdown/MarkdownUtils';
 import {
   DashboardConfig,
   DashboardPlugin,
   DashboardPluginComponentProps,
   PanelConfig,
   PanelProps,
-} from '../dashboard/DashboardPlugin';
+} from '../../dashboard/DashboardPlugin';
 import {
   ChartEventHandler,
   ConsoleEventHandler,
@@ -31,7 +31,7 @@ import {
   IrisGridEventHandler,
   NotebookEventHandler,
   PandasEventHandler,
-} from '../dashboard/event-handlers';
+} from '../../dashboard/event-handlers';
 import {
   ChartPanel,
   CommandHistoryPanel,
@@ -45,8 +45,8 @@ import {
   NotebookPanel,
   PandasPanel,
   PanelManager,
-} from '../dashboard/panels';
-import Linker from '../dashboard/linker/Linker';
+} from '../../dashboard/panels';
+import Linker from '../../dashboard/linker/Linker';
 
 export const DashboardCorePlugin = ({
   id,
@@ -81,7 +81,7 @@ export const DashboardCorePlugin = ({
     );
     registerComponent(
       ConsolePanel.COMPONENT,
-      ConsolePanel as ComponentType,
+      (ConsolePanel as unknown) as ComponentType,
       hydrateWithMetadata,
       dehydrateDefault
     );
@@ -129,7 +129,7 @@ export const DashboardCorePlugin = ({
     );
     registerComponent(
       NotebookPanel.COMPONENT,
-      NotebookPanel,
+      (NotebookPanel as unknown) as ComponentType,
       hydrateDefault,
       dehydrateDefault
     );

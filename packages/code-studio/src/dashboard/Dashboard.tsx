@@ -37,11 +37,15 @@ export const Dashboard = ({
   onLayoutConfigChange = () => undefined,
   onGoldenLayoutChange = () => undefined,
 }: DashboardProps): JSX.Element => {
-  const layoutElement = useRef(null);
+  const layoutElement = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [layout, setLayout] = useState<GoldenLayout | null>(null);
+  const [layout, setLayout] = useState<GoldenLayout>();
 
   useEffect(() => {
+    if (!layoutElement.current) {
+      setLayout(undefined);
+      return;
+    }
     const { layoutSettings = {} } = data;
     const newLayout = new GoldenLayout(
       {
@@ -67,7 +71,7 @@ export const Dashboard = ({
     return () => {
       newLayout.destroy();
     };
-  }, [data, layoutElement, setIsInitialized, setLayout]);
+  }, [data, layoutElement.current, setIsInitialized, setLayout]);
 
   const handleResize = useMemo(
     () =>
