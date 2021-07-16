@@ -54,7 +54,7 @@
     "memoizee": "^0.x",
     "prop-types": "^15.x",
     "react": "^16.x",
-    "react-redux": "^7.x",
+    "react-redux": "^7.2.4",
     "react-test-renderer": "^16.x"
   },
   "devDependencies": {

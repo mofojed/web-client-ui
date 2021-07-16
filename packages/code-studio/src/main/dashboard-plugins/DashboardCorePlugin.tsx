@@ -47,6 +47,7 @@ import {
   PanelManager,
 } from '../../dashboard/panels';
 import Linker from '../../dashboard/linker/Linker';
+import GridPlugin from './GridPlugin';
 
 export const DashboardCorePlugin = ({
   id,
@@ -110,12 +111,6 @@ export const DashboardCorePlugin = ({
       dehydrateDefault
     );
     registerComponent(
-      IrisGridPanel.COMPONENT,
-      (IrisGridPanel as unknown) as ComponentType,
-      hydrateDefault,
-      dehydrateDefault
-    );
-    registerComponent(
       LogPanel.COMPONENT,
       LogPanel,
       hydrateDefault,
@@ -157,11 +152,19 @@ export const DashboardCorePlugin = ({
     panelManager: PanelManager;
   }>;
   return (
-    <UnknownLinker
-      layout={layout}
-      localDashboardId={id}
-      panelManager={panelManager}
-    />
+    <>
+      <GridPlugin
+        layout={layout}
+        id={id}
+        panelManager={panelManager}
+        registerComponent={registerComponent}
+      />
+      <UnknownLinker
+        layout={layout}
+        localDashboardId={id}
+        panelManager={panelManager}
+      />
+    </>
   );
 };
 

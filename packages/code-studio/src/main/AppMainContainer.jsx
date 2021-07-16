@@ -29,12 +29,16 @@ import {
 import ToolType from '../tools/ToolType';
 import { IrisPropTypes } from '../include/prop-types';
 import AppControlsMenu from './AppControlsMenu';
-import { CommandHistoryPanel, ConsolePanel } from '../dashboard/panels';
+import {
+  CommandHistoryPanel,
+  ConsolePanel,
+  FileExplorerPanel,
+} from '../dashboard/panels';
 import Dashboard from '../dashboard/Dashboard';
 import ControlType from '../controls/ControlType';
 import Logo from '../settings/LogoMiniDark.svg';
 import './AppMainContainer.scss';
-import DashboardCorePlugin from './DashboardCorePlugin';
+import DashboardCorePlugin from './dashboard-plugins/DashboardCorePlugin';
 
 const log = Log.module('AppMainContainer');
 
@@ -269,7 +273,7 @@ export class AppMainContainer extends Component {
     const { activeTool, user, workspace } = this.props;
     const { data: workspaceData = {} } = workspace;
     const { data = {}, layoutConfig = DEFAULT_LAYOUT_CONFIG } = workspaceData;
-    const { showSettingsMenu, plugins } = this.state;
+    const { contextActions, showSettingsMenu, plugins } = this.state;
 
     const tabBarMenu = (
       <div>
