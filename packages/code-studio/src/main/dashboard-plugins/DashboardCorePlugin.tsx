@@ -48,6 +48,7 @@ import {
 } from '../../dashboard/panels';
 import Linker from '../../dashboard/linker/Linker';
 import GridPlugin from './GridPlugin';
+import ChartPlugin from './ChartPlugin';
 
 export const DashboardCorePlugin = ({
   id,
@@ -74,12 +75,7 @@ export const DashboardCorePlugin = ({
   const dehydrateDefault = useCallback(props => null, []);
 
   const registerComponents = useCallback(() => {
-    registerComponent(
-      ChartPanel.COMPONENT,
-      (ChartPanel as unknown) as ComponentType,
-      hydrateDefault,
-      dehydrateDefault
-    );
+    console.log('MJB registering components');
     registerComponent(
       ConsolePanel.COMPONENT,
       (ConsolePanel as unknown) as ComponentType,
@@ -154,6 +150,12 @@ export const DashboardCorePlugin = ({
   return (
     <>
       <GridPlugin
+        layout={layout}
+        id={id}
+        panelManager={panelManager}
+        registerComponent={registerComponent}
+      />
+      <ChartPlugin
         layout={layout}
         id={id}
         panelManager={panelManager}

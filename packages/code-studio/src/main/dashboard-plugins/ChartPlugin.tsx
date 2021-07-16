@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import GoldenLayout from 'golden-layout';
+import { ChartModel } from '@deephaven/chart';
 import {
   setDashboardColumns,
   setDashboardConsoleCreatorSettings,
@@ -16,6 +17,7 @@ import {
   setDashboardPanelTableMap,
   store,
 } from '@deephaven/redux';
+import shortid from 'shortid';
 import MarkdownUtils from '../../controls/markdown/MarkdownUtils';
 import {
   DashboardConfig,
@@ -40,7 +42,6 @@ import {
   DropdownFilterPanel,
   FileExplorerPanel,
   InputFilterPanel,
-  IrisGridPanel,
   LogPanel,
   MarkdownPanel,
   NotebookPanel,
@@ -48,9 +49,7 @@ import {
   PanelManager,
 } from '../../dashboard/panels';
 import Linker from '../../dashboard/linker/Linker';
-import { IrisGridEvent } from '../../dashboard/events';
-import { IrisGridModel } from '@deephaven/iris-grid';
-import shortid from 'shortid';
+import { ChartEvent, IrisGridEvent } from '../../dashboard/events';
 import LayoutUtils from '../../layout/LayoutUtils';
 
 export const ChartPlugin = ({
@@ -58,7 +57,7 @@ export const ChartPlugin = ({
   layout,
   panelManager,
   registerComponent,
-}: DashboardPluginComponentProps): React.ReactNode => {
+}: DashboardPluginComponentProps): JSX.Element => {
   const hydrateWithMetadata = useCallback(
     props => ({
       metadata: {},
@@ -79,8 +78,8 @@ export const ChartPlugin = ({
 
   const registerComponents = useCallback(() => {
     registerComponent(
-      IrisGridPanel.COMPONENT,
-      (IrisGridPanel as unknown) as ComponentType,
+      ChartPanel.COMPONENT,
+      (ChartPanel as unknown) as ComponentType,
       hydrateDefault,
       dehydrateDefault
     );
@@ -94,14 +93,14 @@ export const ChartPlugin = ({
   const handleOpen = useCallback(
     (
       title: string,
-      makeModel: () => IrisGridModel,
+      makeModel: () => ChartModel,
       metadata: Record<string, unknown> = {},
       panelId = shortid.generate(),
       dragEvent?: DragEvent
     ) => {
       const config = {
         type: 'react-component',
-        component: IrisGridPanel.COMPONENT,
+        component: ChartPanel.COMPONENT,
         props: {
           localDashboardId: id,
           id: panelId,
@@ -120,7 +119,7 @@ export const ChartPlugin = ({
 
   const handleClose = useCallback(
     (panelId: string) => {
-      const config = { component: IrisGridPanel.COMPONENT, id: panelId };
+      const config = { component: ChartPanel.COMPONENT, id: panelId };
       const { root } = layout;
       LayoutUtils.closeComponent(root, config);
     },
@@ -132,15 +131,15 @@ export const ChartPlugin = ({
   }, [registerComponents]);
 
   useEffect(() => {
-    layout.eventHub.on(IrisGridEvent.OPEN_GRID, handleOpen);
-    layout.eventHub.on(IrisGridEvent.CLOSE_GRID, handleClose);
+    layout.eventHub.on(ChartEvent.OPEN, handleOpen);
+    layout.eventHub.on(ChartEvent.CLOSE, handleClose);
     return () => {
-      layout.eventHub.off(IrisGridEvent.OPEN_GRID, handleOpen);
-      layout.eventHub.off(IrisGridEvent.CLOSE_GRID, handleClose);
+      layout.eventHub.off(ChartEvent.OPEN, handleOpen);
+      layout.eventHub.off(ChartEvent.CLOSE, handleClose);
     };
   }, [handleClose, handleOpen, layout]);
 
-  return null;
+  return <></>;
 };
 
 export default ChartPlugin;

@@ -58,7 +58,7 @@ export const GridPlugin = ({
   layout,
   panelManager,
   registerComponent,
-}: DashboardPluginComponentProps): React.ReactNode => {
+}: DashboardPluginComponentProps): JSX.Element => {
   const hydrateWithMetadata = useCallback(
     props => ({
       metadata: {},
@@ -140,7 +140,7 @@ export const GridPlugin = ({
     };
   }, [handleClose, handleOpen, layout]);
 
-  return null;
+  return <></>;
 };
 
 export default GridPlugin;
