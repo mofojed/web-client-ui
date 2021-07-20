@@ -140,12 +140,6 @@ export const DashboardCorePlugin = ({
     registerComponents();
   }, [registerComponents]);
 
-  // TODO: Convert Linker to TypeScript, then we shouldn't need to do this
-  const UnknownLinker = (Linker as unknown) as React.ComponentType<{
-    layout: GoldenLayout;
-    localDashboardId: string;
-    panelManager: PanelManager;
-  }>;
   return (
     <>
       <GridPlugin
@@ -160,7 +154,7 @@ export const DashboardCorePlugin = ({
         panelManager={panelManager}
         registerComponent={registerComponent}
       />
-      <UnknownLinker
+      <Linker
         layout={layout}
         localDashboardId={id}
         panelManager={panelManager}
