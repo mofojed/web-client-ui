@@ -1,94 +1,35 @@
-import React, {
-  ComponentType,
-  DragEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { ComponentType, DragEvent, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import GoldenLayout from 'golden-layout';
 import { ChartModel } from '@deephaven/chart';
-import {
-  setDashboardColumns,
-  setDashboardConsoleCreatorSettings,
-  setDashboardInputFilters,
-  setDashboardPanelTableMap,
-  store,
-} from '@deephaven/redux';
 import shortid from 'shortid';
-import MarkdownUtils from '../../controls/markdown/MarkdownUtils';
-import {
-  DashboardConfig,
-  DashboardPlugin,
-  DashboardPluginComponentProps,
-  PanelConfig,
-  PanelProps,
-} from '../../dashboard/DashboardPlugin';
-import {
-  ChartEventHandler,
-  ConsoleEventHandler,
-  ControlEventHandler,
-  InputFilterEventHandler,
-  IrisGridEventHandler,
-  NotebookEventHandler,
-  PandasEventHandler,
-} from '../../dashboard/event-handlers';
-import {
-  ChartPanel,
-  CommandHistoryPanel,
-  ConsolePanel,
-  DropdownFilterPanel,
-  FileExplorerPanel,
-  InputFilterPanel,
-  LogPanel,
-  MarkdownPanel,
-  NotebookPanel,
-  PandasPanel,
-  PanelManager,
-} from '../../dashboard/panels';
-import Linker from '../../dashboard/linker/Linker';
-import { ChartEvent, IrisGridEvent } from '../../dashboard/events';
+import { DashboardPluginComponentProps } from '../../dashboard/DashboardPlugin';
+import { ChartPanel } from '../../dashboard/panels';
+import { ChartEvent } from '../../dashboard/events';
 import LayoutUtils from '../../layout/LayoutUtils';
 
 export const ChartPlugin = ({
   id,
   layout,
-  panelManager,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element => {
-  const hydrateWithMetadata = useCallback(
-    props => ({
-      metadata: {},
-      ...props,
-      localDashboardId: id,
-    }),
-    [id]
-  );
-  const hydrateDefault = useCallback(
+  const hydrate = useCallback(
     props => ({
       ...props,
       localDashboardId: id,
     }),
     [id]
   );
-  // TODO: Actually dehydrate correctly
-  const dehydrateDefault = useCallback(props => null, []);
+  const dehydrate = useCallback(props => null, []);
 
   const registerComponents = useCallback(() => {
     registerComponent(
       ChartPanel.COMPONENT,
       (ChartPanel as unknown) as ComponentType,
-      hydrateDefault,
-      dehydrateDefault
+      hydrate,
+      dehydrate
     );
-  }, [
-    dehydrateDefault,
-    hydrateDefault,
-    hydrateWithMetadata,
-    registerComponent,
-  ]);
+  }, [dehydrate, hydrate, registerComponent]);
 
   const handleOpen = useCallback(
     (

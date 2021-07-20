@@ -6,13 +6,13 @@ import {
   setDashboardPanelTableMap,
   store,
 } from '@deephaven/redux';
-import MarkdownUtils from '../controls/markdown/MarkdownUtils';
+import MarkdownUtils from '../../controls/markdown/MarkdownUtils';
 import {
   DashboardConfig,
   DashboardPlugin,
   PanelConfig,
   PanelProps,
-} from '../dashboard/DashboardPlugin';
+} from '../../dashboard/DashboardPlugin';
 import {
   ChartEventHandler,
   ConsoleEventHandler,
@@ -21,7 +21,7 @@ import {
   IrisGridEventHandler,
   NotebookEventHandler,
   PandasEventHandler,
-} from '../dashboard/event-handlers';
+} from '../../dashboard/event-handlers';
 import {
   ChartPanel,
   CommandHistoryPanel,
@@ -34,7 +34,7 @@ import {
   MarkdownPanel,
   NotebookPanel,
   PandasPanel,
-} from '../dashboard/panels';
+} from '../../dashboard/panels';
 
 type CoreDashboardPluginEventHandler = {
   stopListening: () => void;

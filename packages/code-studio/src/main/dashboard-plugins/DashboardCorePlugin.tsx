@@ -75,7 +75,6 @@ export const DashboardCorePlugin = ({
   const dehydrateDefault = useCallback(props => null, []);
 
   const registerComponents = useCallback(() => {
-    console.log('MJB registering components');
     registerComponent(
       ConsolePanel.COMPONENT,
       (ConsolePanel as unknown) as ComponentType,
