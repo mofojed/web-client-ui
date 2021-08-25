@@ -852,8 +852,7 @@ class NotebookPanel extends Component {
               >
                 <FontAwesomeIcon icon={vsPlay} transform="grow-4" />
                 <Tooltip>
-                  Run Selected{' '}
-                  {SHORTCUTS.NOTEBOOK.RUN_SELECTED.getDisplayText()}
+                  Run Cell {SHORTCUTS.NOTEBOOK.RUN_CELL.getDisplayText()}
                 </Tooltip>
               </button>
               {disabledRunSelectedButtonTooltip && (

@@ -9,6 +9,7 @@ import Log from '@deephaven/log';
 import Editor from './Editor';
 import { MonacoCompletionProvider, MonacoUtils } from '../monaco';
 import './ScriptEditor.scss';
+import ScriptEditorUtils from './ScriptEditorUtils';
 
 const log = Log.module('ScriptEditor');
 
@@ -96,14 +97,57 @@ class ScriptEditor extends Component {
    * @returns {string} The next "cell" command to run
    */
   getNextCell() {
+    const { sessionLanguage } = this.props;
     const range = this.editor.getSelection();
     const model = this.editor.getModel();
-    const { startLineNumber, endLineNumber } = range;
-    const startLineMinColumn = model.getLineMinColumn(startLineNumber);
-    const endLineMaxColumn = model.getLineMaxColumn(endLineNumber);
-    const wholeLineRange = range
-      .setStartPosition(startLineNumber, startLineMinColumn)
-      .setEndPosition(endLineNumber, endLineMaxColumn);
+
+    const { endLineNumber } = range;
+
+    // First we find the start of the next cell by looking for the next cell to begin with a comment
+    const cellStartLine = ScriptEditorUtils.getNextCommentLine(
+      model,
+      endLineNumber,
+      sessionLanguage
+    );
+    if (cellStartLine == null) {
+      log.info('No more cells to run');
+      return;
+    }
+
+    // Now we need to find the end line of the cell, which will be the last line before the next comment line
+    let cellEndLine = cellStartLine + 1;
+    while (cellEndLine != null) {
+      const nextLine = ScriptEditorUtils.getNextCommentLine(
+        model,
+        cellEndLine,
+        sessionLanguage
+      );
+
+      if (nextLine == null) {
+        // We're past the end, just set cellEndLine to the last line in the document
+        cellEndLine = model.getLineCount();
+        break;
+      }
+
+      if (nextLine !== cellEndLine) {
+        // We've found the start of the next cell, so the end of the current cell is the previous line
+        cellEndLine = nextLine - 1;
+        break;
+      }
+
+      // We're still in a comment block, keep going until you get a section of non-comment
+      cellEndLine += 1;
+    }
+
+    const startLineMinColumn = model.getLineMinColumn(cellStartLine);
+    const endLineMaxColumn = model.getLineMaxColumn(cellEndLine);
+    const wholeLineRange = {
+      startLineNumber: cellStartLine,
+      startColumn: startLineMinColumn,
+      endLineNumber: cellEndLine,
+      endColumn: endLineMaxColumn,
+    };
+    this.editor.setSelection(wholeLineRange);
     return model.getValueInRange(wholeLineRange);
   }
 
