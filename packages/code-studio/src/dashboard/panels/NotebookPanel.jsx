@@ -82,6 +82,7 @@ class NotebookPanel extends Component {
     this.handleResize = this.handleResize.bind(this);
     this.handleRunCommand = this.handleRunCommand.bind(this);
     this.handleRunAll = this.handleRunAll.bind(this);
+    this.handleRunCell = this.handleRunCell.bind(this);
     this.handleRunSelected = this.handleRunSelected.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleSaveAsCancel = this.handleSaveAsCancel.bind(this);
@@ -603,6 +604,14 @@ class NotebookPanel extends Component {
     this.runCommand(this.notebook.getValue());
   }
 
+  handleRunCell() {
+    if (!this.notebook) {
+      log.error('Editor is not initialized.');
+      return;
+    }
+    this.runCommand(this.notebook.getNextCell());
+  }
+
   handleRunSelected() {
     if (!this.notebook) {
       log.error('Editor is not initialized.');
@@ -822,6 +831,23 @@ class NotebookPanel extends Component {
                 type="button"
                 className="btn btn-link btn-link-icon btn-play"
                 onClick={this.handleRunSelected}
+                disabled={runButtonsDisabled}
+              >
+                <FontAwesomeIcon icon={vsPlay} transform="grow-4" />
+                <Tooltip>
+                  Run Selected{' '}
+                  {SHORTCUTS.NOTEBOOK.RUN_SELECTED.getDisplayText()}
+                </Tooltip>
+              </button>
+              {disabledRunSelectedButtonTooltip && (
+                <Tooltip>{disabledRunSelectedButtonTooltip}</Tooltip>
+              )}
+            </span>
+            <span>
+              <button
+                type="button"
+                className="btn btn-link btn-link-icon btn-play"
+                onClick={this.handleRunCell}
                 disabled={runButtonsDisabled}
               >
                 <FontAwesomeIcon icon={vsPlay} transform="grow-4" />

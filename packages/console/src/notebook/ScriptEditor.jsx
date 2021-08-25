@@ -19,6 +19,7 @@ class ScriptEditor extends Component {
     this.handleEditorWillDestroy = this.handleEditorWillDestroy.bind(this);
     this.handleRun = this.handleRun.bind(this);
     this.handleRunSelected = this.handleRunSelected.bind(this);
+    this.handleRunCell = this.handleRunCell.bind(this);
 
     this.contextActionCleanups = [];
     this.completionCleanup = null;
@@ -88,6 +89,24 @@ class ScriptEditor extends Component {
     return model.getValueInRange(wholeLineRange);
   }
 
+  /**
+   * Get the next cell of text to run.
+   * A cell is just a line that starts with a comment up until the next line that starts with a comment.
+   * Also updates the editor selection to the new cell.
+   * @returns {string} The next "cell" command to run
+   */
+  getNextCell() {
+    const range = this.editor.getSelection();
+    const model = this.editor.getModel();
+    const { startLineNumber, endLineNumber } = range;
+    const startLineMinColumn = model.getLineMinColumn(startLineNumber);
+    const endLineMaxColumn = model.getLineMaxColumn(endLineNumber);
+    const wholeLineRange = range
+      .setStartPosition(startLineNumber, startLineMinColumn)
+      .setEndPosition(endLineNumber, endLineMaxColumn);
+    return model.getValueInRange(wholeLineRange);
+  }
+
   handleEditorInitialized(editor) {
     const {
       focusOnMount,
@@ -136,6 +155,12 @@ class ScriptEditor extends Component {
     onRunCommand(command);
   }
 
+  handleRunCell() {
+    const { onRunCommand } = this.props;
+    const command = this.getNextCell();
+    onRunCommand(command);
+  }
+
   initContextActions() {
     if (this.contextActionCleanups.length > 0) {
       log.error('Context actions already initialized.');
@@ -181,6 +206,26 @@ class ScriptEditor extends Component {
 
         run: () => {
           this.handleRunSelected();
+          return null;
+        },
+      })
+    );
+
+    cleanups.push(
+      this.editor.addAction({
+        id: 'run-next-cell',
+        label: 'Run Next Cell',
+        keybindings: [
+          // eslint-disable-next-line no-bitwise
+          monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.KEY_C,
+        ],
+        precondition: null,
+        keybindingContext: null,
+        contextMenuGroupId: 'navigation',
+        contextMenuOrder: 1.5,
+
+        run: () => {
+          this.handleRunCell();
           return null;
         },
       })

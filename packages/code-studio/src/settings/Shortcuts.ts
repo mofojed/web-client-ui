@@ -16,6 +16,13 @@ const NOTEBOOK = {
     macShortcut: [MODIFIER.OPTION, MODIFIER.SHIFT, KEY.R],
     isEditable: false,
   }),
+  RUN_CELL: ShortcutRegistry.createAndAdd({
+    id: 'NOTEBOOK.RUN_CELL',
+    name: 'Run Cell',
+    shortcut: [MODIFIER.ALT, MODIFIER.SHIFT, KEY.C],
+    macShortcut: [MODIFIER.OPTION, MODIFIER.SHIFT, KEY.C],
+    isEditable: false,
+  }),
   FIND: ShortcutRegistry.createAndAdd({
     id: 'NOTEBOOK.FIND',
     name: 'Find',
