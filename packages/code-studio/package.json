@@ -13,7 +13,6 @@
     "@deephaven/components": "^0.3.2",
     "@deephaven/console": "^0.3.2",
     "@deephaven/dashboard": "^0.3.2",
-    "@deephaven/dashboard-core-plugins": "^0.3.2",
     "@deephaven/file-explorer": "^0.3.2",
     "@deephaven/golden-layout": "^0.3.2",
     "@deephaven/grid": "^0.3.2",

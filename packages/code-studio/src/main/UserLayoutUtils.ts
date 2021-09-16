@@ -4,7 +4,7 @@ import {
   CommandHistoryPanel,
   ConsolePanel,
   FileExplorerPanel,
-} from '../dashboard/panels';
+} from '../dashboard/plugins/panels';
 
 export const DEFAULT_LAYOUT_CONFIG = [
   {
