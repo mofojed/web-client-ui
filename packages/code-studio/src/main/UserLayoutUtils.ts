@@ -1,10 +1,10 @@
-import { ItemConfigType } from '@deephaven/golden-layout';
-import LayoutStorage from './LayoutStorage';
 import {
   CommandHistoryPanel,
   ConsolePanel,
   FileExplorerPanel,
-} from '../dashboard/plugins/panels';
+} from '@deephaven/dashboard-core-plugins';
+import { ItemConfigType } from '@deephaven/golden-layout';
+import LayoutStorage from './LayoutStorage';
 
 export const DEFAULT_LAYOUT_CONFIG = [
   {
