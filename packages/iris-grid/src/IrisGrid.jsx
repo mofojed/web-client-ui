@@ -1124,6 +1124,13 @@ export class IrisGrid extends Component {
     );
   }
 
+  /**
+   * Copy the provided ranges to the clipboard
+   * @param {GridRange[]} ranges The ranges to copy
+   * @param {boolean} includeHeaders Include the headers or not
+   * @param {boolean} formatValues Whether to format values or not
+   * @param {string|null} error Error message if one occurred
+   */
   copyRanges(
     ranges,
     includeHeaders = false,
