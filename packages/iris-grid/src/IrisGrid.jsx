@@ -3003,8 +3003,7 @@ IrisGrid.defaultProps = {
   invertSearchColumns: true,
   onContextMenu: () => [],
   pendingDataMap: new Map(),
-  getDownloadWorker: () =>
-    Promise.reject(new Error('Download worker not provided')),
+  getDownloadWorker: undefined,
 };
 
 const mapStateToProps = state => ({
