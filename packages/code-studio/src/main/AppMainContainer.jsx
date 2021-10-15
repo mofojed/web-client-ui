@@ -510,6 +510,7 @@ export class AppMainContainer extends Component {
    * @param {DragEvent} dragEvent The mouse drag event that trigger it, undefined if it was not triggered by a drag
    */
   openWidget(widget, dragEvent) {
+    // TODO: This needs to check the list of plugins registered types and the types of panels that can show them
     switch (widget.type) {
       case dh.VariableType.TABLE: {
         const metadata = { table: widget.name };
@@ -547,7 +548,7 @@ export class AppMainContainer extends Component {
   }
 
   render() {
-    const { activeTool, user, workspace } = this.props;
+    const { activeTool, plugins, user, workspace } = this.props;
     const { data: workspaceData = {} } = workspace;
     const { data = EMPTY_OBJECT, layoutConfig } = workspaceData;
     const { layoutSettings = EMPTY_OBJECT } = data;
@@ -656,6 +657,7 @@ export class AppMainContainer extends Component {
           <PandasPlugin />
           <MarkdownPlugin />
           <LinkerPlugin />
+          {plugins}
         </Dashboard>
         <CSSTransition
           in={isSettingsMenuShown}
@@ -704,6 +706,11 @@ AppMainContainer.propTypes = {
       links: PropTypes.arrayOf(PropTypes.shape({})),
     }),
   }).isRequired,
+  plugins: PropTypes.arrayOf(PropTypes.any),
+};
+
+AppMainContainer.defaultProps = {
+  plugins: [],
 };
 
 const mapStateToProps = state => ({

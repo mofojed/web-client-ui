@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import Log from '@deephaven/log';
 import RemoteComponent from './RemoteComponent';
+import loadRemoteModule from './loadRemoteModule';
 
 const log = Log.module('PluginUtils');
 
@@ -40,6 +41,18 @@ class PluginUtils {
     Plugin.pluginName = pluginName;
     Plugin.displayName = 'Plugin';
     return Plugin;
+  }
+
+  /**
+   * Imports a commonjs plugin from the provided URL
+   * @param {string} pluginUrl The URL of the plugin to load
+   * @returns The loaded modules `default()` value
+   */
+  static async loadPluginModule(
+    pluginUrl = 'http://localhost:4000/jsapi/matplotlib-plugin.js'
+  ) {
+    const myModule = await loadRemoteModule(pluginUrl);
+    return myModule.default;
   }
 }
 

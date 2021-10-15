@@ -55,8 +55,18 @@ class ConsoleUtils {
     );
   }
 
+  static isDataStringType(type) {
+    return type === dh.VariableType.DATA_STRING;
+  }
+
   static isOpenableType(type) {
-    return ConsoleUtils.isTableType(type) || ConsoleUtils.isWidgetType(type);
+    // TODO: This needs to pull from the registered plugins to check what can be shown
+    return (
+      ConsoleUtils.isTableType(type) ||
+      ConsoleUtils.isWidgetType(type) ||
+      ConsoleUtils.isMatPlotLib(type) ||
+      ConsoleUtils.isDeephavenPluginType(type)
+    );
   }
 
   static isFigureType(type) {
@@ -65,6 +75,14 @@ class ConsoleUtils {
 
   static isPandas(type) {
     return type === dh.VariableType.PANDAS;
+  }
+
+  static isMatPlotLib(type) {
+    return type.startsWith('matplotlib');
+  }
+
+  static isDeephavenPluginType(type) {
+    return type.toLowerCase().startsWith('deephaven.plugin');
   }
 }
 

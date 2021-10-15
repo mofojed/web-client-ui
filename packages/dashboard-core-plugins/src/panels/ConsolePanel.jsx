@@ -159,12 +159,17 @@ class ConsolePanel extends PureComponent {
     const { sessionWrapper } = this.props;
     const { session } = sessionWrapper;
     const { type } = object;
+    // TODO: Make this generic, and just emit an Open event with the type?
     if (ConsoleUtils.isTableType(type)) {
       this.openTable(object, session);
     } else if (ConsoleUtils.isFigureType(type)) {
       this.openFigure(object, session);
     } else if (ConsoleUtils.isPandas(type)) {
       this.openPandas(object, session);
+    } else if (ConsoleUtils.isMatPlotLib(type)) {
+      this.openMatPlotLib(object, session);
+    } else if (ConsoleUtils.isDeephavenPluginType(type)) {
+      this.openJsonViewer(object, session);
     } else {
       log.error('Unknown object', object);
     }
@@ -196,7 +201,7 @@ class ConsolePanel extends PureComponent {
         .getObject(object)
         .then(table => IrisGridModelFactory.makeModel(table, true));
 
-    log.debug('handleOpenTable', id);
+    log.debug('openTable', id);
 
     glEventHub.emit(IrisGridEvent.OPEN_GRID, name, makeModel, metadata, id);
   }
@@ -224,9 +229,39 @@ class ConsolePanel extends PureComponent {
         .getObject(object)
         .then(table => IrisGridModelFactory.makeModel(table, true));
 
-    log.debug('handleOpenTable', id);
+    log.debug('openPandas', id);
 
     glEventHub.emit(PandasEvent.OPEN, name, makeModel, metadata, id);
+  }
+
+  openMatPlotLib(object, session) {
+    const { name } = object;
+    const id = this.getItemId(name);
+    const metadata = { name };
+    const { glEventHub } = this.props;
+    const makeModel = () =>
+      session.getObject(object).then(response => response.getDataAsBase64());
+
+    log.debug('openMatPlotLib', id);
+
+    glEventHub.emit('MatPlotLib.OPEN', name, makeModel, metadata, id);
+  }
+
+  openJsonViewer(object, session) {
+    const { name } = object;
+    const id = this.getItemId(name);
+    const metadata = { name };
+    const { glEventHub } = this.props;
+    const makeModel = () => session.getObject(object);
+
+    log.debug('openJsonViewer', id);
+
+    glEventHub.emit('ServerWidgetEvent.OPEN', {
+      name,
+      makeModel,
+      metadata,
+      id,
+    });
   }
 
   addCommand(command, focus = true, execute = false) {

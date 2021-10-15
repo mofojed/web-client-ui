@@ -39,6 +39,7 @@ import LocalWorkspaceStorage from '../storage/LocalWorkspaceStorage';
 import WebdavLayoutStorage from './WebdavLayoutStorage';
 import { createSessionWrapper } from './SessionUtils';
 import UserLayoutUtils from './UserLayoutUtils';
+import { PluginUtils } from '../plugins';
 
 const log = Log.module('AppInit');
 
@@ -87,9 +88,20 @@ const AppInit = props => {
 
   const [error, setError] = useState();
   const [isFontLoading, setIsFontLoading] = useState(true);
+  const [plugins, setPlugins] = useState([]);
+
+  const loadPlugins = useCallback(async () => {
+    log.debug('Loading plugins...');
+    const MatPlotLibPlugin = await PluginUtils.loadPluginModule(
+      'http://localhost:4000/jsapi/matplotlib-plugin.js'
+    );
+    log.debug('Plugins loaded!');
+    return [<MatPlotLibPlugin key="matplotlib" />];
+  }, []);
 
   const initClient = useCallback(async () => {
     try {
+      const newPlugins = await loadPlugins();
       const loadedWorkspace = await WORKSPACE_STORAGE.load();
       const sessionWrapper = await createSessionWrapper();
       sessionWrapper.connection.addEventListener(
@@ -144,10 +156,13 @@ const AppInit = props => {
       setUser(USER);
       setWorkspaceStorage(WORKSPACE_STORAGE);
       setWorkspace(loadedWorkspace);
+      setPlugins(newPlugins);
     } catch (e) {
+      log.error(e);
       setError(e);
     }
   }, [
+    loadPlugins,
     setActiveTool,
     setCommandHistoryStorage,
     setDashboardData,
@@ -181,7 +196,7 @@ const AppInit = props => {
 
   return (
     <>
-      {isLoaded && <App />}
+      {isLoaded && <App plugins={plugins} />}
       <LoadingOverlay
         isLoading={isLoading}
         isLoaded={isLoaded}
