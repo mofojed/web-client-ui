@@ -47,6 +47,7 @@ interface DashboardLayoutProps {
   data?: DashboardData;
   children?: React.ReactNode | React.ReactNode[];
   emptyDashboard?: React.ReactNode;
+  PanelWrapper?: React.ElementType;
 }
 
 /**
@@ -59,6 +60,7 @@ export const DashboardLayout = ({
   layout,
   layoutConfig = DEFAULT_LAYOUT_CONFIG,
   onLayoutChange = DEFAULT_CALLBACK,
+  PanelWrapper = props => props.children,
 }: DashboardLayoutProps): JSX.Element => {
   const dispatch = useDispatch();
   const data =
@@ -99,8 +101,10 @@ export const DashboardLayout = ({
               glContainer={glContainer}
               glEventHub={glEventHub}
             >
-              {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-              <CType {...props} ref={ref} />
+              <PanelWrapper>
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <CType {...props} ref={ref} />
+              </PanelWrapper>
             </PanelErrorBoundary>
           </Provider>
         );
@@ -112,7 +116,7 @@ export const DashboardLayout = ({
       dehydrateMap.set(name, dehydrate);
       return cleanup;
     },
-    [hydrateMap, dehydrateMap, layout, store]
+    [hydrateMap, dehydrateMap, layout, PanelWrapper, store]
   );
   const hydrateComponent = useCallback(
     (name, props) => (hydrateMap.get(name) ?? FALLBACK_CALLBACK)(props, id),
