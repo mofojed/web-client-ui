@@ -712,12 +712,7 @@ class NotebookPanel extends Component {
   }
 
   render() {
-    const {
-      fileStorage,
-      glContainer,
-      glContainer: { tab },
-      glEventHub,
-    } = this.props;
+    const { fileStorage, glContainer, glEventHub } = this.props;
     const {
       changeCount,
       savedChangeCount,
@@ -783,16 +778,6 @@ class NotebookPanel extends Component {
 
     return (
       <>
-        {tab &&
-          ReactDOM.createPortal(
-            <span
-              className={classNames('editor-unsaved-indicator', {
-                'is-unsaved': changeCount !== savedChangeCount,
-              })}
-            />,
-            tab.element.find('.lm_title_before').get(0) // tab.element is jquery element, we want a dom element
-          )}
-
         <Panel
           className="notebook-container"
           componentPanel={this}
@@ -809,6 +794,13 @@ class NotebookPanel extends Component {
           onBlur={this.handleBlur}
           additionalActions={additionalActions}
           renderTabTooltip={() => itemName}
+          titleBefore={
+            <span
+              className={classNames('editor-unsaved-indicator', {
+                'is-unsaved': changeCount !== savedChangeCount,
+              })}
+            />
+          }
         >
           <div className="notebook-toolbar">
             <span>

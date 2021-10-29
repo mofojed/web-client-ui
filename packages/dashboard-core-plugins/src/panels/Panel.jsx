@@ -229,6 +229,7 @@ class Panel extends PureComponent {
       isLoading,
       isClonable,
       isRenamable,
+      titleBefore,
     } = this.props;
     const { tab: glTab } = glContainer;
     const { showRenameDialog, title } = this.state;
@@ -279,6 +280,12 @@ class Panel extends PureComponent {
             </>,
             glTab.element[0] // tab.element is jquery element, we want a dom element
           )}
+        {glTab &&
+          titleBefore &&
+          ReactDOM.createPortal(
+            titleBefore,
+            glTab.element.find('.lm_title_before').get(0)
+          )}
       </div>
     );
   }
@@ -309,6 +316,7 @@ Panel.propTypes = {
   isLoaded: PropTypes.bool,
   isClonable: PropTypes.bool,
   isRenamable: PropTypes.bool,
+  titleBefore: PropTypes.node,
 };
 
 Panel.defaultProps = {
@@ -332,6 +340,7 @@ Panel.defaultProps = {
   isLoaded: true,
   isClonable: false,
   isRenamable: false,
+  titleBefore: undefined,
 };
 
 export default Panel;
