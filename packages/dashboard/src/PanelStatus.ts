@@ -1,5 +1,5 @@
 /**
- * Events emitted by panels and to control panels
+ * PanelStatus's that can be emitted with the PanelEvent.STATUS_UPDATE event
  */
 export default Object.freeze({
   // Panel has received focus
