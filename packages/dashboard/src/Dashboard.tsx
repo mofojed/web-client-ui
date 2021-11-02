@@ -29,6 +29,7 @@ export type DashboardProps = {
   onLayoutConfigChange?: () => void;
   onGoldenLayoutChange?: (goldenLayout: GoldenLayout) => void;
   fallbackComponent?: ForwardRefExoticComponent<RefAttributes<unknown>>;
+  PanelWrapper?: React.ElementType;
 };
 
 export const Dashboard = ({
@@ -40,6 +41,7 @@ export const Dashboard = ({
   onLayoutConfigChange = DEFAULT_CALLBACK,
   onGoldenLayoutChange = DEFAULT_CALLBACK,
   fallbackComponent = PanelPlaceholder,
+  PanelWrapper = props => props.children,
 }: DashboardProps): JSX.Element => {
   const layoutElement = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -111,6 +113,7 @@ export const Dashboard = ({
           layout={layout}
           layoutConfig={layoutConfig}
           onLayoutChange={onLayoutConfigChange}
+          PanelWrapper={PanelWrapper}
         >
           {children}
         </DashboardLayout>

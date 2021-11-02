@@ -101,7 +101,8 @@ export const DashboardLayout = ({
               glContainer={glContainer}
               glEventHub={glEventHub}
             >
-              <PanelWrapper>
+              {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+              <PanelWrapper {...props}>
                 {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <CType {...props} ref={ref} />
               </PanelWrapper>
