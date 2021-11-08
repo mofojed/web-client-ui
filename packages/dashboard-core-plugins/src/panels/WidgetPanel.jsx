@@ -22,7 +22,6 @@ class WidgetPanel extends PureComponent {
       isPanelDisconnected: false,
       isWidgetDisconnected: false,
       isWaitingForReconnect: false,
-      isPanelInactive: false,
     };
   }
 
@@ -97,11 +96,7 @@ class WidgetPanel extends PureComponent {
       onTabFocus,
     } = this.props;
 
-    const {
-      isPanelDisconnected,
-      isWidgetDisconnected,
-      isPanelInactive,
-    } = this.state;
+    const { isPanelDisconnected, isWidgetDisconnected } = this.state;
     const errorMessage = this.getErrorMessage();
     const renderTabTooltip = this.getCachedRenderTabTooltip(showTabTooltip);
 
@@ -110,7 +105,6 @@ class WidgetPanel extends PureComponent {
         className={classNames(className, {
           disconnected:
             isPanelDisconnected || isWidgetDisconnected || isDisconnected,
-          inactive: isPanelInactive,
         })}
         componentPanel={componentPanel}
         glContainer={glContainer}
@@ -133,7 +127,6 @@ class WidgetPanel extends PureComponent {
         isRenamable={isRenamable}
       >
         {children}
-        {isPanelInactive && <div className="fill-parent-absolute" />}
       </Panel>
     );
   }
