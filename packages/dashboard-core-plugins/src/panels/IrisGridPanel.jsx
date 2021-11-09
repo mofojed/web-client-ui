@@ -797,6 +797,7 @@ export class IrisGridPanel extends PureComponent {
       user,
       workspace,
       settings,
+      renderTabTooltip,
     } = this.props;
     const {
       advancedFilters,
@@ -858,6 +859,7 @@ export class IrisGridPanel extends PureComponent {
         widgetType="Table"
         description={description}
         componentPanel={this}
+        renderTabTooltip={renderTabTooltip}
       >
         {isModelReady && (
           <IrisGrid
@@ -957,6 +959,8 @@ IrisGridPanel.propTypes = {
 
   // Load a plugin defined by the table
   loadPlugin: PropTypes.func,
+
+  renderTabTooltip: PropTypes.func,
 };
 
 IrisGridPanel.defaultProps = {
@@ -967,6 +971,7 @@ IrisGridPanel.defaultProps = {
   onPanelStateUpdate: () => {},
   getDownloadWorker: undefined,
   loadPlugin: undefined,
+  renderTabTooltip: undefined,
 };
 
 IrisGridPanel.displayName = 'IrisGridPanel';

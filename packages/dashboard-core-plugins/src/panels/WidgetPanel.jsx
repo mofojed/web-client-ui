@@ -53,9 +53,12 @@ class WidgetPanel extends PureComponent {
     return null;
   }
 
-  getCachedRenderTabTooltip = memoize(showTabTooltip =>
-    showTabTooltip ? () => WidgetPanelTooltip(this.props) : null
-  );
+  getCachedRenderTabTooltip = memoize(renderTabTooltip => {
+    if (renderTabTooltip === undefined) {
+      return () => WidgetPanelTooltip(this.props);
+    }
+    return renderTabTooltip;
+  });
 
   handleSessionClosed(...args) {
     const { onSessionClose } = this.props;
@@ -84,7 +87,7 @@ class WidgetPanel extends PureComponent {
       isDisconnected,
       isClonable,
       isRenamable,
-      showTabTooltip,
+      renderTabTooltip,
 
       onClearAllFilters,
       onHide,
@@ -98,7 +101,6 @@ class WidgetPanel extends PureComponent {
 
     const { isPanelDisconnected, isWidgetDisconnected } = this.state;
     const errorMessage = this.getErrorMessage();
-    const renderTabTooltip = this.getCachedRenderTabTooltip(showTabTooltip);
 
     return (
       <Panel
@@ -119,7 +121,7 @@ class WidgetPanel extends PureComponent {
         onSessionOpen={this.handleSessionOpened}
         onTabBlur={onTabBlur}
         onTabFocus={onTabFocus}
-        renderTabTooltip={renderTabTooltip}
+        renderTabTooltip={this.getCachedRenderTabTooltip(renderTabTooltip)}
         errorMessage={errorMessage}
         isLoaded={isLoaded}
         isLoading={isLoading}
@@ -146,7 +148,7 @@ WidgetPanel.propTypes = {
   isLoading: PropTypes.bool,
   isLoaded: PropTypes.bool,
   isRenamable: PropTypes.bool,
-  showTabTooltip: PropTypes.bool,
+  renderTabTooltip: PropTypes.func,
   widgetName: PropTypes.string,
   widgetType: PropTypes.string,
 
@@ -170,7 +172,7 @@ WidgetPanel.defaultProps = {
   isLoading: false,
   isLoaded: true,
   isRenamable: true,
-  showTabTooltip: true,
+  renderTabTooltip: undefined,
   widgetName: 'Widget',
   widgetType: 'Widget',
 

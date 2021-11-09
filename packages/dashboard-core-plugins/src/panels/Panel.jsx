@@ -333,7 +333,7 @@ Panel.defaultProps = {
   onShow: () => {},
   onTabBlur: () => {},
   onTabFocus: () => {},
-  renderTabTooltip: null,
+  renderTabTooltip: undefined,
   additionalActions: [],
   errorMessage: null,
   isLoading: false,
