@@ -74,7 +74,7 @@ jobs:
       - name: Test (Pull Request)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          npm run test:ci -- --changedSince origin/${{ github.event.pull_request.base.ref }} --collectCoverage=true
+          npm run test:ci -- --collectCoverage=true
           npm run test:golden-layout
 
       - name: Test (Push)
