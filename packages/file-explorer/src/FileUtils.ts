@@ -21,8 +21,8 @@ export class FileUtils {
    * @param extension File extension to format, defaults to empty string
    * @returns Formatted string - '' for no extension, '.' for empty extension, '.ext' for non-empty extension
    */
-  static fileExtensionToString(extension = ''): string {
-    return extension.length === 0 ? '' : `.${extension}`;
+  static fileExtensionToString(extension?: string): string {
+    return extension === undefined ? '' : `.${extension}`;
   }
 
   /**

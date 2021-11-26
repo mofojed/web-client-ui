@@ -15,6 +15,20 @@ function testInvalidFileNameMessage(name: string, message: string): void {
   );
 }
 
+describe('fileExtensionToString', () => {
+  it('returns empty string for no extension', () => {
+    expect(FileUtils.fileExtensionToString(undefined)).toBe('');
+  });
+
+  it('returns . for empty extension', () => {
+    expect(FileUtils.fileExtensionToString('')).toBe('.');
+  });
+
+  it('returns .ext for an extension provided', () => {
+    expect(FileUtils.fileExtensionToString('ext')).toBe('.ext');
+  });
+});
+
 it('gets extension', () => {
   function testName(name: string, expectedExtension: string) {
     expect(FileUtils.getExtension(name)).toBe(expectedExtension);
