@@ -1,6 +1,6 @@
 import { EventTarget } from 'event-target-shim';
-import { ModelIndex } from './GridMetrics';
-import { GridColor, GridTheme, NullableGridColor } from './GridTheme';
+import { ModelIndex } from '../GridMetrics';
+import { GridColor, GridTheme, NullableGridColor } from '../GridTheme';
 
 /* eslint class-methods-use-this: "off" */
 /* eslint no-unused-vars: "off" */

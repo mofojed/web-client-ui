@@ -21,6 +21,10 @@ export enum SELECTION_DIRECTION {
   RIGHT = 'RIGHT',
 }
 
+/**
+ * Class representing a range of cells in the grid.
+ * A null value for any of the indexes means the selection continues to the end of the grid in that direction.
+ */
 class GridRange {
   startColumn: GridRangeIndex;
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import GridRange, { GridRangeIndex } from './GridRange';
+import GridRange, { GridRangeIndex } from '../GridRange';
 import {
   BoxCoordinates,
   Coordinate,
@@ -10,9 +10,9 @@ import {
   ModelSizeMap,
   MoveOperation,
   SizeMap,
-} from './GridMetrics';
-import type { GridMetrics } from './GridMetrics';
-import { GridTheme } from './GridTheme';
+} from '../GridMetrics';
+import type { GridMetrics } from '../GridMetrics';
+import { GridTheme } from '../GridTheme';
 
 export type AxisRange = [start: VisibleIndex, end: VisibleIndex];
 
@@ -27,7 +27,7 @@ export type GridPoint = {
 
 export type IndexCallback<T> = (itemIndex: VisibleIndex) => T | undefined;
 
-class GridUtils {
+export class GridUtils {
   // use same constant as chrome source for windows
   // https://github.com/chromium/chromium/blob/973af9d461b6b5dc60208c8d3d66adc27e53da78/ui/events/blink/web_input_event_builders_win.cc#L285
   static PIXELS_PER_LINE = 100 / 3;

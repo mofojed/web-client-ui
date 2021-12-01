@@ -1,5 +1,5 @@
-import GridRange from './GridRange';
-import { ModelIndex } from './GridMetrics';
+import GridRange from '../GridRange';
+import { ModelIndex } from '../GridMetrics';
 import GridModel from './GridModel';
 
 /**

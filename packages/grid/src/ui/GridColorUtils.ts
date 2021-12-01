@@ -1,6 +1,6 @@
 import convert from 'color-convert';
 import { HEX } from 'color-convert/conversions';
-import { GridColor } from './GridTheme';
+import { GridColor } from '../ui/GridTheme';
 
 /**
  * Darken the provided colour
