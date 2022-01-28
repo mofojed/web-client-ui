@@ -159,19 +159,15 @@ class ConsolePanel extends PureComponent {
     const { sessionWrapper } = this.props;
     const { session } = sessionWrapper;
     const { type } = object;
-    // TODO: Make this generic, and just emit an Open event with the type?
     if (ConsoleUtils.isTableType(type)) {
       this.openTable(object, session);
     } else if (ConsoleUtils.isFigureType(type)) {
       this.openFigure(object, session);
     } else if (ConsoleUtils.isPandas(type)) {
       this.openPandas(object, session);
-    } else if (ConsoleUtils.isMatPlotLib(type)) {
-      this.openMatPlotLib(object, session);
-    } else if (ConsoleUtils.isDeephavenPluginType(type)) {
-      this.openJsonViewer(object, session);
     } else {
-      log.error('Unknown object', object);
+      // Assume everything else is a widget
+      this.openWidget(object, session);
     }
   }
 
@@ -234,34 +230,19 @@ class ConsolePanel extends PureComponent {
     glEventHub.emit(PandasEvent.OPEN, name, makeModel, metadata, id);
   }
 
-  openMatPlotLib(object, session) {
-    const { name } = object;
-    const id = this.getItemId(name);
-    const metadata = { name };
+  openWidget(widget, session) {
     const { glEventHub } = this.props;
-    const makeModel = () =>
-      session.getObject(object).then(response => response.getDataAsBase64());
+    const { name } = widget;
+    const panelId = this.getItemId(name);
+    const openOptions = {
+      fetch: () => session.getObject(widget),
+      panelId,
+      widget,
+    };
 
-    log.debug('openMatPlotLib', id);
+    log.debug('openWidget', openOptions);
 
-    glEventHub.emit('MatPlotLib.OPEN', name, makeModel, metadata, id);
-  }
-
-  openJsonViewer(object, session) {
-    const { name } = object;
-    const id = this.getItemId(name);
-    const metadata = { name };
-    const { glEventHub } = this.props;
-    const makeModel = () => session.getObject(object);
-
-    log.debug('openJsonViewer', id);
-
-    glEventHub.emit('ServerWidgetEvent.OPEN', {
-      name,
-      makeModel,
-      metadata,
-      id,
-    });
+    glEventHub.emit(PanelEvent.OPEN, openOptions);
   }
 
   addCommand(command, focus = true, execute = false) {

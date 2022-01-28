@@ -25,9 +25,6 @@
       "path": "../dashboard-core-plugins"
     },
     {
-      "path": "../dashboard-server-wigdets-plugin"
-    },
-    {
       "path": "../file-explorer"
     },
     {

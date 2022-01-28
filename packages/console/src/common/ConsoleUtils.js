@@ -60,13 +60,7 @@ class ConsoleUtils {
   }
 
   static isOpenableType(type) {
-    // TODO: This needs to pull from the registered plugins to check what can be shown
-    return (
-      ConsoleUtils.isTableType(type) ||
-      ConsoleUtils.isWidgetType(type) ||
-      ConsoleUtils.isMatPlotLib(type) ||
-      ConsoleUtils.isDeephavenPluginType(type)
-    );
+    return ConsoleUtils.isTableType(type) || ConsoleUtils.isWidgetType(type);
   }
 
   static isFigureType(type) {
@@ -75,14 +69,6 @@ class ConsoleUtils {
 
   static isPandas(type) {
     return type === dh.VariableType.PANDAS;
-  }
-
-  static isMatPlotLib(type) {
-    return type.startsWith('matplotlib');
-  }
-
-  static isDeephavenPluginType(type) {
-    return type.toLowerCase().startsWith('deephaven.plugin');
   }
 }
 

@@ -26,6 +26,9 @@ export default Object.freeze({
   // Panel was closed
   CLOSED: 'PanelEvent.CLOSED',
 
+  // Event to open a new panel
+  OPEN: 'PanelEvent.OPEN',
+
   // Event to close a panel that's currently open
   CLOSE: 'PanelEvent.CLOSE',
 });
