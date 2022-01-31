@@ -92,11 +92,28 @@ const AppInit = props => {
 
   const loadPlugins = useCallback(async () => {
     log.debug('Loading plugins...');
-    const MatPlotLibPlugin = await PluginUtils.loadPluginModule(
-      'http://localhost:4000/jsapi/matplotlib-plugin.js'
-    );
-    log.debug('Plugins loaded!');
-    return [<MatPlotLibPlugin key="matplotlib" />];
+    try {
+      const manifest = await PluginUtils.loadJson(
+        `${process.env.REACT_APP_JS_PLUGINS_URL}/manifest.json`
+      );
+
+      const pluginPromises = [];
+      for (let i = 0; i < manifest.plugins.length; i += 1) {
+        const { main } = manifest.plugins[i];
+        const pluginMainUrl = `${process.env.REACT_APP_JS_PLUGINS_URL}/${main}`;
+        pluginPromises.push(PluginUtils.loadPluginModule(pluginMainUrl));
+      }
+      const pluginModules = await Promise.all(pluginPromises);
+
+      log.debug2('Plugins loaded!', manifest.plugins);
+
+      return pluginModules.map((PluginModule, i) => (
+        <PluginModule key={manifest.plugins[i].name} />
+      ));
+    } catch (e) {
+      log.error('Unable to load plugins:', e);
+      return [];
+    }
   }, []);
 
   const initClient = useCallback(async () => {

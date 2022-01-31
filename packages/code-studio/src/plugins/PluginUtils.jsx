@@ -48,11 +48,45 @@ class PluginUtils {
    * @param {string} pluginUrl The URL of the plugin to load
    * @returns The loaded modules `default()` value
    */
-  static async loadPluginModule(
-    pluginUrl = 'http://localhost:4000/jsapi/matplotlib-plugin.js'
-  ) {
+  static async loadPluginModule(pluginUrl) {
     const myModule = await loadRemoteModule(pluginUrl);
     return myModule.default;
+  }
+
+  /**
+   * Loads a JSON file and returns the JSON object
+   * @param {string} jsonUrl The manifest.json file to load
+   * @returns The JSON object of the manifest file
+   */
+  static async loadJson(jsonUrl) {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.addEventListener('load', () => {
+        try {
+          const json = JSON.parse(request.responseText);
+          resolve(json);
+        } catch (err) {
+          reject(err);
+        }
+      });
+      request.addEventListener('error', err => {
+        reject(err);
+      });
+      request.open('GET', jsonUrl);
+      request.send();
+    });
+  }
+
+  /**
+   *
+   * @param {string} packageUrl The package URL to load from, containing the package.json
+   */
+  static async loadPluginPackage(packageUrl) {
+    const packageJson = await PluginUtils.loadJson(
+      `${packageUrl}/package.json`
+    );
+    const mainPath = packageJson.main ?? 'index.js';
+    return PluginUtils.loadPluginModule(`${packageUrl}/${mainPath}`);
   }
 }
 
