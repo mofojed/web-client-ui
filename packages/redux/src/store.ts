@@ -55,11 +55,17 @@ export interface WorkspaceStorage {
   save(workspace: Workspace): Promise<Workspace>;
 }
 
+export interface Plugin {
+  name: string;
+  AppPlugin?: unknown;
+}
+
 export type RootState = {
-  user: User;
-  storage: Storage;
-  workspace: Workspace;
   activeTool: string;
+  plugins: Plugin[];
+  storage: Storage;
+  user: User;
+  workspace: Workspace;
 };
 
 Object.entries(reducers).map(([name, reducer]) =>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import memoize from 'memoize-one';
 import { CSSTransition } from 'react-transition-group';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
@@ -45,6 +46,7 @@ import {
   getUser,
   setActiveTool as setActiveToolAction,
   updateWorkspaceData as updateWorkspaceDataAction,
+  getPlugins,
 } from '@deephaven/redux';
 import { PromiseUtils } from '@deephaven/utils';
 import SettingsMenu from '../settings/SettingsMenu';
@@ -547,6 +549,14 @@ export class AppMainContainer extends Component {
     }
   }
 
+  getDashboardPlugins = memoize(plugins =>
+    plugins
+      .filter(pluginModule => pluginModule.DashboardPlugin)
+      .map(({ DashboardPlugin }) => (
+        <DashboardPlugin key={DashboardPlugin.name} />
+      ))
+  );
+
   render() {
     const { activeTool, plugins, user, workspace } = this.props;
     const { data: workspaceData = {} } = workspace;
@@ -560,6 +570,7 @@ export class AppMainContainer extends Component {
       isSettingsMenuShown,
       widgets,
     } = this.state;
+    const dashboardPlugins = this.getDashboardPlugins(plugins);
 
     return (
       <div
@@ -657,7 +668,7 @@ export class AppMainContainer extends Component {
           <PandasPlugin />
           <MarkdownPlugin />
           <LinkerPlugin />
-          {plugins}
+          {dashboardPlugins}
         </Dashboard>
         <CSSTransition
           in={isSettingsMenuShown}
@@ -706,17 +717,14 @@ AppMainContainer.propTypes = {
       links: PropTypes.arrayOf(PropTypes.shape({})),
     }),
   }).isRequired,
-  plugins: PropTypes.arrayOf(PropTypes.any),
-};
-
-AppMainContainer.defaultProps = {
-  plugins: [],
+  plugins: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = state => ({
   activeTool: getActiveTool(state),
   dashboardData: getDashboardData(state, DEFAULT_DASHBOARD_ID),
   layoutStorage: getLayoutStorage(state),
+  plugins: getPlugins(state),
   session: getDashboardSessionWrapper(state, DEFAULT_DASHBOARD_ID).session,
   sessionConfig: getDashboardSessionWrapper(state, DEFAULT_DASHBOARD_ID).config,
   user: getUser(state),

@@ -3,6 +3,7 @@ import type { ThunkAction } from 'redux-thunk';
 import type { CommandHistoryStorage } from '@deephaven/console';
 import type { FileStorage } from '@deephaven/file-explorer';
 import {
+  SET_PLUGINS,
   SET_USER,
   SET_WORKSPACE,
   SET_COMMAND_HISTORY_STORAGE,
@@ -109,4 +110,11 @@ export const saveSettings = (
 export const setActiveTool: PayloadActionCreator<string> = payload => ({
   type: SET_ACTIVE_TOOL,
   payload,
+});
+
+export type DeephavenPlugin = unknown;
+
+export const setPlugins: PayloadActionCreator<DeephavenPlugin[]> = plugins => ({
+  type: SET_PLUGINS,
+  payload: plugins,
 });

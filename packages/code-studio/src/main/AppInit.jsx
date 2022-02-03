@@ -27,6 +27,7 @@ import {
   setActiveTool as setActiveToolAction,
   setCommandHistoryStorage as setCommandHistoryStorageAction,
   setFileStorage as setFileStorageAction,
+  setPlugins as setPluginsAction,
   setUser as setUserAction,
   setWorkspace as setWorkspaceAction,
   setWorkspaceStorage as setWorkspaceStorageAction,
@@ -81,6 +82,7 @@ const AppInit = props => {
     setFileStorage,
     setLayoutStorage,
     setDashboardSessionWrapper,
+    setPlugins,
     setUser,
     setWorkspace,
     setWorkspaceStorage,
@@ -88,28 +90,25 @@ const AppInit = props => {
 
   const [error, setError] = useState();
   const [isFontLoading, setIsFontLoading] = useState(true);
-  const [plugins, setPlugins] = useState([]);
 
   const loadPlugins = useCallback(async () => {
     log.debug('Loading plugins...');
     try {
       const manifest = await PluginUtils.loadJson(
-        `${process.env.REACT_APP_JS_PLUGINS_URL}/manifest.json`
+        `${process.env.REACT_APP_PLUGIN_MODULES_URL}/manifest.json`
       );
 
       const pluginPromises = [];
       for (let i = 0; i < manifest.plugins.length; i += 1) {
         const { main } = manifest.plugins[i];
-        const pluginMainUrl = `${process.env.REACT_APP_JS_PLUGINS_URL}/${main}`;
+        const pluginMainUrl = `${process.env.REACT_APP_PLUGIN_MODULES_URL}/${main}`;
         pluginPromises.push(PluginUtils.loadPluginModule(pluginMainUrl));
       }
       const pluginModules = await Promise.all(pluginPromises);
 
       log.debug2('Plugins loaded!', manifest.plugins);
 
-      return pluginModules.map((PluginModule, i) => (
-        <PluginModule key={manifest.plugins[i].name} />
-      ));
+      return pluginModules;
     } catch (e) {
       log.error('Unable to load plugins:', e);
       return [];
@@ -170,10 +169,10 @@ const AppInit = props => {
       setFileStorage(FILE_STORAGE);
       setLayoutStorage(LAYOUT_STORAGE);
       setDashboardSessionWrapper(DEFAULT_DASHBOARD_ID, sessionWrapper);
+      setPlugins(newPlugins);
       setUser(USER);
       setWorkspaceStorage(WORKSPACE_STORAGE);
       setWorkspace(loadedWorkspace);
-      setPlugins(newPlugins);
     } catch (e) {
       log.error(e);
       setError(e);
@@ -186,6 +185,7 @@ const AppInit = props => {
     setFileStorage,
     setLayoutStorage,
     setDashboardSessionWrapper,
+    setPlugins,
     setUser,
     setWorkspace,
     setWorkspaceStorage,
@@ -213,7 +213,7 @@ const AppInit = props => {
 
   return (
     <>
-      {isLoaded && <App plugins={plugins} />}
+      {isLoaded && <App />}
       <LoadingOverlay
         isLoading={isLoading}
         isLoaded={isLoaded}
@@ -251,6 +251,7 @@ AppInit.propTypes = {
   setFileStorage: PropTypes.func.isRequired,
   setLayoutStorage: PropTypes.func.isRequired,
   setDashboardSessionWrapper: PropTypes.func.isRequired,
+  setPlugins: PropTypes.func.isRequired,
   setUser: PropTypes.func.isRequired,
   setWorkspace: PropTypes.func.isRequired,
   setWorkspaceStorage: PropTypes.func.isRequired,
@@ -273,6 +274,7 @@ export default connect(mapStateToProps, {
   setFileStorage: setFileStorageAction,
   setLayoutStorage: setLayoutStorageAction,
   setDashboardSessionWrapper: setDashboardSessionWrapperAction,
+  setPlugins: setPluginsAction,
   setUser: setUserAction,
   setWorkspace: setWorkspaceAction,
   setWorkspaceStorage: setWorkspaceStorageAction,
