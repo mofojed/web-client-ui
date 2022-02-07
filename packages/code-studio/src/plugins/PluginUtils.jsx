@@ -6,9 +6,16 @@ import loadRemoteModule from './loadRemoteModule';
 const log = Log.module('PluginUtils');
 
 class PluginUtils {
-  static loadPlugin(pluginName) {
+  /**
+   * Load a component plugin either specified in the REACT_APP_COMPONENT_TABLE_PLUGINS environment variable, or from the server if it's not internal.
+   * @param {string} pluginName Name of the table plugin to load
+   * @returns {JSX.Element} A lazily loaded JSX.Element from the plugin
+   */
+  static loadComponentPlugin(pluginName) {
     if (
-      process.env.REACT_APP_INTERNAL_PLUGINS.split(',').includes(pluginName)
+      process.env.REACT_APP_INTERNAL_COMPONENT_PLUGINS.split(',').includes(
+        pluginName
+      )
     ) {
       const LazyPlugin = React.lazy(() => import(`./internal/${pluginName}`));
       const LocalPlugin = React.forwardRef((props, ref) => (
@@ -22,7 +29,10 @@ class PluginUtils {
       return LocalPlugin;
     }
 
-    const baseUrl = new URL(process.env.REACT_APP_PLUGIN_URL, window.location);
+    const baseUrl = new URL(
+      process.env.REACT_APP_COMPONENT_PLUGINS_URL,
+      window.location
+    );
     const pluginUrl = new URL(`${pluginName}.js`, baseUrl);
     const Plugin = React.forwardRef((props, ref) => (
       <RemoteComponent
@@ -44,18 +54,18 @@ class PluginUtils {
   }
 
   /**
-   * Imports a commonjs plugin from the provided URL
+   * Imports a commonjs plugin module from the provided URL
    * @param {string} pluginUrl The URL of the plugin to load
-   * @returns The loaded modules `default()` value
+   * @returns The loaded module
    */
-  static async loadPluginModule(pluginUrl) {
+  static async loadModulePlugin(pluginUrl) {
     const myModule = await loadRemoteModule(pluginUrl);
-    return myModule.default;
+    return myModule;
   }
 
   /**
    * Loads a JSON file and returns the JSON object
-   * @param {string} jsonUrl The manifest.json file to load
+   * @param {string} jsonUrl The URL of the JSON file to load
    * @returns The JSON object of the manifest file
    */
   static async loadJson(jsonUrl) {
@@ -75,18 +85,6 @@ class PluginUtils {
       request.open('GET', jsonUrl);
       request.send();
     });
-  }
-
-  /**
-   *
-   * @param {string} packageUrl The package URL to load from, containing the package.json
-   */
-  static async loadPluginPackage(packageUrl) {
-    const packageJson = await PluginUtils.loadJson(
-      `${packageUrl}/package.json`
-    );
-    const mainPath = packageJson.main ?? 'index.js';
-    return PluginUtils.loadPluginModule(`${packageUrl}/${mainPath}`);
   }
 }
 

@@ -91,6 +91,10 @@ const AppInit = props => {
   const [error, setError] = useState();
   const [isFontLoading, setIsFontLoading] = useState(true);
 
+  /**
+   * Load all plugin modules available.
+   * @returns {Promise<Map<string, DeephavenPlugin>>} A map from the name of the plugin to the plugin module that was loaded
+   */
   const loadPlugins = useCallback(async () => {
     log.debug('Loading plugins...');
     try {
@@ -98,17 +102,23 @@ const AppInit = props => {
         `${process.env.REACT_APP_PLUGIN_MODULES_URL}/manifest.json`
       );
 
+      log.debug('Plugin manifest loaded:', manifest);
       const pluginPromises = [];
       for (let i = 0; i < manifest.plugins.length; i += 1) {
         const { main } = manifest.plugins[i];
         const pluginMainUrl = `${process.env.REACT_APP_PLUGIN_MODULES_URL}/${main}`;
-        pluginPromises.push(PluginUtils.loadPluginModule(pluginMainUrl));
+        pluginPromises.push(PluginUtils.loadModulePlugin(pluginMainUrl));
       }
       const pluginModules = await Promise.all(pluginPromises);
 
-      log.debug2('Plugins loaded!', manifest.plugins);
+      const pluginMap = new Map();
+      for (let i = 0; i < pluginModules.length; i += 1) {
+        const { name } = manifest.plugins[i];
+        pluginMap.set(name, pluginModules[i]);
+      }
+      log.info('Plugins loaded:', pluginMap);
 
-      return pluginModules;
+      return pluginMap;
     } catch (e) {
       log.error('Unable to load plugins:', e);
       return [];

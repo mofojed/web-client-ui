@@ -12,6 +12,7 @@ import {
   SET_FILE_STORAGE,
 } from './actionTypes';
 import type {
+  DeephavenPluginModuleMap,
   RootState,
   User,
   Workspace,
@@ -112,9 +113,7 @@ export const setActiveTool: PayloadActionCreator<string> = payload => ({
   payload,
 });
 
-export type DeephavenPlugin = unknown;
-
-export const setPlugins: PayloadActionCreator<DeephavenPlugin[]> = plugins => ({
+export const setPlugins: PayloadActionCreator<DeephavenPluginModuleMap> = plugins => ({
   type: SET_PLUGINS,
   payload: plugins,
 });

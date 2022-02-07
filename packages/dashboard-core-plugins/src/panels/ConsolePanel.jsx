@@ -6,20 +6,13 @@ import PropTypes from 'prop-types';
 import shortid from 'shortid';
 import debounce from 'lodash.debounce';
 import { connect } from 'react-redux';
-import { ChartModelFactory } from '@deephaven/chart';
 import { ThemeExport } from '@deephaven/components';
-import { Console, ConsoleConstants, ConsoleUtils } from '@deephaven/console';
+import { Console, ConsoleConstants } from '@deephaven/console';
 import { GLPropTypes, PanelEvent } from '@deephaven/dashboard';
-import { IrisGridModelFactory } from '@deephaven/iris-grid';
 import { PropTypes as APIPropTypes } from '@deephaven/jsapi-shim';
 import Log from '@deephaven/log';
 import { getCommandHistoryStorage, getTimeZone } from '@deephaven/redux';
-import {
-  ChartEvent,
-  ConsoleEvent,
-  IrisGridEvent,
-  PandasEvent,
-} from '../events';
+import { ConsoleEvent } from '../events';
 import './ConsolePanel.scss';
 import Panel from './Panel';
 import { getDashboardSessionWrapper } from '../redux';
@@ -158,17 +151,7 @@ class ConsolePanel extends PureComponent {
   handleOpenObject(object) {
     const { sessionWrapper } = this.props;
     const { session } = sessionWrapper;
-    const { type } = object;
-    if (ConsoleUtils.isTableType(type)) {
-      this.openTable(object, session);
-    } else if (ConsoleUtils.isFigureType(type)) {
-      this.openFigure(object, session);
-    } else if (ConsoleUtils.isPandas(type)) {
-      this.openPandas(object, session);
-    } else {
-      // Assume everything else is a widget
-      this.openWidget(object, session);
-    }
+    this.openWidget(object, session);
   }
 
   handleCloseObject(object) {
@@ -187,49 +170,10 @@ class ConsolePanel extends PureComponent {
     glEventHub.emit(ConsoleEvent.SETTINGS_CHANGED, consoleSettings);
   }
 
-  openTable(object, session) {
-    const { name } = object;
-    const id = this.getItemId(name);
-    const metadata = { table: name };
-    const { glEventHub } = this.props;
-    const makeModel = () =>
-      session
-        .getObject(object)
-        .then(table => IrisGridModelFactory.makeModel(table, true));
-
-    log.debug('openTable', id);
-
-    glEventHub.emit(IrisGridEvent.OPEN_GRID, name, makeModel, metadata, id);
-  }
-
-  openFigure(object, session) {
-    const { name } = object;
-    const id = this.getItemId(name);
-    const metadata = { figure: name };
-    const makeModel = () =>
-      session
-        .getObject(object)
-        .then(result => ChartModelFactory.makeModel(undefined, result));
-
-    const { glEventHub } = this.props;
-    glEventHub.emit(ChartEvent.OPEN, name, makeModel, metadata, id);
-  }
-
-  openPandas(object, session) {
-    const { name } = object;
-    const id = this.getItemId(name);
-    const metadata = { table: name };
-    const { glEventHub } = this.props;
-    const makeModel = () =>
-      session
-        .getObject(object)
-        .then(table => IrisGridModelFactory.makeModel(table, true));
-
-    log.debug('openPandas', id);
-
-    glEventHub.emit(PandasEvent.OPEN, name, makeModel, metadata, id);
-  }
-
+  /**
+   * @param {VariableDefinition} widget The widget to open
+   * @param {dh.Session} session The session object
+   */
   openWidget(widget, session) {
     const { glEventHub } = this.props;
     const { name } = widget;

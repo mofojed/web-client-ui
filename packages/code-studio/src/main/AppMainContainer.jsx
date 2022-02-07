@@ -17,6 +17,7 @@ import {
 import Dashboard, {
   DEFAULT_DASHBOARD_ID,
   getDashboardData,
+  PanelEvent,
   updateDashboardData as updateDashboardDataAction,
 } from '@deephaven/dashboard';
 import {
@@ -489,6 +490,7 @@ export class AppMainContainer extends Component {
     return {
       ...props,
       getDownloadWorker: DownloadServiceWorkerUtils.getServiceWorker,
+      loadPlugin: PluginUtils.loadComponentPlugin,
       localDashboardId: id,
       makeModel: () => createGridModel(session, props.metadata),
     };
@@ -508,53 +510,24 @@ export class AppMainContainer extends Component {
 
   /**
    * Open a widget up, using a drag event if specified.
-   * @param {WidgetDefinition} widget The widget to
+   * @param {VariableDefinition} widget The widget to
    * @param {DragEvent} dragEvent The mouse drag event that trigger it, undefined if it was not triggered by a drag
    */
   openWidget(widget, dragEvent) {
-    // TODO: This needs to check the list of plugins registered types and the types of panels that can show them
-    switch (widget.type) {
-      case dh.VariableType.TABLE: {
-        const metadata = { table: widget.name };
-        this.emitLayoutEvent(
-          IrisGridEvent.OPEN_GRID,
-          widget.name,
-          () => {
-            const { session } = this.props;
-            return createGridModel(session, metadata);
-          },
-          metadata,
-          shortid.generate(),
-          dragEvent
-        );
-        break;
-      }
-      case dh.VariableType.FIGURE: {
-        const metadata = { figure: widget.name };
-        this.emitLayoutEvent(
-          ChartEvent.OPEN,
-          widget.name,
-          () => {
-            const { session } = this.props;
-            return createChartModel(session, metadata);
-          },
-          metadata,
-          shortid.generate(),
-          dragEvent
-        );
-        break;
-      }
-      default:
-        log.error('Unexpected widget type', widget);
-    }
+    const { session } = this.props;
+    this.emitLayoutEvent(PanelEvent.OPEN, {
+      dragEvent,
+      fetch: () => session.getObject(widget),
+      widget,
+    });
   }
 
   getDashboardPlugins = memoize(plugins =>
-    plugins
-      .filter(pluginModule => pluginModule.DashboardPlugin)
-      .map(({ DashboardPlugin }) => (
-        <DashboardPlugin key={DashboardPlugin.name} />
-      ))
+    [...plugins.entries()]
+      .filter(([, { DashboardPlugin }]) => DashboardPlugin)
+      .map(([name, { DashboardPlugin }]) =>
+        DashboardPlugin ? <DashboardPlugin key={name} /> : null
+      )
   );
 
   render() {
@@ -660,7 +633,7 @@ export class AppMainContainer extends Component {
           <GridPlugin
             hydrate={this.hydrateGrid}
             getDownloadWorker={DownloadServiceWorkerUtils.getServiceWorker}
-            loadPlugin={PluginUtils.loadPlugin}
+            loadPlugin={PluginUtils.loadComponentPlugin}
           />
           <ChartPlugin hydrate={this.hydrateChart} />
           <ConsolePlugin />
@@ -717,7 +690,7 @@ AppMainContainer.propTypes = {
       links: PropTypes.arrayOf(PropTypes.shape({})),
     }),
   }).isRequired,
-  plugins: PropTypes.arrayOf(PropTypes.any).isRequired,
+  plugins: PropTypes.instanceOf(Map).isRequired,
 };
 
 const mapStateToProps = state => ({

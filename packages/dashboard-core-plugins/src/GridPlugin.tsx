@@ -3,10 +3,16 @@ import {
   DashboardPluginComponentProps,
   DashboardUtils,
   LayoutUtils,
+  PanelEvent,
   PanelHydrateFunction,
   useListener,
 } from '@deephaven/dashboard';
-import { IrisGridModel, IrisGridThemeType } from '@deephaven/iris-grid';
+import {
+  IrisGridModel,
+  IrisGridModelFactory,
+  IrisGridThemeType,
+} from '@deephaven/iris-grid';
+import { Table } from '@deephaven/jsapi-shim';
 import shortid from 'shortid';
 import { IrisGridPanel } from './panels';
 import { IrisGridEvent } from './events';
@@ -57,6 +63,38 @@ export const GridPlugin = ({
     [getDownloadWorker, id, layout, loadPlugin, theme]
   );
 
+  const handlePanelOpen = useCallback(
+    ({ dragEvent, fetch, panelId = shortid.generate(), widget }) => {
+      const { name, type } = widget;
+      if (type !== dh.VariableType.TABLE) {
+        return;
+      }
+
+      const metadata = { name, table: name };
+      const makeModel = () =>
+        fetch().then((table: Table) => IrisGridModelFactory.makeModel(table));
+      const config = {
+        type: 'react-component',
+        component: IrisGridPanel.COMPONENT,
+        props: {
+          getDownloadWorker,
+          loadPlugin,
+          localDashboardId: id,
+          id: panelId,
+          metadata,
+          makeModel,
+          theme,
+        },
+        title: name,
+        id: panelId,
+      };
+
+      const { root } = layout;
+      LayoutUtils.openComponent({ root, config, dragEvent });
+    },
+    [getDownloadWorker, id, layout, loadPlugin, theme]
+  );
+
   const handleClose = useCallback(
     (panelId: string) => {
       const config = { component: IrisGridPanel.COMPONENT, id: panelId };
@@ -77,6 +115,7 @@ export const GridPlugin = ({
 
   useListener(layout.eventHub, IrisGridEvent.OPEN_GRID, handleOpen);
   useListener(layout.eventHub, IrisGridEvent.CLOSE_GRID, handleClose);
+  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
 
   return <></>;
 };

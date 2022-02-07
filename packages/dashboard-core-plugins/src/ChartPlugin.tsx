@@ -1,15 +1,16 @@
-import React, { DragEvent, useCallback, useEffect } from 'react';
-import { ChartModel } from '@deephaven/chart';
+import React, { useCallback, useEffect } from 'react';
+import { ChartModelFactory } from '@deephaven/chart';
 import {
   DashboardPluginComponentProps,
   DashboardUtils,
   LayoutUtils,
+  PanelEvent,
   PanelHydrateFunction,
   useListener,
 } from '@deephaven/dashboard';
+import { Figure } from '@deephaven/jsapi-shim';
 import shortid from 'shortid';
 import { ChartPanel } from './panels';
-import { ChartEvent } from './events';
 
 export type ChartPluginComponentProps = DashboardPluginComponentProps & {
   hydrate: PanelHydrateFunction;
@@ -21,14 +22,18 @@ export const ChartPlugin = ({
   registerComponent,
   hydrate = DashboardUtils.hydrate,
 }: ChartPluginComponentProps): JSX.Element => {
-  const handleOpen = useCallback(
-    (
-      title: string,
-      makeModel: () => ChartModel,
-      metadata: Record<string, unknown> = {},
-      panelId = shortid.generate(),
-      dragEvent?: DragEvent
-    ) => {
+  const handlePanelOpen = useCallback(
+    ({ dragEvent, fetch, panelId = shortid.generate(), widget }) => {
+      const { name, type } = widget;
+      if (type !== dh.VariableType.FIGURE) {
+        return;
+      }
+
+      const metadata = { name, figure: name };
+      const makeModel = () =>
+        fetch().then((figure: Figure) =>
+          ChartModelFactory.makeModel(undefined, figure)
+        );
       const config = {
         type: 'react-component',
         component: ChartPanel.COMPONENT,
@@ -38,7 +43,7 @@ export const ChartPlugin = ({
           metadata,
           makeModel,
         },
-        title,
+        title: name,
         id: panelId,
       };
 
@@ -46,15 +51,6 @@ export const ChartPlugin = ({
       LayoutUtils.openComponent({ root, config, dragEvent });
     },
     [id, layout]
-  );
-
-  const handleClose = useCallback(
-    (panelId: string) => {
-      const config = { component: ChartPanel.COMPONENT, id: panelId };
-      const { root } = layout;
-      LayoutUtils.closeComponent(root, config);
-    },
-    [layout]
   );
 
   useEffect(() => {
@@ -66,8 +62,7 @@ export const ChartPlugin = ({
     };
   }, [hydrate, registerComponent]);
 
-  useListener(layout.eventHub, ChartEvent.OPEN, handleOpen);
-  useListener(layout.eventHub, ChartEvent.CLOSE, handleClose);
+  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
 
   return <></>;
 };

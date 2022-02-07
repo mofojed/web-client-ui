@@ -7,6 +7,12 @@ import rootMiddleware from './middleware';
 import reducers from './reducers';
 import reducerRegistry from './reducerRegistry';
 
+// A DeephavenPluginModule. This interface should have new fields added to it from different levels of plugins.
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface DeephavenPluginModule {}
+
+export type DeephavenPluginModuleMap = Map<string, DeephavenPluginModule>;
+
 export interface User {
   name: string;
   operateAs: string;
@@ -55,14 +61,9 @@ export interface WorkspaceStorage {
   save(workspace: Workspace): Promise<Workspace>;
 }
 
-export interface Plugin {
-  name: string;
-  AppPlugin?: unknown;
-}
-
 export type RootState = {
   activeTool: string;
-  plugins: Plugin[];
+  plugins: DeephavenPluginModuleMap;
   storage: Storage;
   user: User;
   workspace: Workspace;
