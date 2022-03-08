@@ -653,7 +653,7 @@ export class IrisGridPanel extends PureComponent {
     }
   }
 
-  setFilters({ quickFilters, advancedFilters }) {
+  setFilters({ quickFilters, advancedFilters, rollupConfig }) {
     const irisGrid = this.irisGrid.current;
     const { model, isDisconnected } = this.state;
     if (irisGrid != null && !isDisconnected) {
@@ -670,6 +670,7 @@ export class IrisGridPanel extends PureComponent {
           advancedFilters,
           formatter.timeZone
         ),
+        rollupConfig,
       });
     }
   }

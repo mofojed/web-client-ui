@@ -136,6 +136,7 @@ class FilterSetManagerPanel extends Component {
     const {
       advancedFilters: indexedAdvancedFilters = [],
       quickFilters: indexedQuickFilters = [],
+      rollupConfig = null,
     } = irisGridState ?? {};
     const dehydratedAdvancedFilters = IrisGridUtils.dehydrateAdvancedFilters(
       table.columns,
@@ -152,7 +153,7 @@ class FilterSetManagerPanel extends Component {
       table,
       dehydratedQuickFilters
     );
-    return { advancedFilters, quickFilters };
+    return { advancedFilters, quickFilters, rollupConfig };
   }
 
   handleGetFilterState() {
@@ -211,6 +212,7 @@ class FilterSetManagerPanel extends Component {
     const {
       advancedFilters: savedAdvancedFilters,
       quickFilters: savedQuickFilters,
+      rollupConfig,
     } = state;
     const { panelTableMap } = this.props;
     const panelId = LayoutUtils.getIdFromPanel(panel);
@@ -228,7 +230,7 @@ class FilterSetManagerPanel extends Component {
       table,
       savedAdvancedFilters
     );
-    panel.setFilters({ quickFilters, advancedFilters });
+    panel.setFilters({ quickFilters, advancedFilters, rollupConfig });
   }
 
   // eslint-disable-next-line class-methods-use-this

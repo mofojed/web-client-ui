@@ -1087,10 +1087,11 @@ export class IrisGrid extends Component {
     });
   }
 
-  setFilters({ quickFilters, advancedFilters }) {
+  setFilters({ quickFilters, advancedFilters, rollupConfig }) {
     this.setState({
       quickFilters,
       advancedFilters,
+      rollupConfig,
     });
   }
 
