@@ -7,7 +7,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/deephaven/web-client-ui.git",
+    "url": "https://github.com/mofojed/web-client-ui.git",
     "directory": "packages/file-explorer"
   },
   "source": "src/index.ts",

@@ -4,7 +4,7 @@ This guide will serve as a reference for contributing to the Deephaven.
 
 ## Getting the source
 
-Deephaven uses the [Forking Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow). In this workflow, the [deephaven/web-client-ui](https://github.com/deephaven/web-client-ui) repository contains a minimum number of branches, and development work happens in user-forked repositories.
+Deephaven uses the [Forking Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow). In this workflow, the [deephaven/web-client-ui](https://github.com/mofojed/web-client-ui) repository contains a minimum number of branches, and development work happens in user-forked repositories.
 
 To learn more see:
 
@@ -15,7 +15,7 @@ To learn more see:
 
 To get started quickly:
 
-1. Navigate to [https://github.com/deephaven/web-client-ui](https://github.com/deephaven/web-client-ui).
+1. Navigate to [https://github.com/mofojed/web-client-ui](https://github.com/mofojed/web-client-ui).
 2. Click `Fork` in the top right corner.
 3. `git clone git@github.com:<username>/web-client-ui.git`
 4. Commit changes to your own branches in your forked repository.
@@ -27,7 +27,7 @@ For details on working with git on GitHub, see:
 - [Troubleshooting cloning errors](https://docs.github.com/en/repositories/creating-and-managing-repositories/troubleshooting-cloning-errors)
 - [Pushing commits to a remote repository](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository)
 
-Forked repositories do not have access to the same tokens/secrets as the [deephaven/web-client-ui](https://github.com/deephaven/web-client-ui) repository, so GitHub actions will fail. To disable GitHub actions in your forked repository, go to "Actions" -> "Disable Actions" in your forked repository settings (`https://github.com/<username>/web-client-ui/settings/actions`).
+Forked repositories do not have access to the same tokens/secrets as the [deephaven/web-client-ui](https://github.com/mofojed/web-client-ui) repository, so GitHub actions will fail. To disable GitHub actions in your forked repository, go to "Actions" -> "Disable Actions" in your forked repository settings (`https://github.com/<username>/web-client-ui/settings/actions`).
 
 Over time, forks will get out of sync with the upstream repository. To stay up to date, either:
 
@@ -36,21 +36,20 @@ Over time, forks will get out of sync with the upstream repository. To stay up t
 
 ## Creating a Pull Request
 
-1) Follow the GitHub instructions for [Creating a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
+1. Follow the GitHub instructions for [Creating a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
    - Use `deephaven/web-client-ui` as the base repository.
    - Use your own fork, `<username>/web-client-ui` as the repository to push to.
-2) Fill in the information in the Pull Request:
+2. Fill in the information in the Pull Request:
    - If you know people who should be reviewers, add them as a reviewer
    - Add yourself as the Assignee
    - Select one label depending on the change type:
-      - `bug`: Fixing a bug in an existing feature
-      - `enhancement`: Adding a new feature
-      - `internal`: Changes to the project config or build
-      - `documentation`: Documentation change only
+     - `bug`: Fixing a bug in an existing feature
+     - `enhancement`: Adding a new feature
+     - `internal`: Changes to the project config or build
+     - `documentation`: Documentation change only
    - **Breaking Changes:** if your change breaks an existing API in such a way that users of the package affected will need to make some changes to migrate to the newer version, add the `breaking` label to the PR and include a section in the description saying `## Breaking Changes` and any migration instructions required.
    - [Link the PR](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) with any associated issues
-3) Submit the PR
-
+3. Submit the PR
 
 ## Deephaven Contributor License Agreement (CLA)
 
