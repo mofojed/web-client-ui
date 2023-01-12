@@ -760,10 +760,10 @@ export class AppMainContainer extends Component<
         tabIndex={-1}
       >
         <nav className="nav-container">
-          <div className="app-main-top-nav-menus my-test-class benign-css-class fdsafdsafsd">
+          <div className="app-main-top-nav-menus my-test-class benignfddd-css-class fdsafdsafsd">
             <img
               src={Logo}
-              alt="Deephaven Data Labsssserrer"
+              alt="Deephaven Data Lobes"
               width="115px"
               className="ml-1"
             />
