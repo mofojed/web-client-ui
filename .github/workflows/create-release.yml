@@ -24,9 +24,10 @@ jobs:
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
         run: npx lerna-changelog --next-version=${{ github.event.inputs.version }} > /tmp/changelog.md
-        # lerna version will bump the version, tag it and push the branch
+        # lerna version will bump the version, then we'll commit, add the tag, and push after
+        # lerna doesn't annotate the tag like we want by default
       - name: Bump version
-        run: npx lerna version ${{ github.event.inputs.version }} --yes
+        run: npx lerna version --no-git-tag-version --no-push ${{ github.event.inputs.version }} --yes
       - name: Push version bump
         run: |
           git commit -am "Version bump ${{ github.event.inputs.version }}"
