@@ -26,18 +26,8 @@ jobs:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
         run: npx lerna-changelog --next-version=${{ github.event.inputs.version }} > /tmp/changelog.md
       - name: Push version bump
-        # lerna version will bump the version, then we'll commit, add the tag, and push after
-        # lerna doesn't annotate the tag like we want by default
-        run: |
-          npx lerna version --no-git-tag-version --no-push ${{ github.event.inputs.version }} --yes
-          git commit -am "Version bump ${{ github.event.inputs.version }}"
-          git push
-      - name: Checkout the latest
-        uses: actions/checkout@v3
-      - name: Tag the latest
-        run: |
-          git tag --annotate ${{ github.event.inputs.version }} --file /tmp/changelog.md
-          git push
+        # lerna version will bump the version, tag it, and push
+        run: npx lerna version ${{ github.event.inputs.version }} --yes
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
