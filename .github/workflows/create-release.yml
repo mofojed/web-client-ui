@@ -31,6 +31,7 @@ jobs:
       - name: Push version bump
         run: |
           git commit -am "Version bump ${{ github.event.inputs.version }}"
+          git push
           git tag --annotate ${{ github.event.inputs.version }} --file /tmp/changelog.md
           git push
       - name: Create Release
