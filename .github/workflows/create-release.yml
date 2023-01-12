@@ -27,11 +27,11 @@ jobs:
         # lerna version will bump the version, then we'll commit, add the tag, and push after
         # lerna doesn't annotate the tag like we want by default
       - name: Bump version
-        run: npx lerna version --no-git-tag-version --no-push ${{ github.event.inputs.version }} --yes
+        run: |
+          npx lerna version --no-git-tag-version --no-push ${{ github.event.inputs.version }} --yes
+          git commit -am "Version bump ${{ github.event.inputs.version }}"
       - name: Push version bump
         run: |
-          git commit -am "Version bump ${{ github.event.inputs.version }}"
-          git push
           git tag --annotate ${{ github.event.inputs.version }} --file /tmp/changelog.md
           git push
       - name: Create Release
