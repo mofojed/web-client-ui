@@ -815,7 +815,7 @@ export class AppMainContainer extends Component<
               )}
               <Button
                 kind="ghost"
-                className={classNames('btn-settings-menu', {
+                className={classNames('btn-settings-menu fdsaf dsa', {
                   'text-warning': user.operateAs !== user.name,
                 })}
                 onClick={this.handleSettingsMenuShow}
