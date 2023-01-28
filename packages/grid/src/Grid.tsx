@@ -792,7 +792,7 @@ class Grid extends PureComponent<GridProps, GridState> {
   updateCanvasScale(): void {
     const { canvas, canvasContext } = this;
     if (!canvas) throw new Error('canvas not set');
-    if (!canvasContext) throw new Error('canvasContext not set');
+    if (!canvasContext) throw new Error('canvasContext not seteeee');
     if (!canvas.parentElement) throw new Error('Canvas has no parent element');
 
     const scale = Grid.getScale(canvasContext);
