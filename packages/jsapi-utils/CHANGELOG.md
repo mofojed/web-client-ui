@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.35.0](https://github.com/deephaven/web-client-ui/compare/v0.27.0...v0.35.0) (2023-01-28)
+
+
+### Bug Fixes
+
+* TableUtils needed a fix ([e27a8da](https://github.com/deephaven/web-client-ui/commit/e27a8da62296f22872d56ac101068b73b776bee0))
+
+
+
+
+
 # [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
 
 **Note:** Version bump only for package @deephaven/jsapi-utils

@@ -3,6 +3,49 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.35.0](https://github.com/deephaven/web-client-ui/compare/v0.27.0...v0.35.0) (2023-01-28)
+
+
+### Bug Fixes
+
+* **embed-grid,embed-chart:** Changing up the embedded grid stuff ([fab5418](https://github.com/deephaven/web-client-ui/commit/fab5418e533dc4674fda36265fec0a1ff1383ce8))
+* Fixing up the app a bit ([7b5c172](https://github.com/deephaven/web-client-ui/commit/7b5c17294ebb1f2d71217a51a76a7f7daf086271))
+* **iris-grid:** Trying out a scoped fix ([05d9dbb](https://github.com/deephaven/web-client-ui/commit/05d9dbbaec402f32f16806d734e440d92f146de0))
+* TableUtils needed a fix ([e27a8da](https://github.com/deephaven/web-client-ui/commit/e27a8da62296f22872d56ac101068b73b776bee0))
+* testing a patch example ([3c7695d](https://github.com/deephaven/web-client-ui/commit/3c7695d8434b5d370f4e0d6e54c6462b3d29135b))
+* Testing AppMainContainer link to PR ([#1015](https://github.com/deephaven/web-client-ui/issues/1015)) ([15f36c6](https://github.com/deephaven/web-client-ui/commit/15f36c60f07a488ff72d51f27e45a3740e15784c))
+* The class in the iris-grid was broken ([b9d60b7](https://github.com/deephaven/web-client-ui/commit/b9d60b7c2cfb7c215bc723124a036cbe9986e658))
+* Try a breaking fix?? ([b1758b3](https://github.com/deephaven/web-client-ui/commit/b1758b3012f4f0ab6549bf165364c9e7e8dcd199))
+
+
+* feat(chart)!: Testing a breaking charting change ([c30c1e2](https://github.com/deephaven/web-client-ui/commit/c30c1e25de7d81ce549ca8dcbbdc7612aca7deef))
+
+
+### Features
+
+* **jsapi-shim:** Break the JS API ([eb2c638](https://github.com/deephaven/web-client-ui/commit/eb2c6387483c986addf63c339dfcb99227df61a8))
+* **jsapi:** Needed to update some stuff ([0d1386d](https://github.com/deephaven/web-client-ui/commit/0d1386d913a4b0335512d121bfe3a2314a56f15f))
+* Some appMainContainer changes ([877ed7f](https://github.com/deephaven/web-client-ui/commit/877ed7fbbb8616faa3872e1c2994d57a7142b582))
+* test feat in grid package to see what lerna does ([29b8f6c](https://github.com/deephaven/web-client-ui/commit/29b8f6c4e6cb4357c51ea5b61529bd56ccf482f4))
+* this should be a breaking change ([4b64d4d](https://github.com/deephaven/web-client-ui/commit/4b64d4dd94227ff7653236a79c6c90fec0c68e8e))
+* Updating chart to be sweet ([cddb3e0](https://github.com/deephaven/web-client-ui/commit/cddb3e0619ed855b3cf8d6ac7e4b41fa629c3c6f))
+* Updating the API ([6195566](https://github.com/deephaven/web-client-ui/commit/6195566be5939790342a1b172d729df24120d2be))
+
+
+### BREAKING CHANGES
+
+* **jsapi-shim:** I just broke the API.
+* Grid is borked
+* This change is super breaking and you'll ned to migrat
+- Some more info after the breaking change
+- Whatever
+* this messages with the API
+* There's like an new class
+
+
+
+
+
 # [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
 
 

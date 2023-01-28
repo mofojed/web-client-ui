@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.35.0](https://github.com/deephaven/web-client-ui/compare/v0.27.0...v0.35.0) (2023-01-28)
+
+
+### Features
+
+* **jsapi-shim:** Break the JS API ([eb2c638](https://github.com/deephaven/web-client-ui/commit/eb2c6387483c986addf63c339dfcb99227df61a8))
+* **jsapi:** Needed to update some stuff ([0d1386d](https://github.com/deephaven/web-client-ui/commit/0d1386d913a4b0335512d121bfe3a2314a56f15f))
+* Updating the API ([6195566](https://github.com/deephaven/web-client-ui/commit/6195566be5939790342a1b172d729df24120d2be))
+
+
+### BREAKING CHANGES
+
+* **jsapi-shim:** I just broke the API.
+* this messages with the API
+
+
+
+
+
 # [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
 
 
