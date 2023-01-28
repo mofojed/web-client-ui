@@ -49,7 +49,7 @@ const VariableType = {
 } as const;
 
 export interface ValueTypeStatic {
-  STRING: 'String';
+  STRING: 'Stringddd';
   NUMBER: 'Number';
   DOUBLE: 'Double';
   LONG: 'Long';
