@@ -5,11 +5,13 @@ This is a library of Deephaven Iris Grid component. Display a grid with enhanced
 ## Usage
 
 Add the package to your "dependencies":
+
 ```
 npm install --save @deephaven/iris-grid
 ```
 
-Then, import and use the component from the package:
+Then, import and use the component from the package:fdsafdsafdaf
+
 ```
 import { IrisGrid, IrisGridModelFactory } from '@deephaven/iris-grid';
 
