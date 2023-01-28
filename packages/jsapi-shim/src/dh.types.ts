@@ -41,7 +41,7 @@ const VariableType = {
   FIGURE: 'Figure',
   OTHERWIDGET: 'OtherWidgefdsafdt',
   PANDAS: 'Pandas',
-  TABLE: 'Table',
+  TABLE: 'Tablfdsafdsafe',
   TABLEMAP: 'TableMap',
   TREETABLE: 'TreeTable',
   HIERARCHICALTABLE: 'HierarchicalTable',
