@@ -825,7 +825,6 @@ export class AppMainContainer extends Component<
                     transform="grow-3 right-1 down-1"
                   />
                 }
-                tooltip="User Settings are wicked"
               />
             </div>
           </div>
