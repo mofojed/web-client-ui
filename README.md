@@ -74,23 +74,37 @@ Support is best for [Google Chrome](https://www.google.com/intl/en_ca/chrome/) a
 
 If you encounter an issue specific to a browser, check that your browser is up to date, then check issues labeled with [firefox](https://github.com/deephaven/web-client-ui/labels/firefox) or [safari](https://github.com/deephaven/web-client-ui/labels/safari) for a list of known browser compatibility issues before reporting the issue.
 
-## Releasing a New Version
+## WIP Releasing a New Version
 
-When releasing a new version, you need to commit a version bump, then tag and create the release. By creating the release, the [publish-packages action](.github/workflows/publish-packages.yml) will be triggered, and will automatically publish the packages. Some of these steps below also make use of the [GitHub CLI](https://github.com/cli/cli)
+I'm trying to use conventional commits and `lerna` to automatically do the version bump and create release notes. The command that I am running to test:
 
-1. Bump the version:
-   - Run `npm run version-bump`. Select the type of version bump ([patch, minor, or major version](https://semver.org/)). Remember the version for the next steps, and fill it in instead of `<version>` (should be in semver format with `v` prefix, e.g. `v0.7.1`).
-   - Commit your changes. `git commit --all --message="Version Bump <version>"`
-   - Create a pull request. `gh pr create --fill --web`
-   - Approve the pull request and merge to `main`.
-2. Generate the changelog:
-   - Generate a [GitHub Personal access token](https://github.com/settings/tokens) with the `public_repo` scope. Copy this token and replace `<token>` with it below.
-   - Generate the changelog: `GITHUB_AUTH=<token> npm run changelog --silent -- --next-version=<version> > /tmp/changelog_<version>.md`
-3. Create the tag. Use the command line to create an annotated tag (lightweight tags will not work correctly with lerna-changelog): `git tag --annotate <version> --file /tmp/changelog_<version>.md`
-4. Push the tag: `git push origin <version>`
-5. Create the release: `gh release create <version> --notes-file /tmp/changelog_<version>.md --title <version>`
+```
+npx lerna version --conventional-commits --no-push --yes
+```
 
-After the release is created, you can go to the [actions page](https://github.com/deephaven/web-client-ui/actions) to see the publish action being kicked off.
+(I'm just using `no-push` so I don't pollute GitHub).
+
+Some things I'm noticing:
+
+- The changelogs generated do not automatically separate the changes by package. You can manually enter a scope, but it is nice that `lerna-changelog` does it automatically
+- Using the notation `feat!:` (exclamation mark to mark a breaking change) does not work. However, adding the footer `BREAKING CHANGE:` does work, and would force you to actually indicate why the change is breaking which is great.
+- Can default GitHub to `PR_BODY` for the squash commit message, which with validation for the PR title/body in a GitHub action would make it pretty easy
+  - Could require scope as well, but that kinda sucks to have to manually type the scope, and multiple scopes don't exactly look great.
+- You can use it to create a release automatically as well, I haven't tried that yet: https://github.com/lerna/lerna/tree/main/commands/version#--create-release-type
+  - I assume it would just create the release from what the changelog gets populated with so should be fine
+- It doesn't link back to the PR automatically
+
+PROS:
+
+- All from the commit history
+- Conventional Commit has wide adoption
+- Automatically does version bumping instead of the crap we need to do
+
+CONS:
+
+- Doesn't automatically scope by package
+- Doesn't link back to the PR (I don't think?)
+-
 
 ## Release Strategy
 
