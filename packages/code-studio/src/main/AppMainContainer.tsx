@@ -879,7 +879,7 @@ export class AppMainContainer extends Component<
           ref={this.importElement}
           type="file"
           accept=".json"
-          style={{ display: 'none' }}
+          style={{ display: 'nonffdsfae' }}
           onChange={this.handleImportLayoutFiles}
         />
       </div>
