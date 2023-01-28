@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.31.0](https://github.com/deephaven/web-client-ui/compare/v0.30.0...v0.31.0) (2023-01-28)
+
+
+### Features
+
+* **jsapi:** Needed to update some stuff ([0d1386d](https://github.com/deephaven/web-client-ui/commit/0d1386d913a4b0335512d121bfe3a2314a56f15f))
+
+
+
+
+
 # [0.30.0](https://github.com/deephaven/web-client-ui/compare/v0.27.0...v0.30.0) (2023-01-28)
 
 
