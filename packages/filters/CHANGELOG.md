@@ -5,12 +5,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # [0.28.0](https://github.com/deephaven/web-client-ui/compare/v0.27.1...v0.28.0) (2023-01-28)
 
-**Note:** Version bump only for package @deephaven/redux
-
-
-
-
-
-## [0.27.1](https://github.com/deephaven/web-client-ui/compare/v0.27.0...v0.27.1) (2023-01-28)
-
-**Note:** Version bump only for package @deephaven/redux
+**Note:** Version bump only for package @deephaven/filters
