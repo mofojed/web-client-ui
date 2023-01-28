@@ -4419,7 +4419,7 @@ export class IrisGrid extends Component<IrisGridProps, IrisGridState> {
         <CSSTransition
           in={isMenuShown}
           timeout={ThemeExport.transitionMidMs}
-          classNames="slide-left dddddd"
+          classNames="slide-left ddddddeee"
           onEntering={this.handleAnimationStart}
           onEntered={this.handleAnimationEnd}
           onExiting={this.handleAnimationStart}
