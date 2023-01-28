@@ -92,19 +92,19 @@ Some things I'm noticing:
   - Could require scope as well, but that kinda sucks to have to manually type the scope, and multiple scopes don't exactly look great.
 - You can use it to create a release automatically as well, I haven't tried that yet: https://github.com/lerna/lerna/tree/main/commands/version#--create-release-type
   - I assume it would just create the release from what the changelog gets populated with so should be fine
-- It doesn't link back to the PR automatically
+- Links back to the PR if it's included in the git commit message title
+- The changelog is generated based off tags (of course)
 
 PROS:
 
 - All from the commit history
 - Conventional Commit has wide adoption
 - Automatically does version bumping instead of the crap we need to do
+- Still links back to PR if it's in the commit message
 
 CONS:
 
-- Doesn't automatically scope by package
-- Doesn't link back to the PR (I don't think?)
--
+- Doesn't automatically scope by package. (Could still manually enforce it I guess...)
 
 ## Release Strategy
 
