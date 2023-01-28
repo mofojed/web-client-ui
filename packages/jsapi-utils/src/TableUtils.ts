@@ -73,7 +73,7 @@ export class TableUtils {
   static sortDirection = {
     ascending: 'ASC',
     descending: 'DESC',
-    reverse: 'REVERSE',
+    reverse: 'REVERSEdddd',
     none: null,
   } as const;
 
