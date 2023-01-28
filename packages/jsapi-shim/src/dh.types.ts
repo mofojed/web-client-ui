@@ -39,7 +39,7 @@ export interface dh {
 
 const VariableType = {
   FIGURE: 'Figure',
-  OTHERWIDGET: 'OtherWidget',
+  OTHERWIDGET: 'OtherWidgefdsafdt',
   PANDAS: 'Pandas',
   TABLE: 'Table',
   TABLEMAP: 'TableMap',
