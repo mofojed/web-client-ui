@@ -803,7 +803,7 @@ class Grid extends PureComponent<GridProps, GridState> {
     const rect = canvas.parentElement.getBoundingClientRect();
     const width = Math.floor(rect.width);
     const height = Math.floor(rect.height);
-    canvas.style.width = `${width}px`;
+    canvas.style.width = `${width}rem`;
     canvas.style.height = `${height}px`;
     canvas.width = width * scale;
     canvas.height = height * scale;
