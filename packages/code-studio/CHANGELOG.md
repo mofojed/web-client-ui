@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
+
+
+### Bug Fixes
+
+* Fixing up the app a bit ([7b5c172](https://github.com/deephaven/web-client-ui/commit/7b5c17294ebb1f2d71217a51a76a7f7daf086271))
+
+
+
+
+
 ## [0.33.1](https://github.com/deephaven/web-client-ui/compare/v0.33.0...v0.33.1) (2023-01-28)
 
 **Note:** Version bump only for package @deephaven/code-studio

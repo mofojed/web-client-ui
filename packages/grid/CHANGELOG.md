@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
+
+
+### Bug Fixes
+
+* Try a breaking fix?? ([b1758b3](https://github.com/deephaven/web-client-ui/commit/b1758b3012f4f0ab6549bf165364c9e7e8dcd199))
+
+
+### BREAKING CHANGES
+
+* Grid is borked
+
+
+
+
+
 # [0.33.0](https://github.com/deephaven/web-client-ui/compare/v0.32.0...v0.33.0) (2023-01-28)
 
 **Note:** Version bump only for package @deephaven/grid

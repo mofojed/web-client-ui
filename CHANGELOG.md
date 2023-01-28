@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.34.0](https://github.com/deephaven/web-client-ui/compare/v0.33.1...v0.34.0) (2023-01-28)
+
+
+### Bug Fixes
+
+* **embed-grid,embed-chart:** Changing up the embedded grid stuff ([fab5418](https://github.com/deephaven/web-client-ui/commit/fab5418e533dc4674fda36265fec0a1ff1383ce8))
+* Fixing up the app a bit ([7b5c172](https://github.com/deephaven/web-client-ui/commit/7b5c17294ebb1f2d71217a51a76a7f7daf086271))
+* Try a breaking fix?? ([b1758b3](https://github.com/deephaven/web-client-ui/commit/b1758b3012f4f0ab6549bf165364c9e7e8dcd199))
+
+
+### Features
+
+* **jsapi-shim:** Break the JS API ([eb2c638](https://github.com/deephaven/web-client-ui/commit/eb2c6387483c986addf63c339dfcb99227df61a8))
+
+
+### BREAKING CHANGES
+
+* **jsapi-shim:** I just broke the API.
+* Grid is borked
+
+
+
+
+
 ## [0.33.1](https://github.com/deephaven/web-client-ui/compare/v0.33.0...v0.33.1) (2023-01-28)
 
 **Note:** Version bump only for package @deephaven/web-client-ui
