@@ -8,6 +8,7 @@ To start the Code Studio, run `npm install` and `npm start` in the root director
 
 ## Project Settings
 
+Updating readme for the child project.
 Project specific settings are stored in the `.env` file. There is also an `.env.development` file which is only
 loaded in development builds, and `.env.development.local` which is only for local builds. For local development,
 you should be modifying `.env.development.local`.
