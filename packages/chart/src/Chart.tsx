@@ -552,7 +552,10 @@ export class Chart extends Component<ChartProps, ChartState> {
     );
     const isPlotShown = data != null;
     return (
-      <div className="h-100 w-100 chart-wrapper" ref={this.plotWrapper}>
+      <div
+        className="h-100 w-100 chart-wrapper another class"
+        ref={this.plotWrapper}
+      >
         {isPlotShown && (
           <Plot
             ref={this.plot}
