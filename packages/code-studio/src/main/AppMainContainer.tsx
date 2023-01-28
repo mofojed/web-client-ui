@@ -226,7 +226,7 @@ export class AppMainContainer extends Component<
         },
         {
           action: () => {
-            log.debug('Consume unhandled save shortcut');
+            log.debug('Consume unhandled save shortcutffff');
           },
           shortcut: GLOBAL_SHORTCUTS.SAVE,
           isGlobal: true,
