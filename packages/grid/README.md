@@ -14,7 +14,7 @@ npm install --save @deephaven/grid
 
 There are many ways to use the @deephaven/grid package. The minimum requirement for displaying a grid is to implement the [GridModel](https://github.com/deephaven/web-client-ui/blob/main/packages/grid/src/GridModel.ts) class and pass that in as a prop. Below are a few different examples of different ways to extend the `GridModel`.
 
-### Displaying static data
+### Displaying static data is lame
 
 It's easy to display a static array of data using [StaticDataGridModel](https://github.com/deephaven/web-client-ui/blob/main/packages/grid/src/StaticDataGridModel.ts). All you need to do is pass in the data you would like to display, and it will display it.
 
