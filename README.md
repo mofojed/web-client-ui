@@ -2,11 +2,11 @@
 
 We're using a monorepo to manage our packages, as it becomes cumbersome to manage the overhead of multiple separate repos for each package. Using [lerna](https://github.com/lerna/lerna) to manage all of our packages in one repo simplifies the process.
 
-[![codecov](https://codecov.io/gh/deephaven/web-client-ui/branch/main/graph/badge.svg?token=RW29S9X72C)](https://codecov.io/gh/deephaven/web-client-ui)
+[![codecov](https://codecov.io/gh/mofojed/web-client-ui/branch/main/graph/badge.svg?token=RW29S9X72C)](https://codecov.io/gh/mofojed/web-client-ui)
 
 ## Development Environment
 
-We recommend using [Visual Studio Code](https://code.visualstudio.com/) and installing the [recommended workspace extensions](https://github.com/deephaven/web-client-ui/blob/main/.vscode/extensions.json) which VS Code will suggest when you open the repo or when you browse the extensions panel. There are a few [workspace settings](https://github.com/deephaven/web-client-ui/tree/main/.vscode) configured with the repo.
+We recommend using [Visual Studio Code](https://code.visualstudio.com/) and installing the [recommended workspace extensions](https://github.com/mofojed/web-client-ui/blob/main/.vscode/extensions.json) which VS Code will suggest when you open the repo or when you browse the extensions panel. There are a few [workspace settings](https://github.com/mofojed/web-client-ui/tree/main/.vscode) configured with the repo.
 
 Use Chrome for debugging, install the React and Redux extensions.
 
@@ -45,7 +45,7 @@ VITE_PROXY_URL=http://localhost:10000
 
 There are many packages located in the [packages](./packages) directory. A few of the more important ones are:
 
-- [@deephaven/code-studio](./packages/code-studio): Main web UI used with the [deephaven-core](https://github.com/deephaven/deephaven-core/) backend. This package is the main front-end application, and depends on almost all other packages in the repository. It is often the easiest way to see the effect of your changes by opening this application. Follow the instructions in the [code-studio README.md](https://github.com/deephaven/web-client-ui/blob/main/packages/code-studio/README.md) to get it started.
+- [@deephaven/code-studio](./packages/code-studio): Main web UI used with the [deephaven-core](https://github.com/deephaven/deephaven-core/) backend. This package is the main front-end application, and depends on almost all other packages in the repository. It is often the easiest way to see the effect of your changes by opening this application. Follow the instructions in the [code-studio README.md](https://github.com/mofojed/web-client-ui/blob/main/packages/code-studio/README.md) to get it started.
 - [@deephaven/components](./packages/components): Component library used within the web UI.
 - [@deephaven/grid](./packages/grid): High-performance grid component used to display large tables of data.
 - [@deephaven/dashboard](./packages/dashboard/): Dashboards used in [@deephaven/code-studio](./packages/code-studio) for displaying and organizing panels.
@@ -53,7 +53,7 @@ There are many packages located in the [packages](./packages) directory. A few o
 
 ## Contributing
 
-For details on how to contribute to this repository, please see the [contributing guidelines](https://github.com/deephaven/web-client-ui/blob/main/CONTRIBUTING.md).
+For details on how to contribute to this repository, please see the [contributing guidelines](https://github.com/mofojed/web-client-ui/blob/main/CONTRIBUTING.md).
 
 ## Creating a New Package
 
@@ -71,7 +71,7 @@ A component/library package that can be imported into other packages. Recommend 
 
 Support is best for [Google Chrome](https://www.google.com/intl/en_ca/chrome/) and Chromium based browsers (such as [Microsoft Edge based on Chromium](https://www.microsoft.com/en-us/edge)). We try and maintain compatibility with [Mozilla Firefox](https://www.mozilla.org/en-CA/firefox/new/) and [Apple Safari](https://www.apple.com/ca/safari/) as well.
 
-If you encounter an issue specific to a browser, check that your browser is up to date, then check issues labeled with [firefox](https://github.com/deephaven/web-client-ui/labels/firefox) or [safari](https://github.com/deephaven/web-client-ui/labels/safari) for a list of known browser compatibility issues before reporting the issue.
+If you encounter an issue specific to a browser, check that your browser is up to date, then check issues labeled with [firefox](https://github.com/mofojed/web-client-ui/labels/firefox) or [safari](https://github.com/mofojed/web-client-ui/labels/safari) for a list of known browser compatibility issues before reporting the issue.
 
 ## Releasing a New Version
 
@@ -80,7 +80,7 @@ We use [lerna](https://github.com/lerna/lerna) and [Conventional Commits](https:
 1. Generate a [GitHub Personal access token](https://github.com/settings/tokens) with the `public_repo` scope. Copy this token and replace `<token>` with it below.
 2. Bump the version, update the changelog, and create a release: `GH_TOKEN=<token> npm run version-bump`
 
-After the release is created, you can go to the [actions page](https://github.com/deephaven/web-client-ui/actions) to see the publish action being kicked off.
+After the release is created, you can go to the [actions page](https://github.com/mofojed/web-client-ui/actions) to see the publish action being kicked off.
 
 ## Release Strategy
 
@@ -88,7 +88,7 @@ All new changes (bug fixes, feature requests) are merged to `main` so they are a
 
 ### Stable Releases
 
-Stable releases are created periodically off of the `main` with the dist-tag `latest`. These will include an appropriate version bump and [release notes](https://github.com/deephaven/web-client-ui/releases), detailing the changes that are in that version.
+Stable releases are created periodically off of the `main` with the dist-tag `latest`. These will include an appropriate version bump and [release notes](https://github.com/mofojed/web-client-ui/releases), detailing the changes that are in that version.
 
 ### Nightly Releases
 
@@ -96,7 +96,7 @@ Nightly releases are published every night with the dist-tag `nightly` to npm. Y
 
 ### Hotfix Releases
 
-For Long Term Support releases, we create a new branch in Community matching the LTS version number (e.g. [v0.6](https://github.com/deephaven/web-client-ui/tree/v0.6)), then adding a matching [dist-tag](https://github.com/lerna/lerna/blob/main/commands/publish/README.md#--dist-tag-tag) to the [publish-packages.yml](.github/workflows/publish-packages.yml#L24) for that branch. Bug fixes/hotfixes are then either cherry-picked from `main` (if the fix has been merged to main), or directly merged into the hotfix branch (if code has changed in `main` and the fix only applies in the hotfix branch). Once the branch is pushed to origin, the publish step is kicked off by creating a release as instructed in the [Releasing a New Version](#releasing-a-new-version) section.
+For Long Term Support releases, we create a new branch in Community matching the LTS version number (e.g. [v0.6](https://github.com/mofojed/web-client-ui/tree/v0.6)), then adding a matching [dist-tag](https://github.com/lerna/lerna/blob/main/commands/publish/README.md#--dist-tag-tag) to the [publish-packages.yml](.github/workflows/publish-packages.yml#L24) for that branch. Bug fixes/hotfixes are then either cherry-picked from `main` (if the fix has been merged to main), or directly merged into the hotfix branch (if code has changed in `main` and the fix only applies in the hotfix branch). Once the branch is pushed to origin, the publish step is kicked off by creating a release as instructed in the [Releasing a New Version](#releasing-a-new-version) section.
 
 ## Analyzing Bundle Size
 

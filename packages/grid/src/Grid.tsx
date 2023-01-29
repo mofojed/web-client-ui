@@ -444,7 +444,7 @@ class Grid extends PureComponent<GridProps, GridState> {
     this.updateCanvas();
 
     // apply on mount, so that it works with a static model
-    // https://github.com/deephaven/web-client-ui/issues/581
+    // https://github.com/mofojed/web-client-ui/issues/581
     const { isStuckToBottom, isStuckToRight } = this.props;
     if (isStuckToBottom) {
       this.scrollToBottom();
