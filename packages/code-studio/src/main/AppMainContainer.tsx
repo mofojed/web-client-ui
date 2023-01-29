@@ -753,7 +753,7 @@ export class AppMainContainer extends Component<
     return (
       <div
         className={classNames(
-          'app-main-tabs',
+          'app-main-tabs ddddd',
           'w-100',
           'h-100',
           'd-flex',
