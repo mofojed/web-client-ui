@@ -1240,7 +1240,9 @@ export class IrisGridPanel extends PureComponent<
       columnHeaderGroups,
     } = this.state;
     const errorMessage =
-      error != null ? `Unable to open table. ${error}` : undefined;
+      error != null
+        ? `Unable to open table  it's bustedddd. ${error}`
+        : undefined;
     const { table: name } = metadata;
     const description = model?.description ?? undefined;
     const pluginState = panelState?.pluginState ?? null;
