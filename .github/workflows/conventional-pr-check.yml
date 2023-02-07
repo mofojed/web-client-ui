@@ -13,7 +13,8 @@ jobs:
     steps:
       - id: lint-pr-title
         run: |
-          if [[ "${{ github.event.pull_request.title }}" =~ "^(DH-[0-9]+): .*$" ]]; then
+          regex="^(DH-[0-9]+): .*$"
+          if [[ "${{ github.event.pull_request.title }}" =~ $regex ]]; then
               echo "jira_ticket=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
           else
               exit 1
@@ -27,6 +28,8 @@ jobs:
           header: pr-title-lint-error
           message: |
             Pull Request titles must follow have the format "DH-XXXXX: <title>" linking it to the JIRA ticket number.
+
+            Invalid PR title: ${{ github.event.pull_request.title }}
 
       # Delete a previous comment when the issue has been resolved
       - if: ${{ steps.lint-pr-title.outputs.jira_ticket != null }}
