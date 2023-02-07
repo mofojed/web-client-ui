@@ -1,6 +1,7 @@
 # Web Javascript packages
 
 PR needs to include JIRA ticket number in the title.
+Make sure it also fails correctly.
 
 We're using a monorepo to manage our packages, as it becomes cumbersome to manage the overhead of multiple separate repos for each package. Using [lerna](https://github.com/lerna/lerna) to manage all of our packages in one repo simplifies the process.
 
