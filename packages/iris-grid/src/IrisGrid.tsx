@@ -171,7 +171,6 @@ import {
   ColumnName,
   ReadonlyQuickFilterMap,
   ReadonlyAggregationMap,
-  ReadonlyOperationMap,
   Action,
   OptionItem,
   UITotalsTableConfig,
@@ -1192,7 +1191,7 @@ export class IrisGrid extends Component<IrisGridProps, IrisGridState> {
     (
       columns: readonly Column[],
       aggregations: readonly Aggregation[]
-    ): ReadonlyOperationMap => {
+    ): OperationMap => {
       const operationMap: OperationMap = {};
       aggregations
         .filter(
@@ -1206,7 +1205,7 @@ export class IrisGrid extends Component<IrisGridProps, IrisGridState> {
             invert
           ).forEach(name => {
             const newOperations = [...(operationMap[name] ?? []), operation];
-            operationMap[name] = Object.freeze(newOperations);
+            operationMap[name] = newOperations;
           });
         });
       return operationMap;
@@ -4107,7 +4106,9 @@ export class IrisGrid extends Component<IrisGridProps, IrisGridState> {
             const advancedFilter = advancedFilters.get(modelColumn);
             const { options: advancedFilterOptions } = advancedFilter || {};
             const sort = TableUtils.getSortForColumn(model.sort, modelColumn);
-            const sortDirection = sort ? sort.direction : null;
+            const sortDirection = sort
+              ? (sort.direction as SortDirection)
+              : null;
             const element = (
               <div
                 key={columnIndex}

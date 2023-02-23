@@ -5,7 +5,7 @@ import deepEqual from 'deep-equal';
 import memoize from 'memoizee';
 import { DashboardPanelProps, LayoutUtils } from '@deephaven/dashboard';
 import dh from '@deephaven/jsapi-shim';
-import type { Column, Row, Table, TableTemplate } from '@deephaven/jsapi-shim';
+import type { Column, Row, Table } from '@deephaven/jsapi-shim';
 import {
   DateTimeColumnFormatter,
   Formatter,
@@ -46,7 +46,7 @@ interface PanelState {
   timestamp?: number;
 }
 
-type PanelTableMap = Map<string | string[], TableTemplate>;
+type PanelTableMap = Map<string | string[], Table>;
 
 type StateProps = {
   columns: Column[];
@@ -103,7 +103,7 @@ export type DropdownFilterPanelProps = OwnProps &
 interface DropdownFilterPanelState {
   column?: DropdownFilterColumn;
   formatter: Formatter;
-  valuesTable?: TableTemplate;
+  valuesTable?: Table;
   valuesColumn?: Column;
   sourceSize: number;
   value: string;
@@ -349,7 +349,7 @@ export class DropdownFilterPanel extends Component<
 
   getCachedSourceTable = memoize(
     (
-      panelTableMap: Map<string | string[], TableTemplate<Table>>,
+      panelTableMap: Map<string | string[], Table>,
       source: LinkPoint | undefined
     ) => {
       log.debug('getCachedSourceTable', panelTableMap, source);
@@ -362,7 +362,7 @@ export class DropdownFilterPanel extends Component<
   );
 
   getCachedSourceColumn = memoize(
-    (table: TableTemplate, source: LinkPoint | undefined) => {
+    (table: Table, source: LinkPoint | undefined) => {
       log.debug('getCachedSourceColumn', table, source);
       if (table == null || source == null) {
         return null;
@@ -381,20 +381,17 @@ export class DropdownFilterPanel extends Component<
     return this.getCachedSource(panelLinks);
   }
 
-  getSourceTable(
-    panelTableMap: PanelTableMap,
-    links: Link[]
-  ): TableTemplate | null {
+  getSourceTable(panelTableMap: PanelTableMap, links: Link[]): Table | null {
     const source = this.getSource(links);
     return this.getCachedSourceTable(panelTableMap, source);
   }
 
-  getValuesColumn(valuesTable: TableTemplate, links: Link[]): Column | null {
+  getValuesColumn(valuesTable: Table, links: Link[]): Column | null {
     const source = this.getSource(links);
     return this.getCachedSourceColumn(valuesTable, source);
   }
 
-  startListeningToSource(sourceTable: TableTemplate): void {
+  startListeningToSource(sourceTable: Table): void {
     log.debug('startListeningToSource');
     sourceTable.addEventListener(
       dh.Table.EVENT_FILTERCHANGED,
@@ -418,7 +415,7 @@ export class DropdownFilterPanel extends Component<
     );
   }
 
-  stopListeningToSource(sourceTable: TableTemplate): void {
+  stopListeningToSource(sourceTable: Table): void {
     log.debug('stopListeningToSource');
     sourceTable.removeEventListener(
       dh.Table.EVENT_FILTERCHANGED,
@@ -649,7 +646,7 @@ export class DropdownFilterPanel extends Component<
     this.setViewport(valuesTable);
   }
 
-  updateViewportListener(valuesTable: TableTemplate): void {
+  updateViewportListener(valuesTable: Table): void {
     log.debug('updateViewportListener', valuesTable?.size);
 
     if (this.cleanup) {
@@ -669,7 +666,7 @@ export class DropdownFilterPanel extends Component<
     this.setViewport(valuesTable);
   }
 
-  setViewport(valuesTable: TableTemplate): void {
+  setViewport(valuesTable: Table): void {
     const { dashboardLinks } = this.props;
     const valuesColumn = this.getValuesColumn(valuesTable, dashboardLinks);
     if (!valuesColumn) {

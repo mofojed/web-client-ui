@@ -28,7 +28,7 @@ import {
 import dh, {
   FigureDescriptor,
   SeriesPlotStyle,
-  TableTemplate,
+  Table,
 } from '@deephaven/jsapi-shim';
 import { ThemeExport } from '@deephaven/components';
 import Log from '@deephaven/log';
@@ -138,7 +138,7 @@ export interface ChartPanelProps {
   links: Link[];
   localDashboardId: string;
   isLinkerActive: boolean;
-  source?: TableTemplate;
+  source?: Table;
   sourcePanel?: PanelComponent;
   columnSelectionValidator?: ColumnSelectionValidator;
   setActiveTool: (tool: string) => void;
@@ -456,7 +456,7 @@ export class ChartPanel extends Component<ChartPanelProps, ChartPanelState> {
       }))
   );
 
-  startListeningToSource(table: TableTemplate): void {
+  startListeningToSource(table: Table): void {
     log.debug('startListeningToSource', table);
 
     table.addEventListener(
@@ -473,7 +473,7 @@ export class ChartPanel extends Component<ChartPanelProps, ChartPanelState> {
     );
   }
 
-  stopListeningToSource(table: TableTemplate): void {
+  stopListeningToSource(table: Table): void {
     log.debug('stopListeningToSource', table);
 
     table.removeEventListener(

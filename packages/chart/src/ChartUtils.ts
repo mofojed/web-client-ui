@@ -18,7 +18,7 @@ import dh, {
   SeriesDataSource,
   SeriesPlotStyle,
   SourceType,
-  TableTemplate,
+  Table,
   TimeZone,
 } from '@deephaven/jsapi-shim';
 import set from 'lodash.set';
@@ -383,7 +383,7 @@ class ChartUtils {
   static getPlotlyDateFormat(
     formatter: Formatter | null,
     columnType: string,
-    formatPattern: string
+    formatPattern: string | undefined | null
   ): Partial<LayoutAxis> {
     const tickformat =
       formatPattern == null
@@ -446,9 +446,9 @@ class ChartUtils {
   static getPlotlyNumberFormat(
     formatter: Formatter | null,
     columnType: string,
-    formatPattern: string
+    formatPattern: string | undefined | null
   ): Partial<LayoutAxis> | null {
-    if (!formatPattern) {
+    if (formatPattern == null || formatPattern === '') {
       return null;
     }
 
@@ -556,7 +556,7 @@ class ChartUtils {
     isDateType: boolean
   ): Partial<PlotlyAxis> | null {
     const { gapBetweenMajorTicks } = axis;
-    if (gapBetweenMajorTicks > 0) {
+    if (gapBetweenMajorTicks != null && gapBetweenMajorTicks > 0) {
       const updatedFormat: Partial<PlotlyAxis> = axisFormat || {};
       let tickSpacing = gapBetweenMajorTicks;
       if (isDateType) {
@@ -1834,7 +1834,7 @@ class ChartUtils {
    */
   static makeFigureSettings(
     settings: ChartModelSettings,
-    table: TableTemplate
+    table: Table
   ): {
     charts: {
       chartType: string;
@@ -1846,7 +1846,7 @@ class ChartUtils {
           type: string;
           columnName: string;
           axis: { formatType: string; type: string; position: string };
-          table: TableTemplate;
+          table: Table;
         }[];
       }[];
     }[];

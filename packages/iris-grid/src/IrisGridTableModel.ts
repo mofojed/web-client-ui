@@ -109,8 +109,8 @@ class IrisGridTableModel extends IrisGridTableModelTemplate<Table, UIRow> {
     );
   }
 
-  get layoutHints(): LayoutHints {
-    return this.table.layoutHints;
+  get layoutHints(): LayoutHints | null {
+    return this.table.layoutHints ?? null;
   }
 
   get floatingLeftColumnCount(): number {
@@ -118,7 +118,7 @@ class IrisGridTableModel extends IrisGridTableModelTemplate<Table, UIRow> {
   }
 
   get description(): string {
-    return this.table.description;
+    return this.table.description ?? '';
   }
 
   get customColumns(): ColumnName[] {

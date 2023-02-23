@@ -870,11 +870,9 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
     });
   }
 
-  getObjects = memoize(
-    (objectMap: Map<string, VariableDefinition<VariableTypeUnion>>) => [
-      ...objectMap.values(),
-    ]
-  );
+  getObjects = memoize((objectMap: Map<string, VariableDefinition>) => [
+    ...objectMap.values(),
+  ]);
 
   getContextActions = memoize((actions: DropdownAction[]) => [
     ...actions,

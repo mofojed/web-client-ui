@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Minimum TypeScript Version: 4.3
 
 export interface IIterableResult<T> {
@@ -36,7 +37,7 @@ export namespace dh.storage {
 		get basename():string;
 		get size():number;
 		get etag():string;
-		get type():string;
+		get type():'file' | 'directory';
 		get dirname():string;
 	}
 
@@ -127,7 +128,14 @@ export namespace dh {
 		get areSavedLayoutsAllowed():boolean;
 		get frontColumns():string[];
 		get backColumns():string[];
+		get searchDisplayMode():string;
 	}
+
+	export class SearchDisplayMode {
+		static readonly SEARCH_DISPLAY_HIDE:string;
+		static readonly SEARCH_DISPLAY_SHOW:string;
+	}
+
 	export interface ViewportData extends TableData {
 		get offset():number;
 		get columns():Array<Column>;
@@ -173,7 +181,7 @@ export namespace dh {
 		get numberFormat():string;
 	}
 	export interface ColumnGroup {
-		color:string;
+		color?:string;
 		children:string[];
 		name:string;
 	}
@@ -203,8 +211,8 @@ export namespace dh {
 		findColumn(key:string):Column;
 		findColumns(keys:string[]):Column[];
 		close():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		applySort(sort:Sort[]):Array<Sort>;
 		applyCustomColumns(customColumns:object[]):Array<CustomColumn>;
 		applyFilter(filter:FilterCondition[]):Array<FilterCondition>;
@@ -215,7 +223,7 @@ export namespace dh {
 		get sort():Array<Sort>;
 		get customColumns():Array<CustomColumn>;
 	}
-	export interface TreeViewportData {
+	export interface TreeViewportData extends ViewportData {
 		get offset():number;
 		get columns():Array<Column>;
 		get rows():Array<TreeRow>;
@@ -250,10 +258,10 @@ export namespace dh {
 		snapshot(rows:RangeSet, columns:Column[]):Promise<TableData>;
 	}
 	export interface HasEventHandling {
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 	}
 	export interface Widget {
 		getDataAsBase64():string;
@@ -273,7 +281,7 @@ export namespace dh {
 		getData(index:object, column:Column):any;
 		getFormat(index:object, column:Column):Format;
 		get columns():Array<Column>;
-		get rows():Array<unknown>;
+		get rows():Array<Row>;
 	}
 	/**
 	* Javascript wrapper for {@link ColumnStatistics}
@@ -317,10 +325,10 @@ export namespace dh {
 		getMergedTable():Promise<Table>;
 		getKeys():Set<object>;
 		close():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get size():number;
 	}
 
@@ -439,11 +447,11 @@ export namespace dh {
 		* @deprecated
 		*/
 		static readonly SKIP:string;
-		showTotalsByDefault:boolean;
-		showGrandTotalsByDefault:boolean;
-		defaultOperation:AggregationOperationType;
+		showTotalsByDefault?:boolean;
+		showGrandTotalsByDefault?:boolean;
+		defaultOperation?:AggregationOperationType;
 		operationMap:{ [key: string]: Array<AggregationOperationType>; };
-		groupBy:Array<String>;
+		groupBy?:Array<String>;
 
 		constructor();
 
@@ -473,7 +481,7 @@ export namespace dh {
 		groupingColumns:Array<String>;
 		aggregations:{ [key: string]: Array<AggregationOperationType>; };
 		includeConstituents:boolean;
-		includeOriginalColumns:boolean;
+		includeOriginalColumns?:boolean;
 		includeDescriptions:boolean;
 
 		constructor();
@@ -505,7 +513,7 @@ export namespace dh {
 		getObject(definitionObject:dh.ide.VariableDefinition):Promise<any>;
 		subscribeToFieldUpdates(callback:(value:dh.ide.VariableChanges)=>void):()=>void;
 		disconnected():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
 		onLogMessage(callback:(value:dh.ide.LogItem)=>void):()=>void;
 		startSession(type:string):Promise<IdeSession>;
 		getConsoleTypes():Promise<Array<string>>;
@@ -559,12 +567,13 @@ export namespace dh {
 		getAttribute(attributeName:string):object;
 		applySort(sort:Sort[]):Array<Sort>;
 		applyFilter(filter:FilterCondition[]):Array<FilterCondition>;
-		applyCustomColumns(customColumns:object[]):Array<CustomColumn>;
+		applyCustomColumns(customColumns:(string|CustomColumn)[]):Array<CustomColumn>;
 		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|null|undefined, updateIntervalMs?:number|null|undefined):TableViewportSubscription;
 		getViewportData():Promise<TableData>;
 		subscribe(columns:Array<Column>, updateIntervalMs?:number):TableSubscription;
 		selectDistinct(columns:Column[]):Promise<Table>;
-		copy(resolved:boolean):Promise<Table>;
+		getColumnStatistics(column:Column):Promise<ColumnStatistics>;
+		copy(resolved?:boolean):Promise<Table>;
 		rollup(configObject:RollupConfig):Promise<TreeTable>;
 		treeTable(configObject:TreeTableConfig):Promise<TreeTable>;
 		freeze():Promise<Table>;
@@ -592,12 +601,13 @@ export namespace dh {
 		* @param isBackwards Optional value to seek backwards through the table instead of forwards. Defaults to `false`.
 		* @return A promise that resolves to the row value found.
 		*/
-		seekRow(startingRow:number, column:Column, valueType:ValueTypeType, seekValue:object, insensitive?:boolean|null|undefined, contains?:boolean|null|undefined, isBackwards?:boolean|null|undefined):Promise<number>;
+		seekRow(startingRow:number, column:Column, valueType:ValueTypeType, seekValue:unknown, insensitive?:boolean|null|undefined, contains?:boolean|null|undefined, isBackwards?:boolean|null|undefined):Promise<number>;
+		getTotalsTable(config?:TotalsTableConfig):TotalsTable;
 		toString():string;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get hasInputTable():boolean;
 		get columns():Array<Column>;
 		get description():string|null|undefined;
@@ -652,6 +662,17 @@ export namespace dh {
 		get code():string;
 	}
 
+	export class Client {
+		static readonly EVENT_REQUEST_FAILED:string;
+		static readonly EVENT_REQUEST_STARTED:string;
+		static readonly EVENT_REQUEST_SUCCEEDED:string;
+	}
+
+	export interface LoginOptions {
+		type: string;
+		token?: string;
+	}
+
 	export class CoreClient implements HasEventHandling {
 		static readonly EVENT_CONNECT:string;
 		static readonly EVENT_DISCONNECT:string;
@@ -669,18 +690,18 @@ export namespace dh {
 		running():Promise<CoreClient>;
 		getServerUrl():string;
 		getAuthConfigValues():Promise<Array<Array<string>>>;
-		login(credentials:Object):Promise<void>;
+		login(credentials:LoginOptions):Promise<void>;
 		relogin(token:RefreshToken):Promise<void>;
 		onConnected(timeoutInMillis?:number):Promise<void>;
-		getServerConfigValues():Promise<Array<Array<string>>>;
+		getServerConfigValues():Promise<Array<[string, string]>>;
 		getUserInfo():Promise<unknown>;
 		getStorageService():dh.storage.StorageService;
 		getAsIdeConnection():Promise<IdeConnection>;
 		disconnect():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 	}
 
 	export class QueryInfo {
@@ -706,15 +727,16 @@ export namespace dh {
 		protected constructor();
 
 		close():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get columns():Array<Column>;
 	}
 
 	export class Column {
 		protected constructor();
+		static formatRowColor(expression:string):CustomColumn;
 
 		get(row:Row):any;
 		getFormat(row:Row):Format;
@@ -761,9 +783,9 @@ export namespace dh {
 		isNull():FilterCondition;
 		invoke(method:string, ...args:FilterValue[]):FilterCondition;
 		toString():string;
-		static ofString(input:object):FilterValue;
-		static ofNumber(input:object):FilterValue;
-		static ofBoolean(b:boolean):FilterValue;
+		static ofString(input:unknown):FilterValue;
+		static ofNumber(input:unknown):FilterValue;
+		static ofBoolean(b:unknown):FilterValue;
 	}
 
 	export class IdeSession implements HasEventHandling {
@@ -790,10 +812,10 @@ export namespace dh {
 		closeDocument(params:object):void;
 		emptyTable(size:number):Promise<Table>;
 		timeTable(periodNanos:number, startTime?:DateWrapper):Promise<Table>;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 	}
 
 	/**
@@ -807,7 +829,7 @@ export namespace dh {
 	*
 	* The table size will be -1 until a viewport has been fetched.
 	*/
-	export class TreeTable implements HasEventHandling {
+	export class TreeTable extends Table implements HasEventHandling {
 		static readonly EVENT_UPDATED:string;
 		static readonly EVENT_DISCONNECT:string;
 		static readonly EVENT_RECONNECT:string;
@@ -818,11 +840,11 @@ export namespace dh {
 
 		expand(row:object, expandDescendants?:boolean):void;
 		collapse(row:object):void;
-		setExpanded(row:object, isExpanded:boolean, expandDescendants?:boolean):void;
+		setExpanded(row:number|object, isExpanded:boolean, expandDescendants?:boolean):void;
 		expandAll():void;
 		collapseAll():void;
 		isExpanded(row:object):boolean;
-		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|null|undefined, updateInterval?:number|null|undefined):void;
+		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|null|undefined, updateInterval?:number|null|undefined):TableViewportSubscription;
 		getViewportData():Promise<TreeViewportData>;
 		close():void;
 		applySort(sort:Sort[]):Array<Sort>;
@@ -842,10 +864,10 @@ export namespace dh {
 		*/
 		selectDistinct(columns:Column[]):Promise<Table>;
 		copy():Promise<TreeTable>;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get filter():Array<FilterCondition>;
 		get includeConstituents():boolean;
 		get groupedColumns():Array<Column>;
@@ -919,13 +941,13 @@ export namespace dh.ide {
 		get error():string;
 	}
 	export interface VariableDefinition {
-		get name():string;
-		get description():string;
-		get id():string;
-		get type():string;
-		get title():string;
-		get applicationId():string;
-		get applicationName():string;
+		name?:string;
+		description?:string;
+		id?:string;
+		type:string;
+		title?:string;
+		applicationId?:string;
+		applicationName?:string;
 	}
 }
 
@@ -944,7 +966,7 @@ export namespace dh.i18n {
 		constructor(pattern:string);
 
 		static getFormat(pattern:string):DateTimeFormat;
-		static format(pattern:string, date:object, timeZone?:TimeZone):string;
+		static format(pattern:string, date:object|number, timeZone?:TimeZone):string;
 		static parseAsDate(pattern:string, text:string):Date;
 		static parse(pattern:string, text:string, tz?:TimeZone):dh.DateWrapper;
 		format(date:object, timeZone?:TimeZone):string;
@@ -961,7 +983,7 @@ export namespace dh.i18n {
 
 		static getFormat(pattern:string):NumberFormat;
 		static parse(pattern:string, text:string):number;
-		static format(pattern:string, number:object):string;
+		static format(pattern:string, number:object|number):string;
 		parse(text:string):number;
 		format(number:object):string;
 		toString():string;
@@ -996,6 +1018,7 @@ export namespace dh.plot {
 		get name():string;
 		get multiSeries():MultiSeries;
 		get shapeLabel():string;
+		subscribe(): void;
 	}
 	export interface OneClick {
 		setValueForColumn(columnName:string, value:any):void;
@@ -1069,22 +1092,22 @@ export namespace dh.plot {
 		formatType:string;
 		type:string;
 		position:string;
-		log:boolean;
-		label:string;
-		labelFont:string;
-		ticksFont:string;
-		formatPattern:string;
-		color:string;
-		minRange:number;
-		maxRange:number;
-		minorTicksVisible:boolean;
-		majorTicksVisible:boolean;
-		minorTickCount:number;
-		gapBetweenMajorTicks:number;
-		majorTickLocations:Array<number>;
-		tickLabelAngle:number;
-		invert:boolean;
-		isTimeAxis:boolean;
+		log?:boolean;
+		label?:string;
+		labelFont?:string;
+		ticksFont?:string;
+		formatPattern?:string;
+		color?:string;
+		minRange?:number;
+		maxRange?:number;
+		minorTicksVisible?:boolean;
+		majorTicksVisible?:boolean;
+		minorTickCount?:number;
+		gapBetweenMajorTicks?:number;
+		majorTickLocations?:Array<number>;
+		tickLabelAngle?:number;
+		invert?:boolean;
+		isTimeAxis?:boolean;
 
 		constructor();
 	}
@@ -1094,10 +1117,10 @@ export namespace dh.plot {
 
 		protected constructor();
 
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get column():number;
 		get showLegend():boolean;
 		get axes():Axis[];
@@ -1118,17 +1141,17 @@ export namespace dh.plot {
 	export class SeriesDescriptor {
 		plotStyle:string;
 		name:string;
-		linesVisible:boolean;
-		shapesVisible:boolean;
-		gradientVisible:boolean;
-		lineColor:string;
-		pointLabelFormat:string;
-		xToolTipPattern:string;
-		yToolTipPattern:string;
-		shapeLabel:string;
-		shapeSize:number;
-		shapeColor:string;
-		shape:string;
+		linesVisible?:boolean;
+		shapesVisible?:boolean;
+		gradientVisible?:boolean;
+		lineColor?:string;
+		pointLabelFormat?:string;
+		xToolTipPattern?:string;
+		yToolTipPattern?:string;
+		shapeLabel?:string;
+		shapeSize?:number;
+		shapeColor?:string;
+		shape?:string;
 		dataSources:Array<SourceDescriptor>;
 
 		constructor();
@@ -1151,10 +1174,10 @@ export namespace dh.plot {
 		subscribe(forceDisableDownsample?:DownsampleOptions):void;
 		unsubscribe():void;
 		close():void;
-		addEventListener(name:string, callback:(e:Event)=>void):()=>void;
-		nextEvent(eventName:string, timeoutInMillis?:number):Promise<Event>;
+		addEventListener(name:string, callback:(e:CustomEvent)=>void):()=>void;
+		nextEvent(eventName:string, timeoutInMillis?:number):Promise<CustomEvent>;
 		hasListeners(name:string):boolean;
-		removeEventListener(name:string, callback:(e:Event)=>void):boolean;
+		removeEventListener(name:string, callback:(e:CustomEvent)=>void):boolean;
 		get charts():Chart[];
 		get updateInterval():number;
 		get titleColor():string;
@@ -1166,18 +1189,18 @@ export namespace dh.plot {
 	}
 
 	export class ChartDescriptor {
-		colspan:number;
-		rowspan:number;
+		colspan?:number;
+		rowspan?:number;
 		series:Array<SeriesDescriptor>;
 		axes:Array<AxisDescriptor>;
 		chartType:string;
-		title:string;
-		titleFont:string;
-		titleColor:string;
-		showLegend:boolean;
-		legendFont:string;
-		legendColor:string;
-		is3d:boolean;
+		title?:string;
+		titleFont?:string;
+		titleColor?:string;
+		showLegend?:boolean;
+		legendFont?:string;
+		legendColor?:string;
+		is3d?:boolean;
 
 		constructor();
 	}
@@ -1194,13 +1217,13 @@ export namespace dh.plot {
 	*/
 	export class FigureDescriptor {
 		title:string;
-		titleFont:string;
-		titleColor:string;
-		isResizable:boolean;
-		isDefaultTheme:boolean;
-		updateInterval:number;
-		cols:number;
-		rows:number;
+		titleFont?:string;
+		titleColor?:string;
+		isResizable?:boolean;
+		isDefaultTheme?:boolean;
+		updateInterval?:number;
+		cols?:number;
+		rows?:number;
 		charts:Array<ChartDescriptor>;
 
 		constructor();
@@ -1283,6 +1306,7 @@ export namespace dh.plot {
 		static readonly COLOR:SourceTypeType;
 		static readonly PARENT:SourceTypeType;
 		static readonly HOVER_TEXT:SourceTypeType;
+		static readonly TEXT:SourceTypeType;
 	}
 
 	type AxisPositionType = number;
@@ -1402,7 +1426,7 @@ export namespace dh.calendar {
 		get open():string;
 	}
 
-	type DayOfWeekType = String;
+	type DayOfWeekType = string;
 	export class DayOfWeek {
 		static readonly SUNDAY:DayOfWeekType;
 		static readonly MONDAY:DayOfWeekType;
@@ -1411,6 +1435,7 @@ export namespace dh.calendar {
 		static readonly THURSDAY:DayOfWeekType;
 		static readonly FRIDAY:DayOfWeekType;
 		static readonly SATURDAY:DayOfWeekType;
+		static readonly values():DayOfWeekType[];
 	}
 
 }

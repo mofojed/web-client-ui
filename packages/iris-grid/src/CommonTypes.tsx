@@ -21,7 +21,7 @@ export type ReadonlyQuickFilterMap = ReadonlyMap<ModelIndex, QuickFilter>;
 export type ReadonlyAggregationMap = Readonly<
   Record<AggregationOperation, readonly ColumnName[]>
 >;
-export type OperationMap = Record<ColumnName, readonly AggregationOperation[]>;
+export type OperationMap = Record<ColumnName, AggregationOperation[]>;
 export type ReadonlyOperationMap = Readonly<
   Record<ColumnName, readonly AggregationOperation[]>
 >;

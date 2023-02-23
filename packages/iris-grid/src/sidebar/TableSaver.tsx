@@ -6,7 +6,7 @@ import dh, {
   Table,
   TableData,
   TableViewportSubscription,
-  UpdateEventData,
+  SubscriptionTableData,
 } from '@deephaven/jsapi-shim';
 import Log from '@deephaven/log';
 import { GridRange, GridRangeIndex, memoizeClear } from '@deephaven/grid';
@@ -35,15 +35,17 @@ interface TableSaverProps {
   formatter: Formatter;
 }
 
-function isUpdateEventData(data: TableData): data is UpdateEventData {
-  return (data as UpdateEventData).added !== undefined;
+function isSubscriptionTableData(
+  data: TableData
+): data is SubscriptionTableData {
+  return (data as SubscriptionTableData).added !== undefined;
 }
 
-function assertIsUpdateEventData(
+function assertIsSubscriptionTableData(
   data: TableData
-): asserts data is UpdateEventData {
-  if (!isUpdateEventData(data)) {
-    throw new Error('event is not UpdateEventData');
+): asserts data is SubscriptionTableData {
+  if (!isSubscriptionTableData(data)) {
+    throw new Error('event is not SubscriptionTableData');
   }
 }
 
@@ -145,7 +147,7 @@ export default class TableSaver extends PureComponent<
 
   tableSubscription?: TableViewportSubscription;
 
-  columns?: readonly Column[];
+  columns?: Column[];
 
   fileName?: string;
 
@@ -167,7 +169,7 @@ export default class TableSaver extends PureComponent<
 
   snapshotCounter: number;
 
-  snapshotsBuffer: Map<number, UpdateEventData>;
+  snapshotsBuffer: Map<number, SubscriptionTableData>;
 
   currentSnapshotIndex: number;
 
@@ -519,7 +521,7 @@ export default class TableSaver extends PureComponent<
     }
   }
 
-  convertSnapshotIntoCsv(snapshot: UpdateEventData): string {
+  convertSnapshotIntoCsv(snapshot: SubscriptionTableData): string {
     let csvString = '';
     const snapshotIterator = snapshot.added.iterator();
     const { formatter } = this.props;
@@ -615,7 +617,7 @@ export default class TableSaver extends PureComponent<
               this.columns
             )
             .then(snapshot => {
-              assertIsUpdateEventData(snapshot);
+              assertIsSubscriptionTableData(snapshot);
               this.handleSnapshotResolved(
                 snapshot,
                 snapshotIndex,
@@ -679,7 +681,7 @@ export default class TableSaver extends PureComponent<
   }
 
   handleSnapshotResolved(
-    snapshot: UpdateEventData,
+    snapshot: SubscriptionTableData,
     snapshotIndex: number,
     snapshotStartRow: GridRangeIndex,
     snapshotEndRow: GridRangeIndex

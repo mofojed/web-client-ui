@@ -10,7 +10,7 @@ import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/code-studio');
 
-export const ApiContext = createContext<DhType | null>(null);
+export const ApiContext = createContext<typeof DhType | null>(null);
 
 export type ApiBootstrapProps = {
   apiUrl: string;
@@ -26,11 +26,12 @@ export function ApiBootstrap({
   setGlobally = false,
 }: ApiBootstrapProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [api, setApi] = useState<DhType>();
+  const [api, setApi] = useState<typeof DhType>();
   useEffect(() => {
     async function loadApi() {
       try {
-        const dh: DhType = (await import(/* @vite-ignore */ apiUrl)).default;
+        const dh: typeof DhType = (await import(/* @vite-ignore */ apiUrl))
+          .default;
         log.info('API bootstrapped from', apiUrl);
         setApi(dh);
         if (setGlobally) {

@@ -23,7 +23,6 @@ import dh, {
   Row,
   Sort,
   Table,
-  TableTemplate,
   TableViewportSubscription,
   TotalsTable,
   ValueTypeUnion,
@@ -71,7 +70,7 @@ export function isIrisGridTableModelTemplate(
  */
 
 class IrisGridTableModelTemplate<
-  T extends TableTemplate<T> = Table,
+  T extends Table = Table,
   R extends UIRow = UIRow
 > extends IrisGridModel {
   static ROW_BUFFER_PAGES = 1;

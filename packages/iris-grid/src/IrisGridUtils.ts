@@ -768,7 +768,7 @@ class IrisGridUtils {
       return {
         column: column.index,
         isAbs,
-        direction,
+        direction: direction as SortDirection,
       };
     });
   }

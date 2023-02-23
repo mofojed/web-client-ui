@@ -19,7 +19,7 @@ class ChartTestUtils {
     label = 'Axis',
     type = dh.plot.AxisType.X,
     position = dh.plot.AxisPosition.BOTTOM,
-    formatType = dh.Axis.FORMAT_TYPE_NUMBER,
+    formatType = 0,
     formatPattern = '###,###0.00',
     log = false,
   } = {}): Axis {

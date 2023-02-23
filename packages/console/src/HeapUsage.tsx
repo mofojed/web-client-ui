@@ -1,12 +1,12 @@
 import { Tooltip } from '@deephaven/components';
-import { QueryConnectable } from '@deephaven/jsapi-shim';
+import { IdeConnection } from '@deephaven/jsapi-shim';
 import React, { useEffect, useState, ReactElement, useRef } from 'react';
 import { Plot, ChartTheme } from '@deephaven/chart';
 import './HeapUsage.scss';
 import classNames from 'classnames';
 
 interface HeapUsageProps {
-  connection: QueryConnectable;
+  connection: IdeConnection;
   defaultUpdateInterval: number;
   hoverUpdateInterval: number;
   bgMonitoring?: boolean;
