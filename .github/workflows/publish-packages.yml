@@ -1,8 +1,9 @@
 name: Publish Packages
 on:
   workflow_dispatch:
-  release:
-    types: [created]
+  # TODO: RE-enable, just disabling for testing actions in my own fork
+  # release:
+  #   types: [created]
 jobs:
   publish-packages:
     runs-on: ubuntu-22.04
