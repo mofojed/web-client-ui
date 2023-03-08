@@ -829,7 +829,7 @@ export namespace dh {
 	*
 	* The table size will be -1 until a viewport has been fetched.
 	*/
-	export class TreeTable extends Table implements HasEventHandling {
+	export class TreeTable implements HasEventHandling {
 		static readonly EVENT_UPDATED:string;
 		static readonly EVENT_DISCONNECT:string;
 		static readonly EVENT_RECONNECT:string;

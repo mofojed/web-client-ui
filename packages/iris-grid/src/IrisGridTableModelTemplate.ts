@@ -25,6 +25,7 @@ import dh, {
   Table,
   TableViewportSubscription,
   TotalsTable,
+  TreeTable,
   ValueTypeUnion,
   ViewportData,
 } from '@deephaven/jsapi-shim';
@@ -65,12 +66,41 @@ export function isIrisGridTableModelTemplate(
   return (model as IrisGridTableModelTemplate).table !== undefined;
 }
 
+export type CommonTable = Pick<
+  Table,
+  | 'addEventListener'
+  | 'removeEventListener'
+  | 'applyFilter'
+  | 'applySort'
+  | 'close'
+  | 'filter'
+  | 'columns'
+  | 'size'
+  | 'setViewport'
+  | 'getViewportData'
+  | 'sort'
+  | 'findColumn'
+  | 'findColumns'
+  | 'selectDistinct'
+> &
+  Partial<Pick<Table, 'getTotalsTable'>> & { copy(): Promise<CommonTable> };
+
+export function isJsTable(table: CommonTable): table is Table {
+  // TODO: Check some other methods as well
+  return (table as Table)?.rollup !== undefined;
+}
+
+export function isTreeTable(table: CommonTable): table is TreeTable {
+  // TODO: Check some other methods as well
+  return (table as TreeTable)?.setExpanded !== undefined;
+}
+
 /**
  * Template model for a grid
  */
 
 class IrisGridTableModelTemplate<
-  T extends Table = Table,
+  T extends CommonTable = CommonTable,
   R extends UIRow = UIRow
 > extends IrisGridModel {
   static ROW_BUFFER_PAGES = 1;
@@ -1181,6 +1211,10 @@ class IrisGridTableModelTemplate<
     if (totalsConfig === this.totals) {
       // Totals already set, or it will be set when the next model actually gets set
       return;
+    }
+
+    if (this.table.getTotalsTable === undefined) {
+      throw new Error('Table type does not support getting totals');
     }
 
     this.totals = totalsConfig;

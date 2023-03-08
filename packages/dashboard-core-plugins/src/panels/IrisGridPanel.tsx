@@ -39,6 +39,7 @@ import {
   ChartBuilderSettings,
   DehydratedIrisGridState,
   ColumnHeaderGroup,
+  isJsTable,
 } from '@deephaven/iris-grid';
 import {
   AdvancedFilterOptions,
@@ -795,15 +796,17 @@ export class IrisGridPanel extends PureComponent<
 
     if (isIrisGridTableModelTemplate(model)) {
       const { table } = model;
-      const { pluginName } = table;
+      if (isJsTable(table)) {
+        const { pluginName } = table;
 
-      if (pluginName !== '') {
-        if (loadPlugin != null && pluginName != null) {
-          const Plugin = loadPlugin(pluginName);
-          this.setState({ Plugin });
+        if (pluginName !== '') {
+          if (loadPlugin != null && pluginName != null) {
+            const Plugin = loadPlugin(pluginName);
+            this.setState({ Plugin });
+          }
         }
+        glEventHub.emit(InputFilterEvent.TABLE_CHANGED, this, table);
       }
-      glEventHub.emit(InputFilterEvent.TABLE_CHANGED, this, table);
     }
 
     this.sendColumnsChange(model.columns);

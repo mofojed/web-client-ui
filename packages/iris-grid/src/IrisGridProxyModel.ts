@@ -37,7 +37,11 @@ import {
   UIRow,
   PendingDataErrorMap,
 } from './CommonTypes';
-import { isIrisGridTableModelTemplate } from './IrisGridTableModelTemplate';
+import {
+  CommonTable,
+  isIrisGridTableModelTemplate,
+  isJsTable,
+} from './IrisGridTableModelTemplate';
 import type ColumnHeaderGroup from './ColumnHeaderGroup';
 
 const log = Log.module('IrisGridProxyModel');
@@ -517,7 +521,8 @@ class IrisGridProxyModel extends IrisGridModel {
 
     if (
       isIrisGridTableModelTemplate(this.originalModel) &&
-      rollupConfig != null
+      rollupConfig != null &&
+      isJsTable(this.originalModel.table)
     ) {
       modelPromise = this.originalModel.table
         .rollup(rollupConfig)
@@ -564,7 +569,7 @@ class IrisGridProxyModel extends IrisGridModel {
     this.setNextModel(modelPromise);
   }
 
-  get table(): Table | TreeTable | undefined {
+  get table(): CommonTable | undefined {
     if (isIrisGridTableModelTemplate(this.model)) {
       return this.model.table;
     }
