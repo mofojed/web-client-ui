@@ -1,6 +1,13 @@
 import React, { ForwardRefExoticComponent } from 'react';
 import Log from '@deephaven/log';
-import RemoteComponent from './RemoteComponent';
+// @ts-ignore
+import { createRemoteComponent } from '@paciolan/remote-component/dist/lib/createRemoteComponent';
+// @ts-ignore
+import { createRequires } from '@paciolan/remote-component/dist/lib/createRequires';
+// @ts-ignore
+import { createLoadRemoteModule } from '@paciolan/remote-module-loader/dist/lib/loadRemoteModule';
+import { resolve } from '../remote-component.config';
+// import { WrappedRemoteComponent } from './RemoteComponent';
 import loadRemoteModule from './loadRemoteModule';
 
 const log = Log.module('PluginUtils');
@@ -19,6 +26,13 @@ class PluginUtils {
       `${window.location}`
     );
     const pluginUrl = new URL(`${pluginName}.js`, baseUrl);
+    const customResolve = {
+      ...resolve,
+      '@deephaven/jsapi-shim': { foo: 'bar' },
+    };
+    const customRequires = createRequires({ resolve: customResolve });
+    const RemoteComponent = createRemoteComponent({ requires: customRequires });
+    console.log('MJB using custom RemoteComponent');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Plugin: any = React.forwardRef((props, ref) => (
       <RemoteComponent
@@ -46,7 +60,17 @@ class PluginUtils {
    * @returns The loaded module
    */
   static async loadModulePlugin(pluginUrl: string): Promise<unknown> {
-    const myModule = await loadRemoteModule(pluginUrl);
+    const customResolve = {
+      ...resolve,
+      '@deephaven/jsapi-shim': { foo: 'bar' },
+      dh: { baz: 'biz' },
+    };
+    console.log('MJB loadModulePlugin, custom resolve', customResolve);
+    const customRequires = createRequires(customResolve);
+    const customLoadRemoteModule = createLoadRemoteModule({
+      requires: customRequires,
+    });
+    const myModule = await customLoadRemoteModule(pluginUrl);
     return myModule;
   }
 
@@ -58,6 +82,7 @@ class PluginUtils {
   static async loadJson(
     jsonUrl: string
   ): Promise<{ plugins: { name: string; main: string }[] }> {
+    console.log('MJB loadJson');
     return new Promise((resolve, reject) => {
       const request = new XMLHttpRequest();
       request.addEventListener('load', () => {

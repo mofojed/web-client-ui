@@ -7,4 +7,9 @@ import { resolve } from '../remote-component.config';
 const requires = createRequires(resolve);
 
 export const RemoteComponent = createRemoteComponent({ requires });
+
+export const WrappedRemoteComponent = customResolve => {
+  const customRequires = createRequires({ resolve: customResolve });
+  return createRemoteComponent({ requires: customRequires });
+};
 export default RemoteComponent;

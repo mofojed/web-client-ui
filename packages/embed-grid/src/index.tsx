@@ -13,6 +13,10 @@ import './index.scss';
 
 const App = React.lazy(() => import('./App'));
 
+(window as any).Foo = 'shizzle';
+console.log('MJB embed-grid shizzle set');
+console.log('MJB other frame is', (window.parent.frames[0] as any)?.Foo);
+
 ReactDOM.render(
   <ApiBootstrap
     apiUrl={`${import.meta.env.VITE_CORE_API_URL}/${
