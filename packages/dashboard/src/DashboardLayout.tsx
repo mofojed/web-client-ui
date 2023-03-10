@@ -299,6 +299,8 @@ export function DashboardLayout({
     ]
   );
 
+  console.log('MJB DashboardLayout children', children);
+
   return (
     <>
       {isDashboardEmpty && emptyDashboard}

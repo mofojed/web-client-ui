@@ -5,7 +5,11 @@ import React, {
   ReactElement,
   RefObject,
   ForwardRefExoticComponent,
+  useRef,
+  useState,
+  useLayoutEffect,
 } from 'react';
+import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import memoize from 'memoize-one';
 import { CSSTransition } from 'react-transition-group';
@@ -723,10 +727,75 @@ export class AppMainContainer extends Component<
     ([...plugins.entries()].filter(
       ([, plugin]: [string, { DashboardPlugin?: typeof React.Component }]) =>
         plugin.DashboardPlugin != null
-    ) as [
-      string,
-      { DashboardPlugin: typeof React.Component }
-    ][]).map(([name, { DashboardPlugin }]) => <DashboardPlugin key={name} />)
+    ) as [string, { DashboardPlugin: typeof React.Component }][]).map(
+      // create/use ShadowRoot component or something here...
+      ([name, { DashboardPlugin }]) => <DashboardPlugin key={name} />
+      // React.forwardRef((props, ref) => {
+      //   return <DashboardPlugin key={name} ref={ref as any} {...props} />;
+      // })
+      // React.forwardRef((props, ref) => {
+      //   const mountPoint = useRef<HTMLDivElement>(null);
+      //   const [shadowChild, setShadowChild] = useState<HTMLDivElement>();
+      //   // const [shadowRoot, setShadowRoot] = useState();
+      //   useLayoutEffect(() => {
+      //     console.log('MJB useLayoutEffect is', mountPoint.current);
+      //     if (mountPoint.current) {
+      //       const shadowRoot = mountPoint.current.attachShadow({
+      //         mode: 'open',
+      //       });
+      //       const childDiv = document.createElement('div');
+      //       shadowRoot.appendChild(childDiv);
+      //       console.log('MJB setting shadowChild', shadowChild);
+      //       setShadowChild(childDiv);
+      //     }
+      //   }, [mountPoint]);
+
+      //   console.log('MJB dashplugin render', shadowChild);
+
+      //   return (
+      //     <div ref={mountPoint}>
+      //       {shadowChild &&
+      //         ReactDOM.createPortal(
+      //           <DashboardPlugin key={name} ref={ref as any} {...props} />,
+      //           shadowChild
+      //         )}
+      //     </div>
+      //   );
+      // })
+
+      //
+      //
+      // const MyCustomComponent = () => {
+      //   const mountPoint = useRef<HTMLDivElement>(null);
+      //   const [shadowChild, setShadowChild] = useState<HTMLDivElement>();
+      //   // const [shadowRoot, setShadowRoot] = useState();
+      //   useLayoutEffect(() => {
+      //     console.log('MJB useLayoutEffect is', mountPoint.current);
+      //     if (mountPoint.current) {
+      //       const shadowRoot = mountPoint.current.attachShadow({
+      //         mode: 'open',
+      //       });
+      //       const childDiv = document.createElement('div');
+      //       shadowRoot.appendChild(childDiv);
+      //       console.log('MJB setting shadowChild', shadowChild);
+      //       setShadowChild(childDiv);
+      //     }
+      //   }, [mountPoint]);
+
+      //   console.log('MJB dashplugin render', shadowChild);
+
+      //   return (
+      //     <div ref={mountPoint}>
+      //       {shadowChild &&
+      //         ReactDOM.createPortal(
+      //           <DashboardPlugin key={name} />,
+      //           shadowChild
+      //         )}
+      //     </div>
+      //   );
+      // };
+      // return <MyCustomComponent key={name} />;
+    )
   );
 
   render(): ReactElement {
