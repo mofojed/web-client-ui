@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import PropTypes from 'prop-types';
+import { ShadowWrapper } from '@deephaven/components';
 import GoldenLayout from '@deephaven/golden-layout';
 import type {
   Container,
@@ -305,14 +306,16 @@ export function DashboardLayout({
     <>
       {isDashboardEmpty && emptyDashboard}
       {React.Children.map(children, child =>
-        child != null
-          ? React.cloneElement(child as ReactElement, {
+        child != null ? (
+          <ShadowWrapper>
+            {React.cloneElement(child as ReactElement, {
               id,
               layout,
               panelManager,
               registerComponent,
-            })
-          : null
+            })}
+          </ShadowWrapper>
+        ) : null
       )}
     </>
   );
