@@ -15,7 +15,10 @@ import {
   ValidateLabelInput,
   Select,
   Option,
+  ShadowWrapper,
 } from '@deephaven/components';
+import BlueDiv from './BlueDiv';
+import RedDiv from './RedDiv';
 
 const EXAMPLES = [
   { title: 'Title 1', value: 'Value 1' },
@@ -361,6 +364,13 @@ function Inputs(): React.ReactElement {
           </div>
         </div>
       </div>
+      <BlueDiv />
+      <ShadowWrapper>
+        <BlueDiv />
+      </ShadowWrapper>
+      <ShadowWrapper>
+        <RedDiv />
+      </ShadowWrapper>
     </div>
   );
 }
