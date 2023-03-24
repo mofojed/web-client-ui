@@ -1,12 +1,25 @@
-import { useEffect } from 'react';
-import type { EventEmitter } from '@deephaven/golden-layout';
+import { ComponentType, useCallback, useEffect } from 'react';
+import type {
+  EventEmitter,
+  ReactComponentConfig,
+} from '@deephaven/golden-layout';
+import shortid from 'shortid';
+import {
+  DashboardPluginComponentProps,
+  PanelComponentType,
+  PanelDehydrateFunction,
+  PanelHydrateFunction,
+  PanelProps,
+} from '../DashboardPlugin';
+import PanelEvent, { PanelOpenEventDetail } from '../PanelEvent';
+import { LayoutUtils } from '.';
 
-export const useListener = (
+export function useListener(
   eventEmitter: EventEmitter,
   eventName: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function
-): void =>
+) {
   useEffect(
     function initEventEmitter() {
       eventEmitter.on(eventName, callback);
@@ -17,5 +30,71 @@ export const useListener = (
     },
     [eventEmitter, eventName, callback]
   );
+}
 
-export default { useListener };
+export function useComponent<P extends PanelProps, C extends ComponentType<P>>(
+  dashboardProps: DashboardPluginComponentProps,
+  componentName: string,
+  component: PanelComponentType<P, C>,
+  variableName: string | string[],
+  hydrate?: PanelHydrateFunction<P>,
+  dehydrate?: PanelDehydrateFunction
+) {
+  const { id, layout, registerComponent } = dashboardProps;
+
+  const handlePanelOpen = useCallback(
+    ({
+      dragEvent,
+      fetch,
+      panelId = shortid.generate(),
+      widget,
+    }: PanelOpenEventDetail) => {
+      const { id: widgetId, name, type } = widget;
+      if (
+        (Array.isArray(variableName) && variableName.includes(type)) ||
+        type === variableName
+      ) {
+        // Only want to listen for your custom variable types
+        return;
+      }
+      const metadata = { id: widgetId, name, type };
+      const config: ReactComponentConfig = {
+        type: 'react-component',
+        component: componentName,
+        // TODO: If you pass in your own hydration function, need to be able to "hydrate" to these props here...
+        props: {
+          localDashboardId: id,
+          id: panelId,
+          metadata,
+          fetch,
+        },
+        title: name,
+        id: panelId,
+      };
+
+      const { root } = layout;
+      LayoutUtils.openComponent({ root, config, dragEvent });
+    },
+    [componentName, id, layout, variableName]
+  );
+
+  /**
+   * Register our custom component type so the layout know hows to open it
+   */
+  useEffect(() => {
+    const cleanups = [
+      registerComponent(componentName, component, hydrate, dehydrate),
+    ];
+
+    return () => {
+      cleanups.forEach(cleanup => cleanup());
+    };
+  }, [component, componentName, dehydrate, hydrate, registerComponent]);
+
+  /**
+   * Listen for panel open events so we know when to open a panel
+   */
+  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
+}
+
+export default { useComponent, useListener };
