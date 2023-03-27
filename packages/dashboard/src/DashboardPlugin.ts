@@ -52,7 +52,7 @@ export type DeregisterComponentFunction = () => void;
 export type PanelHydrateFunction<T = PanelProps> = (
   props: T,
   dashboardId: string
-) => PanelProps;
+) => T;
 
 export type PanelDehydrateFunction = (
   config: PanelConfig,

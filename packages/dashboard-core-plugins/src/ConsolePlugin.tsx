@@ -539,13 +539,17 @@ export function ConsolePlugin(
   useEffect(
     function registerComponentsAndReturnCleanup() {
       const cleanups = [
-        registerComponent(ConsolePanel.COMPONENT, ConsolePanel, hydrateConsole),
+        registerComponent(
+          ConsolePanel.COMPONENT,
+          ConsolePanel,
+          hydrateConsole as any
+        ),
         registerComponent(CommandHistoryPanel.COMPONENT, CommandHistoryPanel),
         registerComponent(FileExplorerPanel.COMPONENT, FileExplorerPanel),
         registerComponent(LogPanel.COMPONENT, LogPanel),
         registerComponent(
           NotebookPanel.COMPONENT,
-          NotebookPanel,
+          NotebookPanel as any,
           hydrateNotebook
         ),
       ];

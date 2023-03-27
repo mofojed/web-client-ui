@@ -100,59 +100,11 @@ type ModelQueueFunction = (model: IrisGridModel) => void;
 
 type ModelQueue = ModelQueueFunction[];
 
-interface Metadata {
+export interface IrisGridPanelMetadata {
   table: string;
   type?: VariableTypeUnion;
   query?: string;
   querySerial?: string;
-}
-
-export interface PanelState {
-  gridState: {
-    isStuckToBottom: boolean;
-    isStuckToRight: boolean;
-    movedColumns: {
-      from: string | ModelIndex | [string, string] | [ModelIndex, ModelIndex];
-      to: string | ModelIndex;
-    }[];
-    movedRows: MoveOperation[];
-  };
-  irisGridState: DehydratedIrisGridState;
-  irisGridPanelState: {
-    partitionColumn: ColumnName | undefined;
-    partition: string | undefined;
-    isSelectingPartition: boolean;
-    advancedSettings: [AdvancedSettingsType, boolean][];
-  };
-  pluginState: unknown;
-}
-
-export interface IrisGridPanelProps {
-  children?: ReactNode;
-  glContainer: Container;
-  glEventHub: EventEmitter;
-  metadata: Metadata;
-  panelState: PanelState | null;
-  makeModel: () => IrisGridModel | Promise<IrisGridModel>;
-  inputFilters: InputFilter[];
-  links: Link[];
-  columnSelectionValidator?: (
-    panel: PanelComponent,
-    tableColumn?: LinkColumn
-  ) => boolean;
-  onStateChange?: (irisGridState: IrisGridState, gridState: GridState) => void;
-  onPanelStateUpdate?: (panelState: PanelState) => void;
-  user: User;
-  workspace: Workspace;
-  settings: { timeZone: string };
-
-  // Retrieve a download worker for optimizing exporting tables
-  getDownloadWorker: () => Promise<ServiceWorker>;
-
-  // Load a plugin defined by the table
-  loadPlugin: (pluginName: string) => TablePlugin;
-
-  theme: IrisGridThemeType;
 }
 
 export interface TablePluginElement {
@@ -217,6 +169,54 @@ export interface TablePluginProps {
 export type TablePlugin = React.ForwardRefExoticComponent<
   TablePluginProps & React.RefAttributes<TablePluginElement>
 >;
+
+export interface PanelState {
+  gridState: {
+    isStuckToBottom: boolean;
+    isStuckToRight: boolean;
+    movedColumns: {
+      from: string | ModelIndex | [string, string] | [ModelIndex, ModelIndex];
+      to: string | ModelIndex;
+    }[];
+    movedRows: MoveOperation[];
+  };
+  irisGridState: DehydratedIrisGridState;
+  irisGridPanelState: {
+    partitionColumn: ColumnName | undefined;
+    partition: string | undefined;
+    isSelectingPartition: boolean;
+    advancedSettings: [AdvancedSettingsType, boolean][];
+  };
+  pluginState: unknown;
+}
+
+export interface IrisGridPanelProps {
+  children?: ReactNode;
+  glContainer: Container;
+  glEventHub: EventEmitter;
+  metadata: IrisGridPanelMetadata;
+  panelState: PanelState | null;
+  makeModel: () => IrisGridModel | Promise<IrisGridModel>;
+  inputFilters: InputFilter[];
+  links: Link[];
+  columnSelectionValidator?: (
+    panel: PanelComponent,
+    tableColumn?: LinkColumn
+  ) => boolean;
+  onStateChange?: (irisGridState: IrisGridState, gridState: GridState) => void;
+  onPanelStateUpdate?: (panelState: PanelState) => void;
+  user: User;
+  workspace: Workspace;
+  settings: { timeZone: string };
+
+  // Retrieve a download worker for optimizing exporting tables
+  getDownloadWorker: () => Promise<ServiceWorker>;
+
+  // Load a plugin defined by the table
+  loadPlugin: (pluginName: string) => TablePlugin;
+
+  theme: IrisGridThemeType;
+}
 
 interface IrisGridPanelState {
   error: unknown;

@@ -95,7 +95,7 @@ import WidgetList, { WindowMouseEvent } from './WidgetList';
 import {
   createChartModel,
   createGridModel,
-  GridPanelMetadata,
+  getGridPanelMetadata,
 } from './WidgetUtils';
 import EmptyDashboard from './EmptyDashboard';
 import UserLayoutUtils from './UserLayoutUtils';
@@ -199,8 +199,7 @@ export class AppMainContainer extends Component<
     this.handleWidgetSelect = this.handleWidgetSelect.bind(this);
     this.handlePaste = this.handlePaste.bind(this);
     this.hydrateChart = this.hydrateChart.bind(this);
-    this.hydrateGrid = this.hydrateGrid.bind(this);
-    this.hydratePandas = this.hydratePandas.bind(this);
+    this.hydrateTable = this.hydrateTable.bind(this);
     this.hydrateDefault = this.hydrateDefault.bind(this);
     this.openNotebookFromURL = this.openNotebookFromURL.bind(this);
 
@@ -657,22 +656,13 @@ export class AppMainContainer extends Component<
     return DashboardUtils.hydrate(props, id);
   }
 
-  hydrateGrid(props: IrisGridPanelProps, id: string): IrisGridPanelProps {
-    return this.hydrateTable(
-      props,
-      id,
-      props.metadata.type ?? dh.VariableType.TABLE
-    );
-  }
-
-  hydratePandas(props: PandasPanelProps, id: string): PandasPanelProps {
-    return this.hydrateTable(props, id, dh.VariableType.PANDAS);
-  }
-
-  hydrateTable<T extends { metadata: GridPanelMetadata }>(
+  hydrateTable<
+    T extends (IrisGridPanelProps | PandasPanelProps) & {
+      widget?: VariableDefinition;
+    }
+  >(
     props: T,
-    id: string,
-    type: VariableTypeUnion = dh.VariableType.TABLE
+    id: string
   ): T & {
     getDownloadWorker: () => Promise<ServiceWorker>;
     loadPlugin: (pluginName: string) => TablePlugin;
@@ -680,12 +670,14 @@ export class AppMainContainer extends Component<
     makeModel: () => Promise<IrisGridModel>;
   } {
     const { connection } = this.props;
+    const metadata = getGridPanelMetadata(props.metadata, props.widget);
+
     return {
       ...props,
       getDownloadWorker: DownloadServiceWorkerUtils.getServiceWorker,
       loadPlugin: this.handleLoadTablePlugin,
       localDashboardId: id,
-      makeModel: () => createGridModel(connection, props.metadata, type),
+      makeModel: () => createGridModel(connection, metadata),
     };
   }
 
@@ -836,11 +828,7 @@ export class AppMainContainer extends Component<
           onLayoutInitialized={this.openNotebookFromURL}
           hydrate={this.hydrateDefault}
         >
-          <GridPlugin
-            hydrate={this.hydrateGrid}
-            getDownloadWorker={DownloadServiceWorkerUtils.getServiceWorker}
-            loadPlugin={this.handleLoadTablePlugin}
-          />
+          <GridPlugin hydrate={this.hydrateTable} />
           <ChartPlugin hydrate={this.hydrateChart} />
           <ChartBuilderPlugin />
           <ConsolePlugin
@@ -853,7 +841,7 @@ export class AppMainContainer extends Component<
             }
           />
           <FilterPlugin />
-          <PandasPlugin hydrate={this.hydratePandas} />
+          <PandasPlugin hydrate={this.hydrateTable} />
           <MarkdownPlugin />
           <LinkerPlugin />
           {dashboardPlugins}

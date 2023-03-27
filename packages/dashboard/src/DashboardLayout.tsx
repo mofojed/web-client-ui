@@ -32,6 +32,7 @@ import {
   PanelDehydrateFunction,
   PanelHydrateFunction,
 } from './DashboardPlugin';
+import shortid from 'shortid';
 
 export type DashboardLayoutConfig = ItemConfigType[];
 
@@ -129,7 +130,7 @@ export function DashboardLayout({
               glEventHub={glEventHub}
             >
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-              <CType {...props} ref={ref} />
+              <CType id={shortid.generate()} {...props} ref={ref} />
             </PanelErrorBoundary>
           </Provider>
         );

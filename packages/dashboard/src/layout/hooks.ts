@@ -58,16 +58,19 @@ export function useComponent<P extends PanelProps, C extends ComponentType<P>>(
         return;
       }
       const metadata = { id: widgetId, name, type };
+      let props: P = ({
+        localDashboardId: id,
+        id: panelId,
+        metadata,
+        fetch,
+      } as unknown) as P;
+      if (hydrate != null) {
+        props = hydrate((props as unknown) as P, id);
+      }
       const config: ReactComponentConfig = {
         type: 'react-component',
         component: componentName,
-        // TODO: If you pass in your own hydration function, need to be able to "hydrate" to these props here...
-        props: {
-          localDashboardId: id,
-          id: panelId,
-          metadata,
-          fetch,
-        },
+        props,
         title: name,
         id: panelId,
       };
@@ -75,7 +78,7 @@ export function useComponent<P extends PanelProps, C extends ComponentType<P>>(
       const { root } = layout;
       LayoutUtils.openComponent({ root, config, dragEvent });
     },
-    [componentName, id, layout, variableName]
+    [componentName, hydrate, id, layout, variableName]
   );
 
   /**
