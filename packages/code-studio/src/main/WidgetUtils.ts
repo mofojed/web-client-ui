@@ -36,7 +36,7 @@ export const createChartModel = async (
   } else {
     settings = {};
     tableName = '';
-    figureName = metadata.figure;
+    figureName = metadata.name ?? metadata.figure;
     tableSettings = {};
   }
   if (panelState !== undefined) {

@@ -78,7 +78,11 @@ export type FilterMap = Map<string, string>;
 export type LinkedColumnMap = Map<string, { name: string; type: string }>;
 
 export type ChartPanelFigureMetadata = {
-  figure: string;
+  /**
+   * @deprecated use `name` instead
+   */
+  figure?: string;
+  name: string;
 };
 
 export type ChartPanelTableMetadata = {
