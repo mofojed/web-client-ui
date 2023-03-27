@@ -92,11 +92,7 @@ import { getLayoutStorage, getServerConfigValues } from '../redux';
 import Logo from '../settings/community-wordmark-app.svg';
 import './AppMainContainer.scss';
 import WidgetList, { WindowMouseEvent } from './WidgetList';
-import {
-  createChartModel,
-  createGridModel,
-  getGridPanelMetadata,
-} from './WidgetUtils';
+import { createChartModel, createGridModel } from './WidgetUtils';
 import EmptyDashboard from './EmptyDashboard';
 import UserLayoutUtils from './UserLayoutUtils';
 import DownloadServiceWorkerUtils from '../DownloadServiceWorkerUtils';
@@ -656,11 +652,7 @@ export class AppMainContainer extends Component<
     return DashboardUtils.hydrate(props, id);
   }
 
-  hydrateTable<
-    T extends (IrisGridPanelProps | PandasPanelProps) & {
-      widget?: VariableDefinition;
-    }
-  >(
+  hydrateTable<T extends IrisGridPanelProps>(
     props: T,
     id: string
   ): T & {
@@ -670,7 +662,7 @@ export class AppMainContainer extends Component<
     makeModel: () => Promise<IrisGridModel>;
   } {
     const { connection } = this.props;
-    const metadata = getGridPanelMetadata(props.metadata, props.widget);
+    const { metadata } = props;
 
     return {
       ...props,

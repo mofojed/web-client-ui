@@ -49,11 +49,12 @@ export function useComponent<P extends PanelProps, C extends ComponentType<P>>(
       panelId = shortid.generate(),
       widget,
     }: PanelOpenEventDetail) => {
-      const { id: widgetId, name, type } = widget;
-      if (
+      const { id: widgetId, type } = widget;
+      const name = widget.title ?? widget.name;
+      const isSupportedType =
         (Array.isArray(variableName) && variableName.includes(type)) ||
-        type === variableName
-      ) {
+        type === variableName;
+      if (!isSupportedType) {
         // Only want to listen for your custom variable types
         return;
       }

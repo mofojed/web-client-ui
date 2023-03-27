@@ -85,30 +85,11 @@ export const createChartModel = async (
   return ChartModelFactory.makeModelFromSettings(settings as any, table);
 };
 
-export function getGridPanelMetadata(
-  metadata?: IrisGridPanelMetadata,
-  widget?: VariableDefinition
-): IrisGridPanelMetadata {
-  if (metadata != null) {
-    return metadata;
-  }
-  if (widget == null) {
-    throw new Error(
-      'Need either metadata or widget specified to get GridPanel metadata'
-    );
-  }
-  const { name, type } = widget;
-  if (name == null) {
-    throw new Error('No name specified in widget definition');
-  }
-  return { table: name, type };
-}
-
 export const createGridModel = async (
   connection: IdeConnection,
   metadata: IrisGridPanelMetadata
 ): Promise<IrisGridModel> => {
-  const { table: tableName } = metadata;
+  const { name: tableName } = metadata;
   const definition = {
     title: tableName,
     name: tableName,

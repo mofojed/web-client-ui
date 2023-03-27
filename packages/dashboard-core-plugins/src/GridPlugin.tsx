@@ -24,7 +24,7 @@ export function GridPlugin(props: GridPluginProps): JSX.Element | null {
     IrisGridPanel.COMPONENT,
     IrisGridPanel,
     SUPPORTED_TYPES,
-    // TODO: Need to clean up ...
+    // TODO: Need to clean up... the component we pass in is the connected redux component type, but then the hydrate function takes the props from the dehydrated iris grid panel props...
     hydrate as any
   );
 

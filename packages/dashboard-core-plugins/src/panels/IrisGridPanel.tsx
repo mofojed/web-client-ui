@@ -101,10 +101,12 @@ type ModelQueueFunction = (model: IrisGridModel) => void;
 type ModelQueue = ModelQueueFunction[];
 
 export interface IrisGridPanelMetadata {
-  table: string;
+  name: string;
+  /**
+   * @deprecated use `name` instead
+   */
+  table?: string;
   type?: VariableTypeUnion;
-  query?: string;
-  querySerial?: string;
 }
 
 export interface TablePluginElement {
@@ -267,6 +269,11 @@ interface IrisGridPanelState {
   gridStateOverrides: Partial<GridState>;
 }
 
+function getTableName(metadata: IrisGridPanelMetadata): string {
+  // Need to fallback to maintain backward compatibility
+  return metadata.name ?? metadata.table;
+}
+
 export class IrisGridPanel extends PureComponent<
   IrisGridPanelProps,
   IrisGridPanelState
@@ -409,7 +416,7 @@ export class IrisGridPanel extends PureComponent<
 
   getTableName(): string {
     const { metadata } = this.props;
-    return metadata.table;
+    return getTableName(metadata);
   }
 
   getGridInputFilters = memoize(
@@ -765,8 +772,8 @@ export class IrisGridPanel extends PureComponent<
     this.setState(
       () => null,
       () => {
-        const { glEventHub, inputFilters, metadata } = this.props;
-        const { table } = metadata;
+        const { glEventHub, inputFilters } = this.props;
+        const table = this.getTableName();
         const { panelState } = this.state;
         const sourcePanelId = LayoutUtils.getIdFromPanel(this);
         let tableSettings;
@@ -1300,7 +1307,7 @@ export class IrisGridPanel extends PureComponent<
     } = this.state;
     const errorMessage =
       error != null ? `Unable to open table. ${error}` : undefined;
-    const { table: name } = metadata;
+    const name = getTableName(metadata);
     const description = model?.description ?? undefined;
     const pluginState = panelState?.pluginState ?? null;
     const childrenContent =
