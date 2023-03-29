@@ -10,7 +10,6 @@ import classNames from 'classnames';
 import memoize from 'memoize-one';
 import { CSSTransition } from 'react-transition-group';
 import { connect } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   ContextActions,
@@ -110,6 +109,7 @@ import UserLayoutUtils from './UserLayoutUtils';
 import DownloadServiceWorkerUtils from '../DownloadServiceWorkerUtils';
 import { PluginUtils } from '../plugins';
 import LayoutStorage from '../storage/LayoutStorage';
+import withRouter from './withRouter';
 
 const log = Log.module('AppMainContainer');
 
