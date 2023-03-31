@@ -12,7 +12,7 @@ import { getColumnsForDashboard } from '../redux';
 
 const INPUT_FILTER_DEBOUNCE = 250;
 
-export interface PanelState extends Record<string, unknown> {
+export interface PanelState {
   name?: string;
   type?: string;
   value?: string;

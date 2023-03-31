@@ -41,7 +41,7 @@ interface IrisGridState {
   quickFilters: [number, QuickFilter][];
 }
 
-interface PanelState extends Record<string, unknown> {
+interface PanelState {
   irisGridState?: IrisGridState;
   gridState?: Partial<GridState>;
   selectedId?: string | string[];

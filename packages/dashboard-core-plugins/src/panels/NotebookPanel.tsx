@@ -54,7 +54,7 @@ const log = Log.module('NotebookPanel');
 
 const DEBOUNCE_PANEL_STATE_UPDATE = 400;
 
-interface Metadata extends Record<string, unknown> {
+interface Metadata {
   id: string;
 }
 interface NotebookSetting {
@@ -66,7 +66,7 @@ interface FileMetadata {
   id: string;
 }
 
-interface PanelState extends Record<string, unknown> {
+interface PanelState {
   isPreview?: boolean;
   settings: editor.IStandaloneEditorConstructionOptions;
   fileMetadata: FileMetadata | null;

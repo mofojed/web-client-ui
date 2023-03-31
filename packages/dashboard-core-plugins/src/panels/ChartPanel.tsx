@@ -108,7 +108,7 @@ export interface ChartPanelTableSettings {
   partition?: unknown;
   partitionColumn?: string;
 }
-export interface GLChartPanelState extends Record<string, unknown> {
+export interface GLChartPanelState {
   filterValueMap: [string, string][];
   settings: Partial<ChartModelSettings>;
   tableSettings: ChartPanelTableSettings;

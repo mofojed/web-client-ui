@@ -38,7 +38,7 @@ interface ConsoleSettings {
   isClosePanelsOnDisconnectEnabled?: boolean;
 }
 
-interface PanelState extends Record<string, unknown> {
+interface PanelState {
   consoleSettings: ConsoleSettings;
   itemIds: [string, string][];
 }

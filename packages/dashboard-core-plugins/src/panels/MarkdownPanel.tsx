@@ -22,7 +22,7 @@ import './MarkdownPanel.scss';
 
 const log = Log.module('MarkdownPanel');
 
-interface PanelState extends Record<string, unknown> {
+interface PanelState {
   content?: string;
 }
 

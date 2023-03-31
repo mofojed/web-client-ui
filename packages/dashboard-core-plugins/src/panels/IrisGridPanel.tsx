@@ -107,7 +107,7 @@ export interface IrisGridPanelMetadata {
   querySerial?: string;
 }
 
-export interface PanelState extends Record<string, unknown> {
+export interface PanelState {
   gridState: {
     isStuckToBottom: boolean;
     isStuckToRight: boolean;

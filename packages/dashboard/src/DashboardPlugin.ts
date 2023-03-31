@@ -41,6 +41,8 @@ export function isWidgetPanelMetadata(
   );
 }
 
+export type DehydratedPanelProps = Record<string, unknown>;
+
 export type PanelProps = {
   glContainer: Container;
   glEventHub: EventEmitter;
@@ -51,7 +53,7 @@ export type PanelProps = {
 export type PanelComponent<T extends PanelProps = PanelProps> = Component<T>;
 
 export type DehydratedPanelConfig<
-  P extends Record<string, unknown> = Record<string, unknown>,
+  P extends DehydratedPanelProps = DehydratedPanelProps,
   S extends Record<string, unknown> = Record<string, unknown>
 > = ReactComponentConfig<P> & {
   props: P;
@@ -77,13 +79,13 @@ export interface DashboardPanelDefinition {
 export type DeregisterComponentFunction = () => void;
 
 export type PanelHydrateFunction<
-  P extends Record<string, unknown> = Record<string, unknown>,
-  R extends Record<string, unknown> = P
+  P extends DehydratedPanelProps = DehydratedPanelProps,
+  R extends DehydratedPanelProps = P
 > = (props: P, dashboardId: string) => R;
 
 export type PanelDehydrateFunction<
   P extends PanelProps = PanelProps,
-  R extends Record<string, unknown> = Record<string, unknown>
+  R extends DehydratedPanelProps = DehydratedPanelProps
 > = (
   config: PanelConfig<P>,
   dashboardId: string
@@ -96,8 +98,8 @@ export type DashboardPluginComponentProps = {
   registerComponent: <
     P extends PanelProps,
     C extends ComponentType<P>,
-    H extends Record<string, unknown> = Record<string, unknown>,
-    D extends Record<string, unknown> = Record<string, unknown>
+    H extends DehydratedPanelProps = DehydratedPanelProps,
+    D extends DehydratedPanelProps = DehydratedPanelProps
   >(
     name: string,
     ComponentType: PanelComponentType<P, C>,
