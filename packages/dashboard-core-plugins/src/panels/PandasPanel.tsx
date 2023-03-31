@@ -12,22 +12,18 @@ import ConnectedIrisGridPanel, {
 import './PandasPanel.scss';
 
 export interface PandasPanelProps extends IrisGridPanelProps {
-  panelState: PanelState | null;
+  panelState?: PanelState;
 }
 
 interface PandasPanelState {
   shouldFocusGrid: boolean;
-  panelState: PanelState | null;
+  panelState?: PanelState;
 }
 
 /**
  * Wraps and IrisGridPanel to add a refresh button for Pandas.
  */
 class PandasPanel extends Component<PandasPanelProps, PandasPanelState> {
-  static defaultProps = {
-    panelState: null,
-  };
-
   static COMPONENT = 'PandasPanel';
 
   constructor(props: PandasPanelProps) {

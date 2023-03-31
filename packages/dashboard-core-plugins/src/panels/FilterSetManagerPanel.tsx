@@ -1,12 +1,12 @@
 import React, { Component, ReactElement } from 'react';
 import { connect } from 'react-redux';
 import {
+  DashboardPanelProps,
   getOpenedPanelMapForDashboard,
   LayoutUtils,
   PanelComponent,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import type { Container, EventEmitter } from '@deephaven/golden-layout';
 import { TableTemplate } from '@deephaven/jsapi-shim';
 import { RootState } from '@deephaven/redux';
 import {
@@ -41,7 +41,7 @@ interface IrisGridState {
   quickFilters: [number, QuickFilter][];
 }
 
-interface PanelState {
+interface PanelState extends Record<string, unknown> {
   irisGridState?: IrisGridState;
   gridState?: Partial<GridState>;
   selectedId?: string | string[];
@@ -51,12 +51,9 @@ interface PanelState {
   value?: string;
 }
 
-interface FilterSetManagerPanelProps {
-  glContainer: Container;
-  glEventHub: EventEmitter;
+interface FilterSetManagerPanelProps extends DashboardPanelProps {
   panelState: PanelState;
   filterSets: FilterSet[];
-  localDashboardId: string;
   dashboardOpenedPanelMap: Map<string | string[], PanelComponent>;
   setDashboardFilterSets: (
     dashboardId: string,

@@ -10,10 +10,10 @@ import {
 } from '@deephaven/dashboard';
 import { Figure, VariableDefinition } from '@deephaven/jsapi-shim';
 import shortid from 'shortid';
-import { ChartPanel, ChartPanelProps } from './panels';
+import { ChartPanel } from './panels';
 
 export type ChartPluginProps = Partial<DashboardPluginComponentProps> & {
-  hydrate: PanelHydrateFunction<ChartPanelProps>;
+  hydrate: PanelHydrateFunction;
 };
 
 export function ChartPlugin(props: ChartPluginProps): JSX.Element | null {
@@ -63,11 +63,7 @@ export function ChartPlugin(props: ChartPluginProps): JSX.Element | null {
   useEffect(
     function registerComponentsAndReturnCleanup() {
       const cleanups = [
-        registerComponent(
-          ChartPanel.COMPONENT,
-          ChartPanel,
-          hydrate as PanelHydrateFunction
-        ),
+        registerComponent(ChartPanel.COMPONENT, ChartPanel, hydrate),
       ];
       return () => {
         cleanups.forEach(cleanup => cleanup());

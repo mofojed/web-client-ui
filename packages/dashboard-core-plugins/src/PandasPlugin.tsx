@@ -10,10 +10,10 @@ import {
 import { IrisGridModelFactory } from '@deephaven/iris-grid';
 import { Table } from '@deephaven/jsapi-shim';
 import shortid from 'shortid';
-import { PandasPanel, PandasPanelProps } from './panels';
+import { PandasPanel } from './panels';
 
 export type PandasPluginProps = Partial<DashboardPluginComponentProps> & {
-  hydrate: PanelHydrateFunction<PandasPanelProps>;
+  hydrate: PanelHydrateFunction;
 };
 
 export function PandasPlugin(props: PandasPluginProps): JSX.Element | null {

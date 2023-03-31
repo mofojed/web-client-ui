@@ -4,16 +4,13 @@ import { connect } from 'react-redux';
 import {
   ClosedPanel,
   ClosedPanels,
+  DashboardPanelProps,
   getClosedPanelsForDashboard,
   LayoutUtils,
   PanelEvent,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import type {
-  Container,
-  EventEmitter,
-  ReactComponentConfig,
-} from '@deephaven/golden-layout';
+import type { ReactComponentConfig } from '@deephaven/golden-layout';
 import type * as monaco from 'monaco-editor';
 import { assertNotNull } from '@deephaven/utils';
 import { RootState } from '@deephaven/redux';
@@ -25,13 +22,11 @@ import './MarkdownPanel.scss';
 
 const log = Log.module('MarkdownPanel');
 
-interface PanelState {
+interface PanelState extends Record<string, unknown> {
   content?: string;
 }
 
-interface MarkdownPanelProps {
-  glContainer: Container;
-  glEventHub: EventEmitter;
+interface MarkdownPanelProps extends DashboardPanelProps {
   panelState: PanelState;
   closedPanels: ClosedPanel[];
 }

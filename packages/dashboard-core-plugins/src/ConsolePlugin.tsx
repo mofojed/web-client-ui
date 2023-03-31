@@ -7,7 +7,6 @@ import {
   LayoutUtils,
   PanelComponent,
   PanelHydrateFunction,
-  PanelProps,
   useListener,
 } from '@deephaven/dashboard';
 import { FileUtils } from '@deephaven/file-explorer';
@@ -525,7 +524,10 @@ export function ConsolePlugin(
   );
 
   const hydrateNotebook = useCallback(
-    (panelProps: PanelProps, panelDashboardId: string): DashboardPanelProps =>
+    (
+      panelProps: Partial<DashboardPanelProps>,
+      panelDashboardId: string
+    ): Partial<DashboardPanelProps> =>
       DashboardUtils.hydrate(
         {
           ...panelProps,

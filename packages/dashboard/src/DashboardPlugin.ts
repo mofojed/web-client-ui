@@ -25,11 +25,27 @@ export function isWrappedComponent<
   return (type as WrappedComponentType<P, C>)?.WrappedComponent !== undefined;
 }
 
+export type WidgetPanelMetadata = {
+  name: string;
+  type: string;
+};
+
+export function isWidgetPanelMetadata(
+  metadata: unknown
+): metadata is WidgetPanelMetadata {
+  return (
+    metadata != null &&
+    typeof metadata === 'object' &&
+    (metadata as WidgetPanelMetadata).name !== undefined &&
+    (metadata as WidgetPanelMetadata).type !== undefined
+  );
+}
+
 export type PanelProps = {
   glContainer: Container;
   glEventHub: EventEmitter;
-  metadata?: Record<string, unknown>;
-  panelState?: Record<string, unknown>;
+  metadata?: unknown;
+  panelState?: unknown;
 };
 
 export type PanelComponent<T extends PanelProps = PanelProps> = Component<T>;

@@ -10,6 +10,7 @@ import memoize from 'memoize-one';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
 import {
+  DashboardPanelProps,
   DEFAULT_DASHBOARD_ID,
   LayoutUtils,
   PanelComponent,
@@ -78,7 +79,6 @@ import {
   ModelSizeMap,
   MoveOperation,
 } from '@deephaven/grid';
-import type { Container, EventEmitter } from '@deephaven/golden-layout';
 import { ConsoleEvent, InputFilterEvent, IrisGridEvent } from '../events';
 import {
   getInputFiltersForDashboard,
@@ -100,14 +100,14 @@ type ModelQueueFunction = (model: IrisGridModel) => void;
 
 type ModelQueue = ModelQueueFunction[];
 
-interface Metadata {
+export interface IrisGridPanelMetadata {
   table: string;
   type?: VariableTypeUnion;
   query?: string;
   querySerial?: string;
 }
 
-export interface PanelState {
+export interface PanelState extends Record<string, unknown> {
   gridState: {
     isStuckToBottom: boolean;
     isStuckToRight: boolean;
@@ -127,12 +127,10 @@ export interface PanelState {
   pluginState: unknown;
 }
 
-export interface IrisGridPanelProps {
+export interface IrisGridPanelProps extends DashboardPanelProps {
   children?: ReactNode;
-  glContainer: Container;
-  glEventHub: EventEmitter;
-  metadata: Metadata;
-  panelState: PanelState | null;
+  metadata: IrisGridPanelMetadata;
+  panelState?: PanelState;
   makeModel: () => IrisGridModel | Promise<IrisGridModel>;
   inputFilters: InputFilter[];
   links: Link[];
@@ -262,7 +260,7 @@ interface IrisGridPanelState {
   columnHeaderGroups?: readonly ColumnHeaderGroup[];
 
   // eslint-disable-next-line react/no-unused-state
-  panelState: PanelState | null; // Dehydrated panel state that can load this panel
+  panelState?: PanelState; // Dehydrated panel state that can load this panel
   irisGridStateOverrides: Partial<DehydratedIrisGridState>;
   gridStateOverrides: Partial<GridState>;
 }

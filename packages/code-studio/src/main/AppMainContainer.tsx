@@ -19,10 +19,7 @@ import {
   ContextAction,
   Button,
 } from '@deephaven/components';
-import {
-  IrisGridModel,
-  SHORTCUTS as IRIS_GRID_SHORTCUTS,
-} from '@deephaven/iris-grid';
+import { SHORTCUTS as IRIS_GRID_SHORTCUTS } from '@deephaven/iris-grid';
 import {
   ClosedPanels,
   Dashboard,
@@ -31,8 +28,8 @@ import {
   DashboardUtils,
   DEFAULT_DASHBOARD_ID,
   getDashboardData,
+  isWidgetPanelMetadata,
   PanelEvent,
-  PanelProps,
   updateDashboardData as updateDashboardDataAction,
 } from '@deephaven/dashboard';
 import {
@@ -59,6 +56,7 @@ import {
   SessionConfig,
   getDashboardConnection,
   TablePlugin,
+  ConsolePanelProps,
 } from '@deephaven/dashboard-core-plugins';
 import { vsGear, dhShapes, dhPanels } from '@deephaven/icons';
 import dh, {
@@ -82,7 +80,7 @@ import {
   UserPermissions,
   ServerConfigValues,
 } from '@deephaven/redux';
-import { PromiseUtils } from '@deephaven/utils';
+import { assertNotNull, PromiseUtils } from '@deephaven/utils';
 import GoldenLayout from '@deephaven/golden-layout';
 import type { ItemConfigType } from '@deephaven/golden-layout';
 import JSZip from 'jszip';
@@ -92,11 +90,7 @@ import { getLayoutStorage, getServerConfigValues } from '../redux';
 import Logo from '../settings/community-wordmark-app.svg';
 import './AppMainContainer.scss';
 import WidgetList, { WindowMouseEvent } from './WidgetList';
-import {
-  createChartModel,
-  createGridModel,
-  GridPanelMetadata,
-} from './WidgetUtils';
+import { createChartModel, createGridModel } from './WidgetUtils';
 import EmptyDashboard from './EmptyDashboard';
 import UserLayoutUtils from './UserLayoutUtils';
 import DownloadServiceWorkerUtils from '../DownloadServiceWorkerUtils';
@@ -166,7 +160,10 @@ export class AppMainContainer extends Component<
     event.returnValue = '';
   }
 
-  static hydrateConsole(props: PanelProps, id: string): DashboardPanelProps {
+  static hydrateConsole(
+    props: Partial<ConsolePanelProps>,
+    id: string
+  ): Partial<ConsolePanelProps> {
     return DashboardUtils.hydrate(
       {
         ...props,
@@ -631,9 +628,9 @@ export class AppMainContainer extends Component<
   hydrateDefault(
     props: {
       metadata?: { type?: VariableTypeUnion; id?: string; name?: string };
-    } & PanelProps,
+    },
     id: string
-  ): DashboardPanelProps & { fetch?: () => Promise<unknown> } {
+  ): Partial<DashboardPanelProps> & { fetch?: () => Promise<unknown> } {
     const { connection } = this.props;
     const { metadata } = props;
     if (
@@ -657,45 +654,68 @@ export class AppMainContainer extends Component<
     return DashboardUtils.hydrate(props, id);
   }
 
-  hydrateGrid(props: IrisGridPanelProps, id: string): IrisGridPanelProps {
+  hydrateGrid(
+    props: Partial<IrisGridPanelProps>,
+    id: string
+  ): Record<string, unknown> {
     return this.hydrateTable(
       props,
       id,
-      props.metadata.type ?? dh.VariableType.TABLE
+      props.metadata?.type ?? dh.VariableType.TABLE
     );
   }
 
-  hydratePandas(props: PandasPanelProps, id: string): PandasPanelProps {
+  hydratePandas(
+    props: Partial<PandasPanelProps>,
+    id: string
+  ): Partial<PandasPanelProps> {
     return this.hydrateTable(props, id, dh.VariableType.PANDAS);
   }
 
-  hydrateTable<T extends { metadata: GridPanelMetadata }>(
-    props: T,
+  hydrateTable(
+    props: Partial<IrisGridPanelProps>,
     id: string,
     type: VariableTypeUnion = dh.VariableType.TABLE
-  ): T & {
-    getDownloadWorker: () => Promise<ServiceWorker>;
-    loadPlugin: (pluginName: string) => TablePlugin;
-    localDashboardId: string;
-    makeModel: () => Promise<IrisGridModel>;
-  } {
+  ): Partial<IrisGridPanelProps> {
     const { connection } = this.props;
+    let { metadata } = props;
+    if (isWidgetPanelMetadata(metadata)) {
+      // Need to translate from widget metadata to table metadata
+      metadata = {
+        table: metadata.name,
+        type: metadata.type,
+      };
+    }
     return {
       ...props,
       getDownloadWorker: DownloadServiceWorkerUtils.getServiceWorker,
       loadPlugin: this.handleLoadTablePlugin,
       localDashboardId: id,
-      makeModel: () => createGridModel(connection, props.metadata, type),
+      makeModel: () => {
+        assertNotNull(metadata);
+        return createGridModel(connection, metadata, type);
+      },
     };
   }
 
-  hydrateChart(props: ChartPanelProps, id: string): ChartPanelProps {
+  hydrateChart(
+    props: Partial<ChartPanelProps>,
+    id: string
+  ): Partial<ChartPanelProps> {
     const { connection } = this.props;
     return {
       ...props,
       localDashboardId: id,
       makeModel: () => {
-        const { metadata, panelState } = props;
+        const { panelState } = props;
+        let { metadata } = props;
+        assertNotNull(metadata);
+        if (isWidgetPanelMetadata(metadata)) {
+          // Need to translate from widget metadata to chart metadata
+          metadata = {
+            figure: metadata.name,
+          };
+        }
         return createChartModel(connection, metadata, panelState);
       },
     };

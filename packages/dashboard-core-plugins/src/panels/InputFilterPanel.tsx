@@ -1,7 +1,7 @@
 import React, { Component, RefObject } from 'react';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
-import type { Container, EventEmitter } from '@deephaven/golden-layout';
+import { DashboardPanelProps } from '@deephaven/dashboard';
 import { RootState } from '@deephaven/redux';
 import Panel from './Panel';
 import InputFilter, {
@@ -12,7 +12,7 @@ import { getColumnsForDashboard } from '../redux';
 
 const INPUT_FILTER_DEBOUNCE = 250;
 
-export interface PanelState {
+export interface PanelState extends Record<string, unknown> {
   name?: string;
   type?: string;
   value?: string;
@@ -20,9 +20,7 @@ export interface PanelState {
   timestamp?: number;
 }
 
-interface InputFilterPanelProps {
-  glContainer: Container;
-  glEventHub: EventEmitter;
+interface InputFilterPanelProps extends DashboardPanelProps {
   panelState: PanelState;
   columns: InputFilterColumn[];
 }
@@ -236,10 +234,7 @@ class InputFilterPanel extends Component<
   }
 }
 
-const mapStateToProps = (
-  state: RootState,
-  ownProps: { localDashboardId: string }
-) => {
+const mapStateToProps = (state: RootState, ownProps: InputFilterPanelProps) => {
   const { localDashboardId } = ownProps;
 
   return {

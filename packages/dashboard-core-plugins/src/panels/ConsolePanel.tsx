@@ -10,7 +10,7 @@ import {
   ConsoleConstants,
   HeapUsage,
 } from '@deephaven/console';
-import { PanelEvent } from '@deephaven/dashboard';
+import { DashboardPanelProps, PanelEvent } from '@deephaven/dashboard';
 import { IdeSession, VariableDefinition } from '@deephaven/jsapi-shim';
 import Log from '@deephaven/log';
 import {
@@ -18,7 +18,6 @@ import {
   getTimeZone,
   RootState,
 } from '@deephaven/redux';
-import type { Container, EventEmitter } from '@deephaven/golden-layout';
 import { assertNotNull } from '@deephaven/utils';
 import type { JSZipObject } from 'jszip';
 import { ConsoleEvent } from '../events';
@@ -39,17 +38,15 @@ interface ConsoleSettings {
   isClosePanelsOnDisconnectEnabled?: boolean;
 }
 
-interface PanelState {
+interface PanelState extends Record<string, unknown> {
   consoleSettings: ConsoleSettings;
   itemIds: [string, string][];
 }
 
 type ItemIds = Map<string, string>;
 
-interface ConsolePanelProps {
+export interface ConsolePanelProps extends DashboardPanelProps {
   commandHistoryStorage: CommandHistoryStorage;
-  glContainer: Container;
-  glEventHub: EventEmitter;
 
   panelState?: PanelState;
 

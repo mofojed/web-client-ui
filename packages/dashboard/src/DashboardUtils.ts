@@ -6,7 +6,6 @@ import {
 
 export type DashboardPanelProps = PanelProps & {
   localDashboardId: string;
-  metadata?: Record<string, unknown>;
 };
 
 /**
@@ -49,10 +48,10 @@ export function dehydrate(config: PanelConfig): DehydratedPanelConfig | null {
  * @param localDashboardId The local dashboard ID to hydrate the panel with
  * @returns The hydrated panel props
  */
-export function hydrate(
-  props: PanelProps & Record<string, unknown>,
+export function hydrate<T = DashboardPanelProps>(
+  props: Partial<T>,
   localDashboardId = ''
-): DashboardPanelProps {
+): Partial<T> {
   return {
     metadata: {},
     ...props,

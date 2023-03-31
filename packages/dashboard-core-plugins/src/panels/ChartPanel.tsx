@@ -12,6 +12,7 @@ import {
   isFigureChartModel,
 } from '@deephaven/chart';
 import {
+  DashboardPanelProps,
   getOpenedPanelMapForDashboard,
   LayoutUtils,
   PanelComponent,
@@ -46,7 +47,6 @@ import {
   PromiseUtils,
   TextUtils,
 } from '@deephaven/utils';
-import type { Container, EventEmitter } from '@deephaven/golden-layout';
 import WidgetPanel from './WidgetPanel';
 import ToolType from '../linker/ToolType';
 import { InputFilterEvent, ChartEvent } from '../events';
@@ -108,7 +108,7 @@ export interface ChartPanelTableSettings {
   partition?: unknown;
   partitionColumn?: string;
 }
-export interface GLChartPanelState {
+export interface GLChartPanelState extends Record<string, unknown> {
   filterValueMap: [string, string][];
   settings: Partial<ChartModelSettings>;
   tableSettings: ChartPanelTableSettings;
@@ -124,10 +124,8 @@ export interface GLChartPanelState {
   table?: string;
   figure?: string;
 }
-export interface ChartPanelProps {
-  glContainer: Container;
-  glEventHub: EventEmitter;
 
+export interface ChartPanelProps extends DashboardPanelProps {
   metadata: ChartPanelMetadata;
   /** Function to build the ChartModel used by this ChartPanel. Can return a promise. */
   makeModel: () => Promise<ChartModel>;

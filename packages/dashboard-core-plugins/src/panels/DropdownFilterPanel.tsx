@@ -38,7 +38,7 @@ const log = Log.module('DropdownFilterPanel');
 
 const DROPDOWN_FILTER_DEBOUNCE = 250;
 
-interface PanelState {
+interface PanelState extends Record<string, unknown> {
   name?: string;
   type?: string;
   value?: string;

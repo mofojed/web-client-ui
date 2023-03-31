@@ -2,6 +2,7 @@ export { default as ChartPanel } from './ChartPanel';
 export * from './ChartPanel';
 export * from './ChartPanelUtils';
 export { default as CommandHistoryPanel } from './CommandHistoryPanel';
+export * from './ConsolePanel';
 export { default as ConsolePanel } from './ConsolePanel';
 export { default as DropdownFilterPanel } from './DropdownFilterPanel';
 export { default as FileExplorerPanel } from './FileExplorerPanel';
