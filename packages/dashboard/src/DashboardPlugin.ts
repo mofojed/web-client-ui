@@ -28,13 +28,24 @@ export function isWrappedComponent<
 export type PanelProps = {
   glContainer: Container;
   glEventHub: EventEmitter;
+  metadata?: Record<string, unknown>;
+  panelState?: Record<string, unknown>;
 };
 
 export type PanelComponent<T extends PanelProps = PanelProps> = Component<T>;
 
-export type PanelConfig = ReactComponentConfig & {
-  componentState?: Record<string, unknown> | null;
+export type DehydratedPanelConfig<
+  P extends Record<string, unknown> = Record<string, unknown>,
+  S extends Record<string, unknown> = Record<string, unknown>
+> = ReactComponentConfig<P> & {
+  props: P;
+  componentState?: S | null;
 };
+
+export type PanelConfig<
+  P extends PanelProps = PanelProps,
+  S extends Record<string, unknown> = Record<string, unknown>
+> = DehydratedPanelConfig<P, S>;
 
 export type DashboardConfig = {
   id: string;
@@ -49,25 +60,33 @@ export interface DashboardPanelDefinition {
 
 export type DeregisterComponentFunction = () => void;
 
-export type PanelHydrateFunction<T = PanelProps> = (
-  props: T,
-  dashboardId: string
-) => PanelProps;
+export type PanelHydrateFunction<
+  P extends Record<string, unknown> = Record<string, unknown>,
+  R extends Record<string, unknown> = P
+> = (props: P, dashboardId: string) => R;
 
-export type PanelDehydrateFunction = (
-  config: PanelConfig,
+export type PanelDehydrateFunction<
+  P extends PanelProps = PanelProps,
+  R extends Record<string, unknown> = Record<string, unknown>
+> = (
+  config: PanelConfig<P>,
   dashboardId: string
-) => PanelConfig | null;
+) => DehydratedPanelConfig<R> | null;
 
 export type DashboardPluginComponentProps = {
   id: string;
   layout: GoldenLayout;
   panelManager: PanelManager;
-  registerComponent: <P extends PanelProps, C extends ComponentType<P>>(
+  registerComponent: <
+    P extends PanelProps,
+    C extends ComponentType<P>,
+    H extends Record<string, unknown> = Record<string, unknown>,
+    D extends Record<string, unknown> = Record<string, unknown>
+  >(
     name: string,
     ComponentType: PanelComponentType<P, C>,
-    hydrate?: PanelHydrateFunction<P>,
-    dehydrate?: PanelDehydrateFunction
+    hydrate?: PanelHydrateFunction<Partial<D>, Partial<H>>,
+    dehydrate?: PanelDehydrateFunction<P, D>
   ) => DeregisterComponentFunction;
 };
 

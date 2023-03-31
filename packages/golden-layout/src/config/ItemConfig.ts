@@ -75,7 +75,7 @@ export interface ComponentConfig extends ItemConfig {
   componentState: Record<string, unknown>;
 }
 
-export interface ReactComponentConfig extends ItemConfig {
+export interface ReactComponentConfig<P = any> extends ItemConfig {
   componentName?: string;
   /**
    * The name of the component as specified in layout.registerComponent. Mandatory if type is 'react-component'
@@ -85,7 +85,7 @@ export interface ReactComponentConfig extends ItemConfig {
   /**
    * Properties that will be passed to the component and accessible using this.props.
    */
-  props?: any;
+  props?: P;
 }
 
 export function isGLComponentConfig(

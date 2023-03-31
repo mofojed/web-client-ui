@@ -1,4 +1,8 @@
-import { PanelConfig, PanelProps } from './DashboardPlugin';
+import {
+  DehydratedPanelConfig,
+  PanelConfig,
+  PanelProps,
+} from './DashboardPlugin';
 
 export type DashboardPanelProps = PanelProps & {
   localDashboardId: string;
@@ -12,12 +16,15 @@ export type DashboardPanelProps = PanelProps & {
  * @param config The panel config to dehydrate
  * @returns The dehydrated PanelConfig
  */
-export function dehydrate(config: PanelConfig): PanelConfig | null {
+export function dehydrate(config: PanelConfig): DehydratedPanelConfig | null {
   const { props, componentState } = config;
   const { metadata } = props;
   let { panelState = null } = props;
-  if (componentState) {
-    ({ panelState } = componentState);
+  if (componentState != null) {
+    const componentPanelState = componentState.panelState;
+    if (componentPanelState != null) {
+      panelState = componentPanelState as Record<string, unknown>;
+    }
   }
   const newProps: Record<string, unknown> = {};
   if (metadata != null) {
