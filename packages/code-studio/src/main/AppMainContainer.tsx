@@ -655,6 +655,7 @@ export class AppMainContainer extends Component<
   }
 
   hydrateGrid(
+    // TODO: Should be the PanelEvent.OPEN props OR the dehydrated props...
     props: Partial<IrisGridPanelProps>,
     id: string
   ): Record<string, unknown> {
