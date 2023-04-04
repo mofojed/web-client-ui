@@ -12,6 +12,7 @@ import dh, {
   Chart,
   DateWrapper,
   Figure,
+  FigureDescriptor,
   Holiday,
   LongWrapper,
   Series,
@@ -1835,23 +1836,7 @@ class ChartUtils {
   static makeFigureSettings(
     settings: ChartModelSettings,
     table: Table
-  ): {
-    charts: {
-      chartType: string;
-      axes: { formatType: string; type: string; position: string }[];
-      series: {
-        plotStyle: string;
-        name: string;
-        dataSources: {
-          type: string;
-          columnName: string;
-          axis: { formatType: string; type: string; position: string };
-          table: Table;
-        }[];
-      }[];
-    }[];
-    title: string;
-  } {
+  ): FigureDescriptor {
     const { series, xAxis: settingsAxis, type } = settings;
     const title = ChartUtils.titleFromSettings(settings);
     const xAxis = {

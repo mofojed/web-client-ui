@@ -16,7 +16,7 @@ import FilterCondition = dhType.FilterCondition;
 import FilterValue = dhType.FilterValue;
 import Ide = dhType.Ide;
 import IdeConnection = dhType.IdeConnection;
-import IdeConnectionOptions = dhType.IdeConnectionOptions;
+import ConnectOptions = dhType.ConnectOptions;
 import IdeSession = dhType.IdeSession;
 import InputTable = dhType.InputTable;
 import LongWrapper = dhType.LongWrapper;
@@ -49,7 +49,7 @@ import ValueTypeUnion = dhType.ValueTypeType; // Name discrepancy
 
 type RemoverFn = () => void; // Remove in cleanup
 type EventListener = (e: CustomEvent) => void; // Remove in cleanup
-import LoginOptions = dhType.LoginOptions;
+import LoginCredentials = dhType.LoginCredentials;
 
 export type {
   ColumnStatistics,
@@ -73,7 +73,7 @@ export type {
   FilterValue,
   Ide,
   IdeConnection,
-  IdeConnectionOptions,
+  ConnectOptions,
   IdeSession,
   InputTable,
   LongWrapper,
@@ -97,7 +97,7 @@ export type {
   ValueTypeUnion,
   RemoverFn,
   EventListener,
-  LoginOptions,
+  LoginCredentials,
 };
 
 import i18n = dhType.i18n;
@@ -112,8 +112,9 @@ import CommandResult = ide.CommandResult;
 import LogItem = ide.LogItem;
 import VariableChanges = ide.VariableChanges;
 import VariableDefinition = ide.VariableDefinition;
+import VariableDescriptor = ide.VariableDescriptor;
 
-export type { CommandResult, LogItem, VariableChanges, VariableDefinition };
+export type { CommandResult, LogItem, VariableChanges, VariableDefinition, VariableDescriptor };
 
 import plot = dhType.plot;
 import Axis = plot.Axis;

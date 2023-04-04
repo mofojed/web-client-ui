@@ -82,15 +82,14 @@ export type CommonTable = Pick<
   | 'findColumn'
   | 'findColumns'
   | 'selectDistinct'
-> &
-  Partial<Pick<Table, 'getTotalsTable'>> & { copy(): Promise<CommonTable> };
+> & { copy(): Promise<CommonTable> };
 
-export function isJsTable(table: CommonTable): table is Table {
+export function isJsTable(table: unknown): table is Table {
   // TODO: Check some other methods as well
   return (table as Table)?.rollup !== undefined;
 }
 
-export function isTreeTable(table: CommonTable): table is TreeTable {
+export function isTreeTable(table: unknown): table is TreeTable {
   // TODO: Check some other methods as well
   return (table as TreeTable)?.setExpanded !== undefined;
 }

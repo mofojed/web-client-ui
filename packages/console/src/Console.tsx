@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import memoize from 'memoize-one';
 import throttle from 'lodash.throttle';
 import type { JSZipObject } from 'jszip';
-import dh from '@deephaven/jsapi-shim';
+import dh, { VariableDescriptor } from '@deephaven/jsapi-shim';
 import type {
   IdeSession,
   LogItem,
@@ -56,8 +56,8 @@ interface ConsoleProps {
   statusBarChildren: ReactNode;
   settings: Partial<Settings>;
   focusCommandHistory: () => void;
-  openObject: (object: VariableDefinition) => void;
-  closeObject: (object: VariableDefinition) => void;
+  openObject: (object: VariableDescriptor) => void;
+  closeObject: (object: VariableDescriptor) => void;
   session: IdeSession;
   language: string;
   commandHistoryStorage: CommandHistoryStorage;
@@ -755,7 +755,7 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
     this.setState({ consoleHistory: history });
     this.scrollConsoleHistoryToBottom(true);
     this.updateKnownObjects(historyItem);
-    openObject({ name: title, title, type: dh.VariableType.TABLE });
+    openObject({ name: title, type: dh.VariableType.TABLE });
     commandHistoryStorage.addItem(language, scope, title, {
       command: title,
       startTime: new Date().toJSON(),

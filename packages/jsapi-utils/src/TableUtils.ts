@@ -1244,7 +1244,7 @@ export class TableUtils {
     }
 
     if (TableUtils.isBooleanType(columnType)) {
-      return dh.FilterValue.ofBoolean(rawValue);
+      return dh.FilterValue.ofBoolean(rawValue as boolean);
     }
 
     return dh.FilterValue.ofNumber(rawValue);
