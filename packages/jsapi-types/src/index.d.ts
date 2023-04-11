@@ -1,15 +1,45 @@
 /* eslint-disable */
 // Minimum TypeScript Version: 4.3
 
-export interface IIterableResult<T> {
-	value:T;
-	done:boolean;
-}
 export interface Iterator<T> {
 	hasNext():boolean;
 	next():IIterableResult<T>;
 }
+export interface IIterableResult<T> {
+	value:T;
+	done:boolean;
+}
 export namespace dh.storage {
+
+	/**
+	* Represents a file's contents loaded from the server. If an etag was specified when loading, client should first test
+	* if the etag of this instance matches - if so, the contents will be empty, and the client's existing contents should
+	* be used.
+	*/
+	export class FileContents {
+		protected constructor();
+
+		static blob(blob:Blob):FileContents;
+		static text(...text:string[]):FileContents;
+		static arrayBuffers(...buffers:ArrayBuffer[]):FileContents;
+		text():Promise<string>;
+		arrayBuffer():Promise<ArrayBuffer>;
+		get etag():string;
+	}
+
+	/**
+	* Storage service metadata about files and folders.
+	*/
+	export class ItemDetails {
+		protected constructor();
+
+		get filename():string;
+		get basename():string;
+		get size():number;
+		get etag():string;
+		get type():ItemTypeType;
+		get dirname():string;
+	}
 
 	/**
 	* Remote service to read and write files on the server. Paths use "/" as a separator, and should not start with "/".
@@ -75,36 +105,6 @@ export namespace dh.storage {
 		createDirectory(path:string):Promise<void>;
 	}
 
-	/**
-	* Represents a file's contents loaded from the server. If an etag was specified when loading, client should first test
-	* if the etag of this instance matches - if so, the contents will be empty, and the client's existing contents should
-	* be used.
-	*/
-	export class FileContents {
-		protected constructor();
-
-		static blob(blob:Blob):FileContents;
-		static text(...text:string[]):FileContents;
-		static arrayBuffers(...buffers:ArrayBuffer[]):FileContents;
-		text():Promise<string>;
-		arrayBuffer():Promise<ArrayBuffer>;
-		get etag():string;
-	}
-
-	/**
-	* Storage service metadata about files and folders.
-	*/
-	export class ItemDetails {
-		protected constructor();
-
-		get filename():string;
-		get basename():string;
-		get size():number;
-		get etag():string;
-		get type():ItemTypeType;
-		get dirname():string;
-	}
-
 
 	type ItemTypeType = string;
 	export class ItemType {
@@ -116,40 +116,12 @@ export namespace dh.storage {
 
 export namespace dh {
 
-	export interface WorkerHeapInfo {
-		/**
-		* Total heap size available for this worker.
-		*/
-		get totalHeapSize():number;
-		get freeMemory():number;
-		get maximumHeapSize():number;
+	export interface ColumnGroup {
+		get name():string|null;
+		get children():string[]|null;
+		get color():string|null;
 	}
-	export interface ViewportData extends TableData {
-		get offset():number;
-		get columns():Array<Column>;
-		get rows():Array<ViewportRow>;
-	}
-	export interface WidgetExportedObject {
-		fetch():Promise<any>;
-		get type():string;
-	}
-	export interface HasEventHandling {
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-	}
-	export interface LayoutHints {
-		get hiddenColumns():string[]|null|undefined;
-		get frozenColumns():string[]|null|undefined;
-		get columnGroups():ColumnGroup[]|null|undefined;
-		get areSavedLayoutsAllowed():boolean;
-		get frontColumns():string[]|null|undefined;
-		get backColumns():string[]|null|undefined;
-	}
-	export interface Row {
-		get(column:Column):any;
-		getFormat(column:Column):Format;
+	export interface ViewportRow extends Row {
 		get index():LongWrapper;
 	}
 	/**
@@ -172,7 +144,7 @@ export namespace dh {
 		nextEvent<T>(eventName:string, timeoutInMillis:number):Promise<CustomEvent<T>>;
 		hasListeners(name:string):boolean;
 		applySort(sort:Sort[]):Array<Sort>;
-		applyCustomColumns(customColumns:object[]|string[]):Array<CustomColumn>;
+		applyCustomColumns(customColumns:Array<string|CustomColumn>):Array<CustomColumn>;
 		applyFilter(filter:FilterCondition[]):Array<FilterCondition>;
 		get filter():Array<FilterCondition>;
 		get size():number;
@@ -181,27 +153,20 @@ export namespace dh {
 		get sort():Array<Sort>;
 		get customColumns():Array<CustomColumn>;
 	}
-	/**
-	* Wrap LocalDate values for use in JS. Provides text formatting for display and access to the underlying value.
-	*/
-	export interface LocalDateWrapper {
-		valueOf():string;
-		getYear():number;
-		getMonthValue():number;
-		getDayOfMonth():number;
-		toString():string;
+	export interface Widget {
+		getDataAsBase64():string;
+		getDataAsU8():Uint8Array;
+		get exportedObjects():WidgetExportedObject[];
+		get type():string;
 	}
-	/**
-	* Event data, describing the indexes that were added/removed/updated, and providing access to Rows (and thus data
-	* in columns) either by index, or scanning the complete present index.
-	*/
-	export interface SubscriptionTableData extends TableData {
-		get fullIndex():RangeSet;
-		get removed():RangeSet;
-		get added():RangeSet;
-		get columns():Array<Column>;
-		get modified():RangeSet;
-		get rows():Array<unknown>;
+	export interface Format {
+		readonly formatString?:string|null;
+		readonly backgroundColor?:string|null;
+		readonly color?:string|null;
+		/**
+		* @deprecated Prefer formatString.
+		*/
+		readonly numberFormat?:string|null;
 	}
 	/**
 	* Javascript wrapper for {@link ColumnStatistics}
@@ -228,6 +193,26 @@ export namespace dh {
 		get statisticsMap():Map<string, object>;
 	}
 	/**
+	* Event data, describing the indexes that were added/removed/updated, and providing access to Rows (and thus data
+	* in columns) either by index, or scanning the complete present index.
+	*/
+	export interface SubscriptionTableData extends TableData {
+		get fullIndex():RangeSet;
+		get removed():RangeSet;
+		get added():RangeSet;
+		get columns():Array<Column>;
+		get modified():RangeSet;
+		get rows():Array<unknown>;
+	}
+	export interface LayoutHints {
+		get hiddenColumns():string[]|null;
+		get frozenColumns():string[]|null;
+		get columnGroups():ColumnGroup[]|null;
+		get areSavedLayoutsAllowed():boolean;
+		get frontColumns():string[]|null;
+		get backColumns():string[]|null;
+	}
+	/**
 	* Row implementation that also provides additional read-only properties.
 	*/
 	export interface TreeRow extends ViewportRow {
@@ -236,10 +221,37 @@ export namespace dh {
 		get hasChildren():boolean;
 		get index():LongWrapper;
 	}
-	export interface Widget {
-		getDataAsBase64():string;
-		getDataAsU8():Uint8Array;
-		get exportedObjects():WidgetExportedObject[];
+	export interface ViewportData extends TableData {
+		get offset():number;
+		get columns():Array<Column>;
+		get rows():Array<ViewportRow>;
+	}
+	/**
+	* Common interface for various ways of accessing table data and formatting.
+	*
+	* Java note: this interface contains some extra overloads that aren't available in JS. Implementations are expected to
+	* implement only abstract methods, and default methods present in this interface will dispatch accordingly.
+	*/
+	export interface TableData {
+		get(index:LongWrapper|number):Row;
+		getData(index:LongWrapper|number, column:Column):any;
+		getFormat(index:LongWrapper|number, column:Column):Format;
+		get columns():Array<Column>;
+		get rows():Array<unknown>;
+	}
+	export interface HasEventHandling {
+		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
+		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
+		hasListeners(name:string):boolean;
+		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
+	}
+	export interface Row {
+		get(column:Column):any;
+		getFormat(column:Column):Format;
+		get index():LongWrapper;
+	}
+	export interface WidgetExportedObject {
+		fetch():Promise<any>;
 		get type():string;
 	}
 	/**
@@ -252,15 +264,6 @@ export namespace dh {
 		getSecond():number;
 		getNano():number;
 		toString():string;
-	}
-	export interface Format {
-		get formatString():string|null|undefined;
-		get backgroundColor():string|null|undefined;
-		get color():string|null|undefined;
-		/**
-		* @deprecated Prefer formatString.
-		*/
-		get numberFormat():string|null|undefined;
 	}
 	/**
 	* Encapsulates event handling around table subscriptions by "cheating" and wrapping up a JsTable instance to do the
@@ -282,40 +285,198 @@ export namespace dh {
 	* true), providing a way to stop the server from streaming updates to the client.
 	*/
 	export interface TableViewportSubscription extends HasEventHandling {
-		setViewport(firstRow:number, lastRow:number, columns?:Column[]|null|undefined, updateIntervalMs?:number|null|undefined):void;
+		setViewport(firstRow:number, lastRow:number, columns?:Column[]|undefined|null, updateIntervalMs?:number|undefined|null):void;
 		close():void;
 		getViewportData():Promise<TableData>;
 		snapshot(rows:RangeSet, columns:Column[]):Promise<TableData>;
-	}
-	export interface ColumnGroup {
-		get name():string|null|undefined;
-		get children():string[]|null|undefined;
-		get color():string|null|undefined;
-	}
-	export interface RefreshToken {
-		get bytes():string;
-		get expiry():number;
-	}
-	export interface ViewportRow extends Row {
-		get index():LongWrapper;
 	}
 	export interface TreeViewportData extends TableData {
 		get offset():number;
 		get columns():Array<Column>;
 		get rows():Array<TreeRow>;
 	}
+	export interface RefreshToken {
+		get bytes():string;
+		get expiry():number;
+	}
 	/**
-	* Common interface for various ways of accessing table data and formatting.
-	*
-	* Java note: this interface contains some extra overloads that aren't available in JS. Implementations are expected to
-	* implement only abstract methods, and default methods present in this interface will dispatch accordingly.
+	* Wrap LocalDate values for use in JS. Provides text formatting for display and access to the underlying value.
 	*/
-	export interface TableData {
-		get(index:object):Row;
-		getData(index:object, column:Column):any;
-		getFormat(index:object, column:Column):Format;
-		get columns():Array<Column>;
-		get rows():Array<unknown>;
+	export interface LocalDateWrapper {
+		valueOf():string;
+		getYear():number;
+		getMonthValue():number;
+		getDayOfMonth():number;
+		toString():string;
+	}
+	export interface WorkerHeapInfo {
+		/**
+		* Total heap size available for this worker.
+		*/
+		get totalHeapSize():number;
+		get freeMemory():number;
+		get maximumHeapSize():number;
+	}
+
+	export class QueryInfo {
+		static readonly EVENT_TABLE_OPENED:string;
+		static readonly EVENT_DISCONNECT:string;
+		static readonly EVENT_RECONNECT:string;
+		static readonly EVENT_CONNECT:string;
+	}
+
+	export class CustomColumn {
+		static readonly TYPE_FORMAT_COLOR:string;
+		static readonly TYPE_FORMAT_NUMBER:string;
+		static readonly TYPE_FORMAT_DATE:string;
+		static readonly TYPE_NEW:string;
+
+		protected constructor();
+
+		valueOf():string;
+		toString():string;
+		get expression():string;
+		get name():string;
+		get type():string;
+	}
+
+	export class CoreClient implements HasEventHandling {
+		static readonly EVENT_CONNECT:string;
+		static readonly EVENT_DISCONNECT:string;
+		static readonly EVENT_RECONNECT:string;
+		static readonly EVENT_RECONNECT_AUTH_FAILED:string;
+		static readonly EVENT_REFRESH_TOKEN_UPDATED:string;
+		static readonly EVENT_REQUEST_FAILED:string;
+		static readonly EVENT_REQUEST_STARTED:string;
+		static readonly EVENT_REQUEST_SUCCEEDED:string;
+		static readonly LOGIN_TYPE_PASSWORD:string;
+		static readonly LOGIN_TYPE_ANONYMOUS:string;
+
+		constructor(serverUrl:string, connectOptions:object);
+
+		running():Promise<CoreClient>;
+		getServerUrl():string;
+		getAuthConfigValues():Promise<string[][]>;
+		login(credentials:LoginCredentials):Promise<void>;
+		relogin(token:RefreshToken):Promise<void>;
+		onConnected(timeoutInMillis?:number):Promise<void>;
+		getServerConfigValues():Promise<string[][]>;
+		getUserInfo():Promise<unknown>;
+		getStorageService():dh.storage.StorageService;
+		getAsIdeConnection():Promise<IdeConnection>;
+		disconnect():void;
+		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
+		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
+		hasListeners(name:string):boolean;
+		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
+	}
+
+	export class LoginCredentials {
+		type?:string|null;
+		username?:string|null;
+		token?:string|null;
+
+		constructor();
+	}
+
+	export class Sort {
+		static readonly ASCENDING:string;
+		static readonly DESCENDING:string;
+		static readonly REVERSE:string;
+
+		protected constructor();
+
+		asc():Sort;
+		desc():Sort;
+		abs():Sort;
+		toString():string;
+		get isAbs():boolean;
+		get column():Column;
+		get direction():string;
+	}
+
+	export class Column {
+		readonly constituentType?:string|null;
+		readonly description?:string|null;
+
+		protected constructor();
+
+		get(row:Row):any;
+		getFormat(row:Row):Format;
+		sort():Sort;
+		filter():FilterValue;
+		formatColor(expression:string):CustomColumn;
+		formatNumber(expression:string):CustomColumn;
+		formatDate(expression:string):CustomColumn;
+		toString():string;
+		get name():string;
+		get isPartitionColumn():boolean;
+		get index():number;
+		get type():string;
+		static formatRowColor(expression:string):CustomColumn;
+		static createCustomColumn(name:string, expression:string):CustomColumn;
+	}
+
+	export class RollupConfig {
+		groupingColumns:Array<String>;
+		aggregations:{ [key: string]: Array<AggregationOperationType>; };
+		includeConstituents:boolean;
+		includeOriginalColumns?:boolean|null;
+		includeDescriptions:boolean;
+
+		constructor();
+	}
+
+	/**
+	* Configuration object for running Table.treeTable to produce a hierarchical view of a given "flat" table.
+	*/
+	export class TreeTableConfig {
+		idColumn:string;
+		parentColumn:string;
+		promoteOrphansToRoot:boolean;
+
+		constructor();
+	}
+
+	/**
+	* Wrap BigDecimal values for use in JS. Provides text formatting for display and access to the underlying value.
+	*/
+	export class BigDecimalWrapper {
+		protected constructor();
+
+		static ofString(value:string):BigDecimalWrapper;
+		asNumber():number;
+		valueOf():string;
+		toString():string;
+	}
+
+	/**
+	* Simple wrapper to emulate RangeSet/Index in JS, with the caveat that LongWrappers may make poor keys in plain JS.
+	*/
+	export class RangeSet {
+		protected constructor();
+
+		static ofRange(first:number, last:number):RangeSet;
+		static ofItems(rows:number[]):RangeSet;
+		static ofRanges(ranges:RangeSet[]):RangeSet;
+		static ofSortedRanges(ranges:RangeSet[]):RangeSet;
+		iterator():Iterator<LongWrapper>;
+		get size():number;
+	}
+
+	export class PartitionedTable {
+		static readonly EVENT_KEYADDED:string;
+		static readonly EVENT_DISCONNECT:string;
+		static readonly EVENT_RECONNECT:string;
+		static readonly EVENT_RECONNECTFAILED:string;
+
+		protected constructor();
+
+		getTable(key:object):Promise<Table>;
+		getMergedTable():Promise<Table>;
+		getKeys():Set<object>;
+		close():void;
+		get size():number;
 	}
 
 	export class IdeConnection {
@@ -343,97 +504,98 @@ export namespace dh {
 		getWorkerHeapInfo():Promise<WorkerHeapInfo>;
 	}
 
-	export class FilterValue {
-		eq(term:FilterValue):FilterCondition;
-		eqIgnoreCase(term:FilterValue):FilterCondition;
-		notEq(term:FilterValue):FilterCondition;
-		notEqIgnoreCase(term:FilterValue):FilterCondition;
-		greaterThan(term:FilterValue):FilterCondition;
-		lessThan(term:FilterValue):FilterCondition;
-		greaterThanOrEqualTo(term:FilterValue):FilterCondition;
-		lessThanOrEqualTo(term:FilterValue):FilterCondition;
-		in(terms:FilterValue[]):FilterCondition;
-		inIgnoreCase(terms:FilterValue[]):FilterCondition;
-		notIn(terms:FilterValue[]):FilterCondition;
-		notInIgnoreCase(terms:FilterValue[]):FilterCondition;
-		contains(term:FilterValue):FilterCondition;
-		containsIgnoreCase(term:FilterValue):FilterCondition;
-		matches(pattern:FilterValue):FilterCondition;
-		matchesIgnoreCase(pattern:FilterValue):FilterCondition;
-		isTrue():FilterCondition;
-		isFalse():FilterCondition;
-		isNull():FilterCondition;
-		invoke(method:string, ...args:FilterValue[]):FilterCondition;
-		toString():string;
-		static ofString(input:any):FilterValue;
-		static ofNumber(input:any):FilterValue;
-		static ofBoolean(b:boolean):FilterValue;
-	}
+	/**
+	* Event fired when a command is issued from the client.
+	*/
+	export class CommandInfo {
+		constructor(code:string, result:Promise<dh.ide.CommandResult>);
 
-	export class RollupConfig {
-		groupingColumns:Array<String>;
-		aggregations:{ [key: string]: Array<AggregationOperationType>; };
-		includeConstituents:boolean;
-		includeOriginalColumns:boolean|null|undefined;
-		includeDescriptions:boolean;
-
-		constructor();
-	}
-
-	export class QueryInfo {
-		static readonly EVENT_TABLE_OPENED:string;
-		static readonly EVENT_DISCONNECT:string;
-		static readonly EVENT_RECONNECT:string;
-		static readonly EVENT_CONNECT:string;
-	}
-
-	export class LoginCredentials {
-		type:string|null|undefined;
-		username:string|null|undefined;
-		token:string|null|undefined;
-
-		constructor();
-	}
-
-	export class Column {
-		protected constructor();
-
-		get(row:Row):any;
-		getFormat(row:Row):Format;
-		sort():Sort;
-		filter():FilterValue;
-		formatColor(expression:string):CustomColumn;
-		formatNumber(expression:string):CustomColumn;
-		formatDate(expression:string):CustomColumn;
-		toString():string;
-		get constituentType():string|null|undefined;
-		get name():string;
-		get isPartitionColumn():boolean;
-		get index():number;
-		get description():string|null|undefined;
-		get type():string;
-		static formatRowColor(expression:string):CustomColumn;
-		static createCustomColumn(name:string, expression:string):CustomColumn;
+		get result():Promise<dh.ide.CommandResult>;
+		get code():string;
 	}
 
 	/**
-	* A js type for operating on input tables.
+	* TODO provide hooks into the event handlers so we can see if no one is listening any more and release the table
+	* handle/viewport.
 	*/
-	export class InputTable {
+	export class Table {
+		readonly description?:string|null;
+		readonly pluginName?:string|null;
+		readonly layoutHints?:null|LayoutHints;
+		static readonly EVENT_SIZECHANGED:string;
+		static readonly EVENT_UPDATED:string;
+		static readonly EVENT_ROWADDED:string;
+		static readonly EVENT_ROWREMOVED:string;
+		static readonly EVENT_ROWUPDATED:string;
+		static readonly EVENT_SORTCHANGED:string;
+		static readonly EVENT_FILTERCHANGED:string;
+		static readonly EVENT_CUSTOMCOLUMNSCHANGED:string;
+		static readonly EVENT_DISCONNECT:string;
+		static readonly EVENT_RECONNECT:string;
+		static readonly EVENT_RECONNECTFAILED:string;
+		static readonly EVENT_REQUEST_FAILED:string;
+		static readonly EVENT_REQUEST_SUCCEEDED:string;
+		static readonly SIZE_UNCOALESCED:number;
+
 		protected constructor();
 
-		addRow(row:{ [key: string]: any; }, userTimeZone?:string):Promise<InputTable>;
-		addRows(rows:[], userTimeZone?:string):Promise<InputTable>;
-		addTable(tableToAdd:Table):Promise<InputTable>;
-		addTables(tablesToAdd:Table[]):Promise<InputTable>;
-		deleteTable(tableToDelete:Table):Promise<InputTable>;
-		deleteTables(tablesToDelete:Table[]):Promise<InputTable>;
-		get keys():string[];
-		get values():string[];
-		get keyColumns():Column[];
-		get valueColumns():Column[];
-		get table():Table;
+		batch(userCode:(value:unknown)=>void):Promise<Table>;
+		findColumn(key:string):Column;
+		findColumns(keys:string[]):Column[];
+		isStreamTable():boolean;
+		inputTable():Promise<InputTable>;
+		close():void;
+		getAttributes():string[];
+		getAttribute(attributeName:string):unknown|undefined|null;
+		applySort(sort:Sort[]):Array<Sort>;
+		applyFilter(filter:FilterCondition[]):Array<FilterCondition>;
+		applyCustomColumns(customColumns:Array<string|CustomColumn>):Array<CustomColumn>;
+		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|undefined|null, updateIntervalMs?:number|undefined|null):TableViewportSubscription;
+		getViewportData():Promise<TableData>;
+		subscribe(columns:Array<Column>, updateIntervalMs?:number):TableSubscription;
+		selectDistinct(columns:Column[]):Promise<Table>;
+		copy():Promise<Table>;
+		rollup(configObject:RollupConfig):Promise<TreeTable>;
+		treeTable(configObject:TreeTableConfig):Promise<TreeTable>;
+		freeze():Promise<Table>;
+		snapshot(baseTable:Table, doInitialSnapshot?:boolean, stampColumns?:string[]):Promise<Table>;
+		/**
+		* @deprecated
+		*/
+		join(joinType:object, rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>|undefined|null, asOfMatchRule?:unknown|undefined|null):Promise<Table>;
+		asOfJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>|undefined|null, asOfMatchRule?:string|undefined|null):Promise<Table>;
+		crossJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>, reserve_bits?:number):Promise<Table>;
+		exactJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>):Promise<Table>;
+		naturalJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>):Promise<Table>;
+		byExternal(keys:object, dropKeys?:boolean):Promise<PartitionedTable>;
+		partitionBy(keys:object, dropKeys?:boolean):Promise<PartitionedTable>;
+		/**
+		* Seek the row matching the data provided
+		* 
+		* @param startingRow Row to start the seek from
+		* @param column Column to seek for value on
+		* @param valueType Type of value provided
+		* @param seekValue Value to seek
+		* @param insensitive Optional value to flag a search as case-insensitive. Defaults to `false`.
+		* @param contains Optional value to have the seek value do a contains search instead of exact equality. Defaults to
+		*        `false`.
+		* @param isBackwards Optional value to seek backwards through the table instead of forwards. Defaults to `false`.
+		* @return A promise that resolves to the row value found.
+		*/
+		seekRow(startingRow:number, column:Column, valueType:ValueTypeType, seekValue:any, insensitive?:boolean|undefined|null, contains?:boolean|undefined|null, isBackwards?:boolean|undefined|null):Promise<number>;
+		toString():string;
+		get hasInputTable():boolean;
+		get columns():Array<Column>;
+		get sort():Array<Sort>;
+		get customColumns():Array<CustomColumn>;
+		get filter():Array<FilterCondition>;
+		get totalSize():number;
+		get size():number;
+		get isClosed():boolean;
+		get isUncoalesced():boolean;
+		static reverse():Sort;
 	}
+
 
 	export class TotalsTableConfig {
 		/**
@@ -491,6 +653,50 @@ export namespace dh {
 		toString():string;
 	}
 
+	export class IdeSession implements HasEventHandling {
+		static readonly EVENT_COMMANDSTARTED:string;
+		static readonly EVENT_REQUEST_FAILED:string;
+
+		protected constructor();
+
+		getTable(name:string, applyPreviewColumns?:boolean):Promise<Table>;
+		getFigure(name:string):Promise<dh.plot.Figure>;
+		getTreeTable(name:string):Promise<TreeTable>;
+		getHierarchicalTable(name:string):Promise<TreeTable>;
+		getObject(definitionObject:dh.ide.VariableDescriptor):Promise<any>;
+		newTable(columnNames:string[], types:string[], data:string[][], userTimeZone:string):Promise<Table>;
+		mergeTables(tables:Table[]):Promise<Table>;
+		bindTableToVariable(table:Table, name:string):Promise<void>;
+		subscribeToFieldUpdates(callback:(value:dh.ide.VariableChanges)=>void):()=>void;
+		close():void;
+		runCode(code:string):Promise<dh.ide.CommandResult>;
+		onLogMessage(callback:(value:dh.ide.LogItem)=>void):()=>void;
+		openDocument(params:object):void;
+		changeDocument(params:object):void;
+		getCompletionItems(params:object):Promise<Array<dh.lsp.CompletionItem>>;
+		getSignatureHelp(params:object):Promise<Array<dh.lsp.SignatureInformation>>;
+		getHover(params:object):Promise<dh.lsp.Hover>;
+		closeDocument(params:object):void;
+		emptyTable(size:number):Promise<Table>;
+		timeTable(periodNanos:number, startTime?:DateWrapper):Promise<Table>;
+		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
+		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
+		hasListeners(name:string):boolean;
+		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
+	}
+
+	/**
+	* Deprecated for use in Deephaven Core.
+	* @deprecated
+	*/
+	export class Client {
+		static readonly EVENT_REQUEST_FAILED:string;
+		static readonly EVENT_REQUEST_STARTED:string;
+		static readonly EVENT_REQUEST_SUCCEEDED:string;
+
+		constructor();
+	}
+
 	/**
 	* Behaves like a JsTable externally, but data, state, and viewports are managed by an entirely different mechanism, and
 	* so reimplemented here.
@@ -502,22 +708,23 @@ export namespace dh {
 	*
 	* The table size will be -1 until a viewport has been fetched.
 	*/
-	export class TreeTable implements HasEventHandling {
+	export class TreeTable {
 		static readonly EVENT_UPDATED:string;
 		static readonly EVENT_DISCONNECT:string;
 		static readonly EVENT_RECONNECT:string;
 		static readonly EVENT_RECONNECTFAILED:string;
 		static readonly EVENT_REQUEST_FAILED:string;
+		readonly description?:string|null;
 
 		protected constructor();
 
-		expand(row:any, expandDescendants?:boolean):void;
-		collapse(row:any):void;
-		setExpanded(row:any, isExpanded:boolean, expandDescendants?:boolean):void;
+		expand(row:TreeRow|number, expandDescendants?:boolean):void;
+		collapse(row:TreeRow|number):void;
+		setExpanded(row:TreeRow|number, isExpanded:boolean, expandDescendants?:boolean):void;
 		expandAll():void;
 		collapseAll():void;
-		isExpanded(row:object):boolean;
-		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|null|undefined, updateInterval?:number|null|undefined):void;
+		isExpanded(row:TreeRow|number):boolean;
+		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|undefined|null, updateInterval?:number|undefined|null):void;
 		getViewportData():Promise<TreeViewportData>;
 		close():void;
 		applySort(sort:Sort[]):Array<Sort>;
@@ -537,29 +744,19 @@ export namespace dh {
 		*/
 		selectDistinct(columns:Column[]):Promise<Table>;
 		copy():Promise<TreeTable>;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
 		get filter():Array<FilterCondition>;
 		get includeConstituents():boolean;
 		get groupedColumns():Array<Column>;
 		get size():number;
 		get columns():Array<Column>;
-		get description():string|null|undefined;
 		get sort():Array<Sort>;
 	}
 
-	/**
-	* Wrap BigDecimal values for use in JS. Provides text formatting for display and access to the underlying value.
-	*/
-	export class BigDecimalWrapper {
+	export class DateWrapper extends LongWrapper {
 		protected constructor();
 
-		static ofString(value:string):BigDecimalWrapper;
-		asNumber():number;
-		valueOf():string;
-		toString():string;
+		static ofJsDate(date:Date):DateWrapper;
+		asDate():Date;
 	}
 
 	/**
@@ -574,29 +771,6 @@ export namespace dh {
 		static readonly EVENT_RECONNECTFAILED:string;
 	}
 
-	export class Sort {
-		static readonly ASCENDING:string;
-		static readonly DESCENDING:string;
-		static readonly REVERSE:string;
-
-		protected constructor();
-
-		asc():Sort;
-		desc():Sort;
-		abs():Sort;
-		toString():string;
-		get isAbs():boolean;
-		get column():Column;
-		get direction():string;
-	}
-
-	export class DateWrapper extends LongWrapper {
-		protected constructor();
-
-		static ofJsDate(date:Date):DateWrapper;
-		asDate():Date;
-	}
-
 	export class LongWrapper {
 		protected constructor();
 
@@ -606,23 +780,81 @@ export namespace dh {
 		toString():string;
 	}
 
-	export class PartitionedTable implements HasEventHandling {
-		static readonly EVENT_KEYADDED:string;
-		static readonly EVENT_DISCONNECT:string;
-		static readonly EVENT_RECONNECT:string;
-		static readonly EVENT_RECONNECTFAILED:string;
-
+	/**
+	* Wrap BigInteger values for use in JS. Provides text formatting for display and access to the underlying value.
+	*/
+	export class BigIntegerWrapper {
 		protected constructor();
 
-		getTable(key:object):Promise<Table>;
-		getMergedTable():Promise<Table>;
-		getKeys():Set<object>;
-		close():void;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-		get size():number;
+		static ofString(str:string):BigIntegerWrapper;
+		asNumber():number;
+		valueOf():string;
+		toString():string;
+	}
+
+	export class Ide {
+		constructor();
+
+		/**
+		* @deprecated
+		*/
+		getExistingSession(websocketUrl:string, authToken:string, serviceId:string, language:string):Promise<IdeSession>;
+		/**
+		* @deprecated
+		*/
+		static getExistingSession(websocketUrl:string, authToken:string, serviceId:string, language:string):Promise<IdeSession>;
+	}
+
+	export class ConnectOptions {
+		headers:{ [key: string]: string; };
+
+		constructor();
+	}
+
+	/**
+	* A js type for operating on input tables.
+	*/
+	export class InputTable {
+		protected constructor();
+
+		addRow(row:{ [key: string]: any; }, userTimeZone?:string):Promise<InputTable>;
+		addRows(rows:{ [key: string]: any; }[], userTimeZone?:string):Promise<InputTable>;
+		addTable(tableToAdd:Table):Promise<InputTable>;
+		addTables(tablesToAdd:Table[]):Promise<InputTable>;
+		deleteTable(tableToDelete:Table):Promise<InputTable>;
+		deleteTables(tablesToDelete:Table[]):Promise<InputTable>;
+		get keys():string[];
+		get values():string[];
+		get keyColumns():Column[];
+		get valueColumns():Column[];
+		get table():Table;
+	}
+
+	export class FilterValue {
+		eq(term:FilterValue):FilterCondition;
+		eqIgnoreCase(term:FilterValue):FilterCondition;
+		notEq(term:FilterValue):FilterCondition;
+		notEqIgnoreCase(term:FilterValue):FilterCondition;
+		greaterThan(term:FilterValue):FilterCondition;
+		lessThan(term:FilterValue):FilterCondition;
+		greaterThanOrEqualTo(term:FilterValue):FilterCondition;
+		lessThanOrEqualTo(term:FilterValue):FilterCondition;
+		in(terms:FilterValue[]):FilterCondition;
+		inIgnoreCase(terms:FilterValue[]):FilterCondition;
+		notIn(terms:FilterValue[]):FilterCondition;
+		notInIgnoreCase(terms:FilterValue[]):FilterCondition;
+		contains(term:FilterValue):FilterCondition;
+		containsIgnoreCase(term:FilterValue):FilterCondition;
+		matches(pattern:FilterValue):FilterCondition;
+		matchesIgnoreCase(pattern:FilterValue):FilterCondition;
+		isTrue():FilterCondition;
+		isFalse():FilterCondition;
+		isNull():FilterCondition;
+		invoke(method:string, ...args:FilterValue[]):FilterCondition;
+		toString():string;
+		static ofString(input:any):FilterValue;
+		static ofNumber(input:LongWrapper|number|string):FilterValue;
+		static ofBoolean(b:boolean):FilterValue;
 	}
 
 	/**
@@ -646,179 +878,6 @@ export namespace dh {
 		get columns():Array<Column>;
 	}
 
-	/**
-	* TODO provide hooks into the event handlers so we can see if no one is listening any more and release the table
-	* handle/viewport.
-	*/
-	export class Table implements HasEventHandling {
-		static readonly EVENT_SIZECHANGED:string;
-		static readonly EVENT_UPDATED:string;
-		static readonly EVENT_ROWADDED:string;
-		static readonly EVENT_ROWREMOVED:string;
-		static readonly EVENT_ROWUPDATED:string;
-		static readonly EVENT_SORTCHANGED:string;
-		static readonly EVENT_FILTERCHANGED:string;
-		static readonly EVENT_CUSTOMCOLUMNSCHANGED:string;
-		static readonly EVENT_DISCONNECT:string;
-		static readonly EVENT_RECONNECT:string;
-		static readonly EVENT_RECONNECTFAILED:string;
-		static readonly EVENT_REQUEST_FAILED:string;
-		static readonly EVENT_REQUEST_SUCCEEDED:string;
-		static readonly SIZE_UNCOALESCED:number;
-
-		protected constructor();
-
-		findColumn(key:string):Column;
-		findColumns(keys:string[]):Column[];
-		isStreamTable():boolean;
-		inputTable():Promise<InputTable>;
-		close():void;
-		getAttributes():string[];
-		getAttribute(attributeName:string):unknown|null|undefined;
-		applySort(sort:Sort[]):Array<Sort>;
-		applyFilter(filter:FilterCondition[]):Array<FilterCondition>;
-		applyCustomColumns(customColumns:object[]|string[]):Array<CustomColumn>;
-		setViewport(firstRow:number, lastRow:number, columns?:Array<Column>|null|undefined, updateIntervalMs?:number|null|undefined):TableViewportSubscription;
-		getViewportData():Promise<TableData>;
-		subscribe(columns:Array<Column>, updateIntervalMs?:number):TableSubscription;
-		selectDistinct(columns:Column[]):Promise<Table>;
-		copy(resolved?:boolean):Promise<Table>;
-		rollup(configObject:RollupConfig):Promise<TreeTable>;
-		treeTable(configObject:TreeTableConfig):Promise<TreeTable>;
-		freeze():Promise<Table>;
-		snapshot(baseTable:Table, doInitialSnapshot?:boolean, stampColumns?:string[]):Promise<Table>;
-		/**
-		* @deprecated
-		*/
-		join(joinType:object, rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>|null|undefined, asOfMatchRule?:unknown|null|undefined):Promise<Table>;
-		asOfJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>|null|undefined, asOfMatchRule?:string|null|undefined):Promise<Table>;
-		crossJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>, reserve_bits?:number):Promise<Table>;
-		exactJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>):Promise<Table>;
-		naturalJoin(rightTable:Table, columnsToMatch:Array<string>, columnsToAdd?:Array<string>):Promise<Table>;
-		byExternal(keys:object, dropKeys?:boolean):Promise<PartitionedTable>;
-		partitionBy(keys:object, dropKeys?:boolean):Promise<PartitionedTable>;
-		/**
-		* Seek the row matching the data provided
-		* 
-		* @param startingRow Row to start the seek from
-		* @param column Column to seek for value on
-		* @param valueType Type of value provided
-		* @param seekValue Value to seek
-		* @param insensitive Optional value to flag a search as case-insensitive. Defaults to `false`.
-		* @param contains Optional value to have the seek value do a contains search instead of exact equality. Defaults to
-		*        `false`.
-		* @param isBackwards Optional value to seek backwards through the table instead of forwards. Defaults to `false`.
-		* @return A promise that resolves to the row value found.
-		*/
-		seekRow(startingRow:number, column:Column, valueType:ValueTypeType, seekValue:any, insensitive?:boolean|null|undefined, contains?:boolean|null|undefined, isBackwards?:boolean|null|undefined):Promise<number>;
-		toString():string;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-		get hasInputTable():boolean;
-		get columns():Array<Column>;
-		get description():string|null|undefined;
-		get sort():Array<Sort>;
-		get customColumns():Array<CustomColumn>;
-		get filter():Array<FilterCondition>;
-		get totalSize():number;
-		get size():number;
-		get isClosed():boolean;
-		get isUncoalesced():boolean;
-		get pluginName():string|null|undefined;
-		get layoutHints():LayoutHints|null|undefined;
-		static reverse():Sort;
-	}
-
-	export class CustomColumn {
-		static readonly TYPE_FORMAT_COLOR:string;
-		static readonly TYPE_FORMAT_NUMBER:string;
-		static readonly TYPE_FORMAT_DATE:string;
-		static readonly TYPE_NEW:string;
-
-		protected constructor();
-
-		valueOf():string;
-		toString():string;
-		get expression():string;
-		get name():string;
-		get type():string;
-	}
-
-	export class CoreClient implements HasEventHandling {
-		static readonly EVENT_CONNECT:string;
-		static readonly EVENT_DISCONNECT:string;
-		static readonly EVENT_RECONNECT:string;
-		static readonly EVENT_RECONNECT_AUTH_FAILED:string;
-		static readonly EVENT_REFRESH_TOKEN_UPDATED:string;
-		static readonly EVENT_REQUEST_FAILED:string;
-		static readonly EVENT_REQUEST_STARTED:string;
-		static readonly EVENT_REQUEST_SUCCEEDED:string;
-		static readonly LOGIN_TYPE_PASSWORD:string;
-		static readonly LOGIN_TYPE_ANONYMOUS:string;
-
-		constructor(serverUrl:string, connectOptions?:object);
-
-		running():Promise<CoreClient>;
-		getServerUrl():string;
-		getAuthConfigValues():Promise<string[][]>;
-		login(credentials:LoginCredentials):Promise<void>;
-		relogin(token:RefreshToken):Promise<void>;
-		onConnected(timeoutInMillis?:number):Promise<void>;
-		getServerConfigValues():Promise<string[][]>;
-		getUserInfo():Promise<unknown>;
-		getStorageService():dh.storage.StorageService;
-		getAsIdeConnection():Promise<IdeConnection>;
-		disconnect():void;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-	}
-
-	/**
-	* Deprecated for use in Deephaven Core.
-	* @deprecated
-	*/
-	export class Client {
-		static readonly EVENT_REQUEST_FAILED:string;
-		static readonly EVENT_REQUEST_STARTED:string;
-		static readonly EVENT_REQUEST_SUCCEEDED:string;
-
-		constructor();
-	}
-
-	export class IdeSession implements HasEventHandling {
-		static readonly EVENT_COMMANDSTARTED:string;
-		static readonly EVENT_REQUEST_FAILED:string;
-
-		protected constructor();
-
-		getTable(name:string, applyPreviewColumns?:boolean):Promise<Table>;
-		getFigure(name:string):Promise<dh.plot.Figure>;
-		getTreeTable(name:string):Promise<TreeTable>;
-		getHierarchicalTable(name:string):Promise<TreeTable>;
-		getObject(definitionObject:dh.ide.VariableDescriptor):Promise<any>;
-		newTable(columnNames:string[], types:string[], data:string[][], userTimeZone:string):Promise<Table>;
-		mergeTables(tables:Table[]):Promise<Table>;
-		bindTableToVariable(table:Table, name:string):Promise<void>;
-		subscribeToFieldUpdates(callback:(value:dh.ide.VariableChanges)=>void):()=>void;
-		close():void;
-		runCode(code:string):Promise<dh.ide.CommandResult>;
-		onLogMessage(callback:(value:dh.ide.LogItem)=>void):()=>void;
-		openDocument(params:object):void;
-		changeDocument(params:object):void;
-		getCompletionItems(params:object):Promise<Array<dh.lsp.CompletionItem>>;
-		closeDocument(params:object):void;
-		emptyTable(size:number):Promise<Table>;
-		timeTable(periodNanos:number, startTime?:DateWrapper):Promise<Table>;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-	}
-
 	export class FilterCondition {
 		protected constructor();
 
@@ -831,82 +890,6 @@ export namespace dh {
 		static search(value:FilterValue, columns?:FilterValue[]):FilterCondition;
 	}
 
-	/**
-	* Configuration object for running Table.treeTable to produce a hierarchical view of a given "flat" table.
-	*/
-	export class TreeTableConfig {
-		idColumn:string;
-		parentColumn:string;
-		promoteOrphansToRoot:boolean;
-
-		constructor();
-	}
-
-	export class Ide {
-		constructor();
-
-		/**
-		* @deprecated
-		*/
-		getExistingSession(websocketUrl:string, authToken:string, serviceId:string, language:string):Promise<IdeSession>;
-		/**
-		* @deprecated
-		*/
-		static getExistingSession(websocketUrl:string, authToken:string, serviceId:string, language:string):Promise<IdeSession>;
-	}
-
-	/**
-	* Event fired when a command is issued from the client.
-	*/
-	export class CommandInfo {
-		constructor(code:string, result:Promise<dh.ide.CommandResult>);
-
-		get result():Promise<dh.ide.CommandResult>;
-		get code():string;
-	}
-
-	/**
-	* Simple wrapper to emulate RangeSet/Index in JS, with the caveat that LongWrappers may make poor keys in plain JS.
-	*/
-	export class RangeSet {
-		protected constructor();
-
-		static ofRange(first:number, last:number):RangeSet;
-		static ofItems(rows:number[]):RangeSet;
-		static ofRanges(ranges:RangeSet[]):RangeSet;
-		static ofSortedRanges(ranges:RangeSet[]):RangeSet;
-		iterator():Iterator<LongWrapper>;
-		get size():number;
-	}
-
-	/**
-	* Wrap BigInteger values for use in JS. Provides text formatting for display and access to the underlying value.
-	*/
-	export class BigIntegerWrapper {
-		protected constructor();
-
-		static ofString(str:string):BigIntegerWrapper;
-		asNumber():number;
-		valueOf():string;
-		toString():string;
-	}
-
-	export class ConnectOptions {
-		headers:{ [key: string]: string; };
-
-		constructor();
-	}
-
-
-	type ValueTypeType = string;
-	export class ValueType {
-		static readonly STRING:ValueTypeType;
-		static readonly NUMBER:ValueTypeType;
-		static readonly DOUBLE:ValueTypeType;
-		static readonly LONG:ValueTypeType;
-		static readonly DATETIME:ValueTypeType;
-		static readonly BOOLEAN:ValueTypeType;
-	}
 
 	type AggregationOperationType = string;
 	export class AggregationOperation {
@@ -926,6 +909,16 @@ export namespace dh {
 		static readonly SKIP:AggregationOperationType;
 	}
 
+	type ValueTypeType = string;
+	export class ValueType {
+		static readonly STRING:ValueTypeType;
+		static readonly NUMBER:ValueTypeType;
+		static readonly DOUBLE:ValueTypeType;
+		static readonly LONG:ValueTypeType;
+		static readonly DATETIME:ValueTypeType;
+		static readonly BOOLEAN:ValueTypeType;
+	}
+
 	type VariableTypeType = string;
 	export class VariableType {
 		static readonly TABLE:VariableTypeType;
@@ -943,6 +936,26 @@ export namespace dh {
 
 export namespace dh.ide {
 
+	export interface CommandResult {
+		get changes():VariableChanges;
+		get error():string;
+	}
+	/**
+	* Represents a serialized fishlib LogRecord, suitable for display on javascript clients.
+	*/
+	export interface LogItem {
+		get logLevel():string;
+		get micros():number;
+		get message():string;
+	}
+	/**
+	* Specifies a type and either id or name (but not both).
+	*/
+	export interface VariableDescriptor {
+		type:string;
+		id?:string|null;
+		name?:string|null;
+	}
 	export interface VariableDefinition {
 		get name():string;
 		get description():string;
@@ -956,26 +969,6 @@ export namespace dh.ide {
 		get removed():Array<VariableDefinition>;
 		get created():Array<VariableDefinition>;
 		get updated():Array<VariableDefinition>;
-	}
-	/**
-	* Represents a serialized fishlib LogRecord, suitable for display on javascript clients.
-	*/
-	export interface LogItem {
-		get logLevel():string;
-		get micros():number;
-		get message():string;
-	}
-	export interface CommandResult {
-		get changes():VariableChanges;
-		get error():string;
-	}
-	/**
-	* Specifies a type and either id or name (but not both).
-	*/
-	export interface VariableDescriptor {
-		type:string;
-		id?:string;
-		name?:string;
 	}
 }
 
@@ -1011,11 +1004,12 @@ export namespace dh.i18n {
 
 		static getFormat(pattern:string):NumberFormat;
 		static parse(pattern:string, text:string):number;
-		static format(pattern:string, number:any):string;
+		static format(pattern:string, number:number|dh.BigIntegerWrapper|dh.BigDecimalWrapper|dh.LongWrapper):string;
 		parse(text:string):number;
-		format(number:any):string;
+		format(number:number|dh.BigIntegerWrapper|dh.BigDecimalWrapper|dh.LongWrapper):string;
 		toString():string;
 	}
+
 
 	export class TimeZone {
 		protected constructor();
@@ -1029,14 +1023,24 @@ export namespace dh.i18n {
 
 export namespace dh.plot {
 
+	export interface FigureDataUpdatedEvent {
+		getArray(series:Series, sourceType:number, mappingFunc?:(input:any)=>any):Array<any>;
+		get series():Series[];
+	}
+	export interface MultiSeries {
+		get name():string;
+		get plotStyle():SeriesPlotStyleType;
+	}
 	export interface Axis {
-		range(pixelCount?:number|null|undefined, min?:unknown|null|undefined, max?:unknown|null|undefined):void;
+		readonly formatPattern?:string|null;
+		readonly gapBetweenMajorTicks?:number|null;
+
+		range(pixelCount?:number|undefined|null, min?:unknown|undefined|null, max?:unknown|undefined|null):void;
 		get tickLabelAngle():number;
 		get labelFont():string;
 		get color():string;
 		get invert():boolean;
 		get log():boolean;
-		get formatPattern():string|null|undefined;
 		get maxRange():number;
 		get label():string;
 		get timeAxis():boolean;
@@ -1046,36 +1050,11 @@ export namespace dh.plot {
 		get majorTickLocations():number[];
 		get majorTicksVisible():boolean;
 		get ticksFont():string;
-		get gapBetweenMajorTicks():number|null|undefined;
 		get id():string;
 		get position():AxisPositionType;
 		get businessCalendar():dh.calendar.BusinessCalendar;
 		get formatType():AxisFormatTypeType;
 		get minRange():number;
-	}
-	export interface Series {
-		subscribe(forceDisableDownsample?:DownsampleOptions):void;
-		unsubscribe():void;
-		get isLinesVisible():boolean|null|undefined;
-		get pointLabelFormat():string|null|undefined;
-		get shape():string;
-		get sources():SeriesDataSource[];
-		get lineColor():string;
-		get yToolTipPattern():string|null|undefined;
-		get shapeSize():number|null|undefined;
-		get plotStyle():SeriesPlotStyleType;
-		get oneClick():OneClick;
-		get xToolTipPattern():string|null|undefined;
-		get gradientVisible():boolean;
-		get shapeColor():string;
-		get isShapesVisible():boolean|null|undefined;
-		get name():string;
-		get multiSeries():MultiSeries;
-		get shapeLabel():string;
-	}
-	export interface FigureDataUpdatedEvent {
-		getArray(series:Series, sourceType:number, mappingFunc?:(input:any)=>any):Array<any>;
-		get series():Series[];
 	}
 	export interface SeriesDataSource {
 		get columnType():string;
@@ -1088,9 +1067,119 @@ export namespace dh.plot {
 		get requireAllFiltersToDisplay():boolean;
 		get columns():dh.Column[];
 	}
-	export interface MultiSeries {
-		get name():string;
+	export interface Series {
+		readonly isLinesVisible?:boolean|null;
+		readonly pointLabelFormat?:string|null;
+		readonly yToolTipPattern?:string|null;
+		readonly shapeSize?:number|null;
+		readonly xToolTipPattern?:string|null;
+		readonly isShapesVisible?:boolean|null;
+
+		subscribe(forceDisableDownsample?:DownsampleOptions):void;
+		unsubscribe():void;
+		get shape():string;
+		get sources():SeriesDataSource[];
+		get lineColor():string;
 		get plotStyle():SeriesPlotStyleType;
+		get oneClick():OneClick;
+		get gradientVisible():boolean;
+		get shapeColor():string;
+		get name():string;
+		get multiSeries():MultiSeries;
+		get shapeLabel():string;
+	}
+
+	/**
+	* A descriptor used with JsFigureFactory.create to create a figure from JS.
+	*/
+	export class FigureDescriptor {
+		title?:string|null;
+		titleFont?:string|null;
+		titleColor?:string|null;
+		isResizable?:boolean|null;
+		isDefaultTheme?:boolean|null;
+		updateInterval?:number|null;
+		cols?:number|null;
+		rows?:number|null;
+		charts:Array<ChartDescriptor>;
+
+		constructor();
+	}
+
+	export class SeriesDescriptor {
+		plotStyle:string;
+		name?:string|null;
+		linesVisible?:boolean|null;
+		shapesVisible?:boolean|null;
+		gradientVisible?:boolean|null;
+		lineColor?:string|null;
+		pointLabelFormat?:string|null;
+		xToolTipPattern?:string|null;
+		yToolTipPattern?:string|null;
+		shapeLabel?:string|null;
+		shapeSize?:number|null;
+		shapeColor?:string|null;
+		shape?:string|null;
+		dataSources:Array<SourceDescriptor>;
+
+		constructor();
+	}
+
+	export class SourceDescriptor {
+		axis:AxisDescriptor;
+		table:dh.Table;
+		columnName:string;
+		type:string;
+
+		constructor();
+	}
+
+	/**
+	* Helper class to manage snapshots and deltas and keep not only a contiguous JS array of data per column in the
+	* underlying table, but also support a mapping function to let client code translate data in some way for display and
+	* keep that cached as well.
+	*/
+	export class ChartData {
+		constructor(table:dh.Table);
+
+		update(tableData:dh.SubscriptionTableData):void;
+		getColumn(columnName:string, mappingFunc:(input:any)=>any, currentUpdate:dh.TableData):Array<any>;
+		/**
+		* Removes some column from the cache, avoiding extra computation on incoming events, and possibly freeing some
+		* memory. If this pair of column name and map function are requested again, it will be recomputed from scratch.
+		*/
+		removeColumn(columnName:string, mappingFunc:(input:any)=>any):void;
+	}
+
+	export class ChartDescriptor {
+		colspan?:number|null;
+		rowspan?:number|null;
+		series:Array<SeriesDescriptor>;
+		axes:Array<AxisDescriptor>;
+		chartType:string;
+		title?:string|null;
+		titleFont?:string|null;
+		titleColor?:string|null;
+		showLegend?:boolean|null;
+		legendFont?:string|null;
+		legendColor?:string|null;
+		is3d?:boolean|null;
+
+		constructor();
+	}
+
+	export class FigureSourceException {
+		table:dh.Table;
+		source:SeriesDataSource;
+
+		protected constructor();
+	}
+
+	export class SeriesDataSourceException {
+		protected constructor();
+
+		get source():SeriesDataSource;
+		get message():string;
 	}
 
 	export class FigureFetchError {
@@ -1100,31 +1189,34 @@ export namespace dh.plot {
 		protected constructor();
 	}
 
-	export class AxisDescriptor {
-		formatType:string;
-		type:string;
-		position:string;
-		log?:boolean;
-		label?:string;
-		labelFont?:string;
-		ticksFont?:string;
-		formatPattern?:string;
-		color?:string;
-		minRange?:number;
-		maxRange?:number;
-		minorTicksVisible?:boolean;
-		majorTicksVisible?:boolean;
-		minorTickCount?:number;
-		gapBetweenMajorTicks?:number;
-		majorTickLocations?:Array<number>;
-		tickLabelAngle?:number;
-		invert?:boolean;
-		isTimeAxis?:boolean;
+	export class Chart implements dh.HasEventHandling {
+		static readonly EVENT_SERIES_ADDED:string;
+		readonly title?:string|null;
 
-		constructor();
+		protected constructor();
+
+		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
+		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
+		hasListeners(name:string):boolean;
+		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
+		get column():number;
+		get showLegend():boolean;
+		get axes():Axis[];
+		get is3d():boolean;
+		get titleFont():string;
+		get colspan():number;
+		get titleColor():string;
+		get series():Series[];
+		get rowspan():number;
+		get chartType():ChartTypeType;
+		get row():number;
+		get legendColor():string;
+		get legendFont():string;
+		get multiSeries():MultiSeries[];
 	}
 
-	export class Figure implements dh.HasEventHandling {
+	export class Figure {
+		readonly title?:string|null;
 		static readonly EVENT_UPDATED:string;
 		static readonly EVENT_SERIES_ADDED:string;
 		static readonly EVENT_DISCONNECT:string;
@@ -1141,15 +1233,10 @@ export namespace dh.plot {
 		subscribe(forceDisableDownsample?:DownsampleOptions):void;
 		unsubscribe():void;
 		close():void;
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
 		get charts():Chart[];
 		get updateInterval():number;
 		get titleColor():string;
 		get titleFont():string;
-		get title():string|null|undefined;
 		get rows():number;
 		get cols():number;
 		static create(config:FigureDescriptor):Promise<Figure>;
@@ -1179,125 +1266,36 @@ export namespace dh.plot {
 		static readonly DISABLE:DownsampleOptions;
 	}
 
-	export class FigureSourceException {
-		table:dh.Table;
-		source:SeriesDataSource;
-
-		protected constructor();
-	}
-
-	export class SeriesDataSourceException {
-		protected constructor();
-
-		get source():SeriesDataSource;
-		get message():string;
-	}
-
-	export class ChartDescriptor {
-		colspan?:number;
-		rowspan?:number;
-		series?:Array<SeriesDescriptor>;
-		axes?:Array<AxisDescriptor>;
-		chartType?:string;
-		title?:string;
-		titleFont?:string;
-		titleColor?:string;
-		showLegend?:boolean;
-		legendFont?:string;
-		legendColor?:string;
-		is3d?:boolean;
-
-		constructor();
-	}
-
-	/**
-	* Helper class to manage snapshots and deltas and keep not only a contiguous JS array of data per column in the
-	* underlying table, but also support a mapping function to let client code translate data in some way for display and
-	* keep that cached as well.
-	*/
-	export class ChartData {
-		constructor(table:dh.Table);
-
-		update(tableData:dh.SubscriptionTableData):void;
-		getColumn(columnName:string, mappingFunc:(input:any)=>any, currentUpdate:dh.TableData):Array<any>;
-		/**
-		* Removes some column from the cache, avoiding extra computation on incoming events, and possibly freeing some
-		* memory. If this pair of column name and map function are requested again, it will be recomputed from scratch.
-		*/
-		removeColumn(columnName:string, mappingFunc:(input:any)=>any):void;
-	}
-
-	/**
-	* A descriptor used with JsFigureFactory.create to create a figure from JS.
-	*/
-	export class FigureDescriptor {
-		title?:string;
-		titleFont?:string;
-		titleColor?:string;
-		isResizable?:boolean;
-		isDefaultTheme?:boolean;
-		updateInterval?:number;
-		cols?:number;
-		rows?:number;
-		charts:Array<ChartDescriptor>;
-
-		constructor();
-	}
-
-	export class Chart implements dh.HasEventHandling {
-		static readonly EVENT_SERIES_ADDED:string;
-
-		protected constructor();
-
-		addEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):()=>void;
-		nextEvent<T>(eventName:string, timeoutInMillis?:number):Promise<CustomEvent<T>>;
-		hasListeners(name:string):boolean;
-		removeEventListener<T>(name:string, callback:(e:CustomEvent<T>)=>void):boolean;
-		get column():number;
-		get showLegend():boolean;
-		get axes():Axis[];
-		get is3d():boolean;
-		get titleFont():string;
-		get title():string|null|undefined;
-		get colspan():number;
-		get titleColor():string;
-		get series():Series[];
-		get rowspan():number;
-		get chartType():ChartTypeType;
-		get row():number;
-		get legendColor():string;
-		get legendFont():string;
-		get multiSeries():MultiSeries[];
-	}
-
-	export class SeriesDescriptor {
-		plotStyle:string;
-		name:string;
-		linesVisible?:boolean;
-		shapesVisible?:boolean;
-		gradientVisible?:boolean;
-		lineColor?:string;
-		pointLabelFormat?:string;
-		xToolTipPattern?:string;
-		yToolTipPattern?:string;
-		shapeLabel?:string;
-		shapeSize?:number;
-		shapeColor?:string;
-		shape?:string;
-		dataSources:Array<SourceDescriptor>;
-
-		constructor();
-	}
-
-	export class SourceDescriptor {
-		axis:AxisDescriptor;
-		table:dh.Table;
-		columnName:string;
+	export class AxisDescriptor {
+		formatType:string;
 		type:string;
+		position:string;
+		log?:boolean|null;
+		label?:string|null;
+		labelFont?:string|null;
+		ticksFont?:string|null;
+		formatPattern?:string|null;
+		color?:string|null;
+		minRange?:number|null;
+		maxRange?:number|null;
+		minorTicksVisible?:boolean|null;
+		majorTicksVisible?:boolean|null;
+		minorTickCount?:number|null;
+		gapBetweenMajorTicks?:number|null;
+		majorTickLocations:Array<number>;
+		tickLabelAngle?:number|null;
+		invert?:boolean|null;
+		isTimeAxis?:boolean|null;
 
 		constructor();
 	}
 
+
+	type AxisFormatTypeType = number;
+	export class AxisFormatType {
+		static readonly CATEGORY:AxisFormatTypeType;
+		static readonly NUMBER:AxisFormatTypeType;
+	}
 
 	type SeriesPlotStyleType = number;
 	export class SeriesPlotStyle {
@@ -1315,13 +1313,14 @@ export namespace dh.plot {
 		static readonly TREEMAP:SeriesPlotStyleType;
 	}
 
-	type AxisPositionType = number;
-	export class AxisPosition {
-		static readonly TOP:AxisPositionType;
-		static readonly BOTTOM:AxisPositionType;
-		static readonly LEFT:AxisPositionType;
-		static readonly RIGHT:AxisPositionType;
-		static readonly NONE:AxisPositionType;
+	type AxisTypeType = number;
+	export class AxisType {
+		static readonly X:AxisTypeType;
+		static readonly Y:AxisTypeType;
+		static readonly SHAPE:AxisTypeType;
+		static readonly SIZE:AxisTypeType;
+		static readonly LABEL:AxisTypeType;
+		static readonly COLOR:AxisTypeType;
 	}
 
 	type ChartTypeType = number;
@@ -1333,12 +1332,6 @@ export namespace dh.plot {
 		static readonly XYZ:ChartTypeType;
 		static readonly CATEGORY_3D:ChartTypeType;
 		static readonly TREEMAP:ChartTypeType;
-	}
-
-	type AxisFormatTypeType = number;
-	export class AxisFormatType {
-		static readonly CATEGORY:AxisFormatTypeType;
-		static readonly NUMBER:AxisFormatTypeType;
 	}
 
 	type SourceTypeType = number;
@@ -1364,14 +1357,13 @@ export namespace dh.plot {
 		static readonly HOVER_TEXT:SourceTypeType;
 	}
 
-	type AxisTypeType = number;
-	export class AxisType {
-		static readonly X:AxisTypeType;
-		static readonly Y:AxisTypeType;
-		static readonly SHAPE:AxisTypeType;
-		static readonly SIZE:AxisTypeType;
-		static readonly LABEL:AxisTypeType;
-		static readonly COLOR:AxisTypeType;
+	type AxisPositionType = number;
+	export class AxisPosition {
+		static readonly TOP:AxisPositionType;
+		static readonly BOTTOM:AxisPositionType;
+		static readonly LEFT:AxisPositionType;
+		static readonly RIGHT:AxisPositionType;
+		static readonly NONE:AxisPositionType;
 	}
 
 }
@@ -1386,11 +1378,38 @@ export namespace dh.lsp {
 		constructor();
 	}
 
+	export class Hover {
+		contents:MarkupContent;
+		range:Range;
+
+		constructor();
+	}
+
+	export class Position {
+		line:number;
+		character:number;
+
+		constructor();
+
+		lessThan(start:Position):boolean;
+		lessOrEqual(start:Position):boolean;
+		greaterThan(end:Position):boolean;
+		greaterOrEqual(end:Position):boolean;
+		copy():Position;
+	}
+
+	export class MarkupContent {
+		kind:string;
+		value:string;
+
+		constructor();
+	}
+
 	export class CompletionItem {
 		label:string;
 		kind:number;
 		detail:string;
-		documentation:string;
+		documentation:MarkupContent;
 		deprecated:boolean;
 		preselect:boolean;
 		textEdit:TextEdit;
@@ -1405,13 +1424,6 @@ export namespace dh.lsp {
 		addAdditionalTextEdits(...edit:TextEdit[]):void;
 	}
 
-	export class TextEdit {
-		range:Range;
-		text:string;
-
-		constructor();
-	}
-
 	export class Range {
 		start:Position;
 		end:Position;
@@ -1421,17 +1433,27 @@ export namespace dh.lsp {
 		isInside(innerStart:Position, innerEnd:Position):boolean;
 	}
 
-	export class Position {
-		line:number;
-		character:number;
+	export class ParameterInformation {
+		label:string;
+		documentation:MarkupContent;
 
 		constructor();
+	}
 
-		lessThan(start:Position):boolean;
-		lessOrEqual(start:Position):boolean;
-		greaterThan(end:Position):boolean;
-		greaterOrEqual(end:Position):boolean;
-		copy():Position;
+	export class TextEdit {
+		range:Range;
+		text:string;
+
+		constructor();
+	}
+
+	export class SignatureInformation {
+		label:string;
+		documentation:MarkupContent;
+		activeParameter:number;
+		parameters:object;
+
+		constructor();
 	}
 
 }
