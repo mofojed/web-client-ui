@@ -1,6 +1,7 @@
 # This workflow will automatically run `npm audit fix` every Thursday morning and open a PR if there are changes
 name: Audit fix
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 6 * * 4'
 jobs:
