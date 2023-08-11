@@ -173,9 +173,11 @@ Using a "React-like" syntax, it is possible to define "components" which can be 
 # |_______________________________________|
 # Entering text in the input field would filter the table below
 
-# @dh.component decorator marks a function as a "component" function
-# By adding this decorator, wraps the function such that "hooks" can be used within the function (effectively similar to `React.createElement`). Hooks are functions following the convention `use_*`, can only be used within a `@dh.component` context
-@dh.component
+import deephaven.layout as dl
+
+# @dl.component decorator marks a function as a "component" function
+# By adding this decorator, wraps the function such that "hooks" can be used within the function (effectively similar to `React.createElement`). Hooks are functions following the convention `use_*`, can only be used within a `@dl.component` context
+@dl.component
 def text_filter_table(source: Table, column: str):
     # The value of the text filter is entirely separate from the text input field definition
     value, set_value = use_state("")
@@ -184,9 +186,9 @@ def text_filter_table(source: Table, column: str):
     t = use_memo(lambda: source.where(f"{column}=`{value}`"), [value])
 
     # Return a column that has the text input, then the table below it
-    return dh.column(
+    return dl.flex(
         [
-            dh.text_input(
+            dl.text_input(
                 value=value, on_change=lambda event: set_value(event["value"])
             ),
             t,
@@ -206,9 +208,9 @@ The above component, could then be re-used, to have two tables side-by-side:
 # |                                       | |                                       |
 # |_______________________________________| |_______________________________________|
 # Just using one source table, and allowing it to be filtered using two different filter inputs
-@dh.component
+@dl.component
 def double_filter_table(source: Table, column: str):
-  return dh.row([
+  return dl.row([
     text_filter_table(source, column),
     text_filter_table(source, column)
   ])
@@ -219,7 +221,9 @@ def double_filter_table(source: Table, column: str):
 We want to be able to react to actions on the table as well. This can be achieved by adding a callback to the table, and used to set the state within our component. For example, if we want to filter a plot based on the selection in another table:
 
 ```python
-@dh.component
+import deephaven.layout as dl
+
+@dl.component
 def table_with_plot(source: Table, column: str = "Sym", default_value: str = ""):
     value, set_value = use_state(default_value)
 
@@ -241,7 +245,7 @@ def table_with_plot(source: Table, column: str = "Sym", default_value: str = "")
         [value],
     )
 
-    return dh.column([selectable_table, p])
+    return dl.flex([selectable_table, p])
 ```
 
 #### Putting it all together
@@ -253,7 +257,9 @@ Using the proposed components and selection listeners, you should be able to bui
 - Double clicking a row within the table selects that Sym and updates the text input to reflect that
 
 ```python
-@dh.component
+import deephaven.layout as dl
+
+@dl.component
 def stock_widget(source: Table, column: str = "Sym"):
     lo, set_lo = use_state(0)
     hi, set_hi = use_state(100)
@@ -268,18 +274,18 @@ def stock_widget(source: Table, column: str = "Sym"):
         lambda: plot_xy(t=filtered_table, x="Timestamp", y="Last"), [filtered_table]
     )
 
-    return dh.column(
+    return dl.flex(
         [
             # Slider will update the lo/hi values on changes
-            dh.dual_slider(lo=lo, hi=hi, on_lo_change=set_lo, on_hi_change=set_hi),
+            dl.range_slider(lo=lo, hi=hi, on_lo_change=set_lo, on_hi_change=set_hi),
             # Wrap the filtered table so you can select a row
-            dh.interactive_table(
+            dl.interactive_table(
                 t=filtered_table,
                 # Update the Sym value when a row is selected
                 on_data_selected=lambda event: set_sym(event["data"][column]),
             ),
             # Text input will update the sym when it is changed, or display the new value when selected from the table
-            dh.text_input(value=sym, on_change=lambda event: set_sym(event["value"])),
+            dl.text_input(value=sym, on_change=lambda event: set_sym(event["value"])),
             # Plot will be filtered/updated based on the above logic
             p,
         ]
