@@ -232,7 +232,7 @@ def table_with_plot(source: Table, column: str = "Sym", default_value: str = "")
         lambda: interactive_table(
             t=source,
             # When data is selected, update the value
-            on_data_selected=lambda event: set_value(event["data"][column]),
+            on_row_clicked=lambda event: set_value(event["data"][column]),
         ),
         [source],
     )
@@ -282,7 +282,7 @@ def stock_widget(source: Table, column: str = "Sym"):
             dl.interactive_table(
                 t=filtered_table,
                 # Update the Sym value when a row is selected
-                on_data_selected=lambda event: set_sym(event["data"][column]),
+                on_row_clicked=lambda event: set_sym(event["data"][column]),
             ),
             # Text input will update the sym when it is changed, or display the new value when selected from the table
             dl.text_input(value=sym, on_change=lambda event: set_sym(event["value"])),
