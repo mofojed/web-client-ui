@@ -170,12 +170,10 @@ class CsvParser {
     const handleParseDone = (types: string[]) => {
       const toParse = this.isZip
         ? (this.file as JSZipObject).nodeStream(
-            // JsZip types are incorrect, thus the funny casting
-            // Actual parameter is 'nodebuffer'
-            'nodebuffer' as 'nodestream',
+            'nodebuffer',
             this.handleNodeUpdate
           )
-        : (this.file as Blob);
+        : (this.file as File);
       this.types = types;
       Papa.parse(toParse, this.config);
     };

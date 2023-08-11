@@ -27,6 +27,24 @@ const pluginsURL = new URL(
   document.baseURI
 );
 
+async function checkZipSupport() {
+  console.log('MJB support.js Buff', typeof Buffer !== 'undefined');
+  console.log('MJB blah');
+  // console.log('MJB Process is1', process);
+  console.log('MJB woo');
+  try {
+    // console.log('MJB Process is', process);
+    const readableStream = await import('readable-stream');
+    console.log('MJB readable-stream is', readableStream);
+    // console.log('MJB Readable is', readableStream.default.Readable);
+    console.log('MJB Readable is', readableStream.Readable);
+  } catch (e) {
+    console.log('MJB support.js error', e);
+  }
+}
+
+checkZipSupport();
+
 ReactDOM.render(
   <ApiBootstrap apiUrl={apiURL.href} setGlobally>
     <Suspense fallback={<LoadingOverlay />}>

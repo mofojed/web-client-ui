@@ -2,6 +2,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+// import { polyfillNode } from 'esbuild-plugin-polyfill-node';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import path from 'path';
 
 // https://vitejs.dev/config/
@@ -94,6 +96,14 @@ export default defineConfig(({ mode }) => {
                 find: /^@deephaven\/(.*)/,
                 replacement: `${packagesDir}/$1/src`,
               },
+              // {
+              //   find: /^readable-stream$/,
+              //   replacement: `_stream_readable`,
+              // },
+              // {
+              //   find: 'readable-stream',
+              //   replacement: 'vite-compatible-readable-stream',
+              // },
             ]
           : [],
     },
@@ -135,11 +145,29 @@ export default defineConfig(({ mode }) => {
         define: {
           global: 'globalThis',
         },
+        plugins: [
+          // polyfillNode({
+          //   globals: {
+          //     buffer: true,
+          //     process: true,
+          //   },
+          // }),
+          NodeGlobalsPolyfillPlugin({
+            buffer: true,
+            process: true,
+          }),
+        ],
       },
     },
     css: {
       devSourcemap: true,
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      // NodeGlobalsPolyfillPlugin({
+      //   buffer: true,
+      //   process: true,
+      // }),
+    ],
   };
 });

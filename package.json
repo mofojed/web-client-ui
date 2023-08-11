@@ -80,7 +80,6 @@
     "@types/eslint": "^8.4.10",
     "@types/jest": "^29.2.5",
     "@types/jquery": "^3.5.14",
-    "@types/jszip": "3.1.7",
     "@types/lodash": "^4.14.182",
     "@types/lodash.clamp": "^4.0.6",
     "@types/lodash.debounce": "^4.0.6",
@@ -89,7 +88,7 @@
     "@types/lodash.throttle": "^4.1.1",
     "@types/memoizee": "^0.4.5",
     "@types/node": "^16.11.7",
-    "@types/papaparse": "5.3.2",
+    "@types/papaparse": "^5.3.7",
     "@types/plotly.js": "^2.12.18",
     "@types/pouchdb-browser": "^6.1.3",
     "@types/prop-types": "^15.7.3",
@@ -136,7 +135,7 @@
     "source-map-explorer": "^2.5.2",
     "stylelint": "^14.5.1",
     "typescript": "~4.9.4",
-    "vite": "^4.3.9"
+    "vite": "^4.4.8"
   },
   "prettier": "@deephaven/prettier-config",
   "stylelint": {
