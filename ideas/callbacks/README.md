@@ -210,10 +210,10 @@ The above component, could then be re-used, to have two tables side-by-side:
 # Just using one source table, and allowing it to be filtered using two different filter inputs
 @dl.component
 def double_filter_table(source: Table, column: str):
-  return dl.row([
+  return dl.flex([
     text_filter_table(source, column),
     text_filter_table(source, column)
-  ])
+  ], direction="row")
 ```
 
 #### Table Actions/Callbacks
