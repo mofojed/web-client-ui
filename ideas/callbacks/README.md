@@ -160,35 +160,30 @@ Use "React hooks" like inspired syntax to write blocks that "re-render" when sta
 
 #### Components (for composability)
 
-Using a "React-like" syntax, it is possible to define "components" which can be re-used and compose other components. For example, we may want to make a "filterable table" component, that just provides a text input field above a table that you can use to filter a specific column in the table. Read about [React](https://react.dev/learn) and [React Hooks](https://react.dev/reference/react) if you are unfamiliar with them for a primer on the design principles followed. Here is an example of a proposed syntax for that:
+Using a "React-like" syntax, it is possible to define "components" which can be re-used and compose other components. For example, we may want to make a "filterable table" component, that just provides a text input field above a table that you can use to filter a specific column in the table. 
+
+![Text filter Table](./assets/filter_table.png)
+
+Read about [React](https://react.dev/learn) and [React Hooks](https://react.dev/reference/react) if you are unfamiliar with them for a primer on the design principles followed. Here is an example of a proposed syntax for that:
 
 ```python
-# Making a component that would look something like this:
-# _________________________________________
-# |             Text input                |
-# |---------------------------------------|
-# |                                       |
-# |            Table content              |
-# |                                       |
-# |_______________________________________|
-# Entering text in the input field would filter the table below
 
-import deephaven.layout as dl
+import deephaven.ui as ui
 
-# @dl.component decorator marks a function as a "component" function
-# By adding this decorator, wraps the function such that "hooks" can be used within the function (effectively similar to `React.createElement`). Hooks are functions following the convention `use_*`, can only be used within a `@dl.component` context
-@dl.component
+# @ui.component decorator marks a function as a "component" function
+# By adding this decorator, wraps the function such that "hooks" can be used within the function (effectively similar to `React.createElement`). Hooks are functions following the convention `use_*`, can only be used within a `@ui.component` context
+@ui.component
 def text_filter_table(source: Table, column: str):
     # The value of the text filter is entirely separate from the text input field definition
-    value, set_value = use_state("")
+    value, set_value = ui.use_state("")
 
     # TODO: Should be using QST/filters here instead, e.g. https://github.com/deephaven/deephaven-core/issues/3784
-    t = use_memo(lambda: source.where(f"{column}=`{value}`"), [value])
+    t = ui.use_memo(lambda: source.where(f"{column}=`{value}`"), [value])
 
     # Return a column that has the text input, then the table below it
-    return dl.flex(
+    return ui.flex(
         [
-            dl.text_input(
+            ui.text_input(
                 value=value, on_change=lambda event: set_value(event["value"])
             ),
             t,
@@ -198,19 +193,13 @@ def text_filter_table(source: Table, column: str):
 
 The above component, could then be re-used, to have two tables side-by-side:
 
+![Double filter table](./assets/double_filter_table.png)
+
 ```python
-# Making a component that would look something like this:
-# _________________________________________ _________________________________________
-# |             Text input                | |             Text input                |
-# |---------------------------------------| |---------------------------------------|
-# |                                       | |                                       |
-# |            Table content              | |            Table content              |
-# |                                       | |                                       |
-# |_______________________________________| |_______________________________________|
 # Just using one source table, and allowing it to be filtered using two different filter inputs
-@dl.component
+@ui.component
 def double_filter_table(source: Table, column: str):
-  return dl.flex([
+  return ui.flex([
     text_filter_table(source, column),
     text_filter_table(source, column)
   ], direction="row")
@@ -220,15 +209,17 @@ def double_filter_table(source: Table, column: str):
 
 We want to be able to react to actions on the table as well. This can be achieved by adding a callback to the table, and used to set the state within our component. For example, if we want to filter a plot based on the selection in another table:
 
-```python
-import deephaven.layout as dl
+![Alt text](./assets/on_row_clicked.png)
 
-@dl.component
+```python
+import deephaven.ui as ui
+
+@ui.component
 def table_with_plot(source: Table, column: str = "Sym", default_value: str = ""):
-    value, set_value = use_state(default_value)
+    value, set_value = ui.use_state(default_value)
 
     # Wrap the table with an interactive component to listen to selections within the table
-    selectable_table = use_memo(
+    selectable_table = ui.use_memo(
         lambda: interactive_table(
             t=source,
             # When data is selected, update the value
@@ -238,14 +229,14 @@ def table_with_plot(source: Table, column: str = "Sym", default_value: str = "")
     )
 
     # Create the plot by filtering the source using the currently selected value
-    p = use_memo(
+    p = ui.use_memo(
         lambda: plot_xy(
             t=source.where(f"{column}=`{value}`"), x="Timestamp", y="Price"
         ),
         [value],
     )
 
-    return dl.flex([selectable_table, p])
+    return ui.flex([selectable_table, p])
 ```
 
 #### Putting it all together
@@ -256,38 +247,115 @@ Using the proposed components and selection listeners, you should be able to bui
 - Text input to filter a specific Sym for a plot derived from the table
 - Double clicking a row within the table selects that Sym and updates the text input to reflect that
 
-```python
-import deephaven.layout as dl
+![Putting it all together](./assets/putting_it_all_together.png)
 
-@dl.component
+```python
+import deephaven.ui as ui
+import deephaven.plot.express as dx
+
+@ui.component
 def stock_widget(source: Table, column: str = "Sym"):
     lo, set_lo = use_state(0)
-    hi, set_hi = use_state(100)
+    hi, set_hi = use_state(10000)
     sym, set_sym = use_state("")
 
     # Create the filtered table
-    filtered_table = use_memo(
+    filtered_table = ui.use_memo(
         lambda: source.where([f"Price >= {lo} && Price <= {hi}"]), [lo, hi]
     )
 
-    p = use_memo(
-        lambda: plot_xy(t=filtered_table, x="Timestamp", y="Last"), [filtered_table]
+    p = ui.use_memo(
+        lambda: dx.line(filtered_table.where(f"Sym=`{sym}`"), x="Timestamp", y="Last"),
+        [filtered_table],
     )
 
-    return dl.flex(
+    def handle_slider_change(event):
+        set_lo(event.value.lo)
+        set_hi(event.value.hi)
+
+    return ui.flex(
         [
             # Slider will update the lo/hi values on changes
-            dl.range_slider(lo=lo, hi=hi, on_lo_change=set_lo, on_hi_change=set_hi),
+            ui.range_slider(
+                lo=lo, hi=hi, min=0, max=10000, on_change=handle_slider_change
+            ),
             # Wrap the filtered table so you can select a row
-            dl.interactive_table(
+            ui.interactive_table(
                 t=filtered_table,
                 # Update the Sym value when a row is selected
                 on_row_clicked=lambda event: set_sym(event["data"][column]),
             ),
             # Text input will update the sym when it is changed, or display the new value when selected from the table
-            dl.text_input(value=sym, on_change=lambda event: set_sym(event["value"])),
+            ui.text_input(value=sym, on_change=lambda event: set_sym(event["value"])),
             # Plot will be filtered/updated based on the above logic
             p,
         ]
     )
 ```
+
+#### Scoping/Contexts
+
+With Parameterized Queries, scope of the query is limited to a particular session. However, it would be interesting if it were possible to share a context among all sessions for the current user, and/or share a context with other users even; e.g. if one user selects and applies a filter, it updates immediately for all other users with that dashboard open. So three cases:
+
+1) Limit to a particular session (Paramterized Queries, should likely be the default)
+2) Limit to the particular user (so if you have the same PQ open multiple tabs, it updates in all)
+3) Share with all users (if one user makes a change, all users see it)
+
+#### Other Decisions
+
+While mocking this up, there are a few decisions regarding the syntax we should be thinking about/address prior to getting too far along with implementation.
+
+##### Module name
+
+The above examples use `deephaven.ui` for the module name. Another option would be `deephaven.layout`, but I thought this might get confusing with Golden Layout already existing.
+
+##### Structuring imports
+
+In the above example, there is one simple import, `import deephaven.ui as ui`. From there you just call `ui.component`, `ui.use_state`, etc.
+
+Another option would be importing items directly, e.g. `from deephaven.ui import component, use_state, range_slider`, etc.
+
+Or we could have some sort of hybrid:
+```python
+# Use `ui` import for components/elements
+import deephaven.ui as ui
+
+# Import hooks `use_` directly from `deephaven.ui`
+from deephaven.ui import use_state, use_memo
+
+# ... or even have a separate import for all hooks
+import * from deephaven.ui.hooks
+```
+
+##### Decorators vs. Render function
+
+In React, it uses the `renderWithHooks` function internally to build a context. That's triggered by the `React.createElement` method, or more commonly via JSX when rendering the elements. Pushing/popping the context is crucial for maintaining the proper state and enabling hooks to work reliably.
+
+In Python, we do not have JSX available (or any such equivalent). The above examples use the `@ui.component` decorator for wrapping a function component:
+```python
+# Just using one source table, and allowing it to be filtered using two different filter inputs
+@ui.component
+def double_filter_table(source: Table, column: str):
+  return ui.flex([
+    text_filter_table(source, column),
+    text_filter_table(source, column)
+  ], direction="row")
+
+dft = double_filter_table(source, "Sym")
+```
+
+Another option would be to require calling an explicit render function, e.g.:
+```python
+# Just using one source table, and allowing it to be filtered using two different filter inputs
+def double_filter_table(source: Table, column: str):
+  return ui.flex([
+    ui.render(text_filter_table(source, column)),
+    ui.render(text_filter_table(source, column))
+  ], direction="row")
+
+dft = ui.render(double_filter_table(source, "Sym"))
+```
+
+I think the decorator syntax is less verbose and more clear about how to use; especially when rendering/building a component composed of many other components. Calling `ui.render` to render all the children component seems problematic. Marking every possible component as just `@ui.component` is pretty straightforward, and should allow for easily embedding widgets.
+
+Note there was an interesting project for using [React Hooks in Python](https://github.com/amitassaraf/python-hooks). However, it is not recommended for production code and likely has some performance issues. It [inspects the call stack](https://github.com/amitassaraf/python-hooks/blob/main/src/hooks/frame_utils.py#L86) to manage hook state, which is kind of neat in that you don't need to wrap your functions; however that would come at performance costs, and also more difficult to be strict (e.g. requiring functions that use hooks to be wrapped in `@ui.component` - maybe there's other dev related things we want to do in there).
