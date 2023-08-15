@@ -101,6 +101,7 @@
     "@types/react-transition-group": "^4.4.0",
     "@types/react-virtualized-auto-sizer": "^1.0.1",
     "@types/react-window": "^1.8.5",
+    "@types/readable-stream": "^4.0.1",
     "@types/shell-quote": "^1.7.1",
     "@types/shortid": "0.0.29",
     "@vitejs/plugin-react-swc": "^3.3.0",
