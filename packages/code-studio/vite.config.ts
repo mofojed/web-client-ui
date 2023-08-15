@@ -2,8 +2,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-// import { polyfillNode } from 'esbuild-plugin-polyfill-node';
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import { polyfillNode } from 'esbuild-plugin-polyfill-node';
+// import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+// import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 
 // https://vitejs.dev/config/
@@ -151,11 +152,15 @@ export default defineConfig(({ mode }) => {
           //     buffer: true,
           //     process: true,
           //   },
+          //   polyfills: {
+          //     buffer: true,
+          //     process: true,
+          //   },
           // }),
-          NodeGlobalsPolyfillPlugin({
-            buffer: true,
-            process: true,
-          }),
+          // NodeGlobalsPolyfillPlugin({
+          //   buffer: true,
+          //   process: true,
+          // }),
         ],
       },
     },
@@ -167,6 +172,21 @@ export default defineConfig(({ mode }) => {
       // NodeGlobalsPolyfillPlugin({
       //   buffer: true,
       //   process: true,
+      // }),
+      // nodePolyfills({
+      //   globals: {
+      //     Buffer: true,
+      //   },
+      // }),
+      // polyfillNode({
+      //   globals: {
+      //     buffer: true,
+      //     process: true,
+      //   },
+      //   polyfills: {
+      //     buffer: true,
+      //     process: true,
+      //   },
       // }),
     ],
   };

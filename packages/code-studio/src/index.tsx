@@ -28,7 +28,11 @@ const pluginsURL = new URL(
 );
 
 async function checkZipSupport() {
-  console.log('MJB support.js Buff', typeof Buffer !== 'undefined');
+  console.log(
+    'MJB support.js Buff',
+    typeof Buffer !== 'undefined',
+    typeof Buffer
+  );
   try {
     // console.log('MJB Process is', process);
     const readableStream = await import('readable-stream');
