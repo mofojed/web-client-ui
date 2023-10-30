@@ -14,7 +14,7 @@ There are many packages located in the [packages](./packages) directory. A few o
 - [@deephaven/dashboard](./packages/dashboard/): Dashboards used in [@deephaven/code-studio](./packages/code-studio) for displaying and organizing panels.
 - [@deephaven/golden-layout](./packages/golden-layout): Layout framework used in [@deephaven/dashboard](./packages/dashboard/).
 
-## Contributing
+## Contributinggg
 
 For details on how to contribute to this repository, please see the [contributing guidelines](./CONTRIBUTING.md).
 
