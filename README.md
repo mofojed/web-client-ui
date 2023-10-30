@@ -26,7 +26,7 @@ We are using node 18.x and npm 8.x. If you are [using nvm](https://github.com/nv
 
 In order to use the UI, you must also be running a [deephaven-core](https://github.com/deephaven/deephaven-core) server on port 10000. The server provides APIs that the web-client-ui depends upon. An easy way to get started is to launch a Deephaven container from the [quick start guide](https://deephaven.io/core/docs/tutorials/quickstart/).
 
-## Recommended Environment
+## Recommended Environmentttt
 
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) and installing the [recommended workspace extensions](https://github.com/deephaven/web-client-ui/blob/main/.vscode/extensions.json) which VS Code will suggest when you open the repo or when you browse the extensions panel. There are a few [workspace settings](https://github.com/deephaven/web-client-ui/tree/main/.vscode) configured with the repo.
 
