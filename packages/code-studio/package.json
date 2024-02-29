@@ -23,6 +23,7 @@
     "update-licenses": "npm-license > licenses.txt"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "plotly.js": "^2.29.1"
   },
   "devDependencies": {

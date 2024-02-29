@@ -1,10 +1,11 @@
 # Example App
 
-An example application demonstrating an issue when packaging plotly.js on M1 Macs.
+An example application demonstrating an issue with line plots in plotly.js.
 
 To reproduce, run `npm install` and then `npm start`. Your browser should open to http://localhost:4000, and you will only be able to see the scatter points, you cannot see the lines.
 
 The error shown in the browser console is:
+
 ```
 WebGL: INVALID_OPERATION: drawArraysInstancedANGLE: no valid shader program in use
 draw @ VM3230:344
