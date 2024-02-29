@@ -3,7 +3,10 @@ import { Chart } from '@deephaven/chart';
 
 const data: any = [
   {
+    // Doesn't display anything with scattergl on M1 Mac
     type: 'scattergl',
+    // Works fine with scatter type
+    // type: 'scatter',
     mode: 'lines',
     name: 'Test',
     orientation: 'v',
