@@ -27,6 +27,7 @@
     "build:sass": "sass --embed-sources --load-path=../../node_modules ./src:./dist"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "plotly.js": "^2.29.1",
     "react-plotly.js": "^2.6.0"
   },
