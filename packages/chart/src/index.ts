@@ -1,13 +1,4 @@
 export { default as Chart } from './Chart';
-export { default as ChartModelFactory } from './ChartModelFactory';
-export { default as ChartModel } from './ChartModel';
-export { default as ChartUtils } from './ChartUtils';
-export * from './ChartUtils';
-export * from './DownsamplingError';
-export { default as FigureChartModel } from './FigureChartModel';
-export { default as MockChartModel } from './MockChartModel';
+export { default as Plotly } from './plotly/Plotly';
+export { default as createPlotlyComponent } from './plotly/createPlotlyComponent';
 export { default as Plot } from './plotly/Plot';
-export * from './ChartTheme';
-export * from './ChartThemeProvider';
-export { default as isFigureChartModel } from './isFigureChartModel';
-export * from './useChartTheme';

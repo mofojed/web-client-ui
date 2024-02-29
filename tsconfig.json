@@ -17,9 +17,6 @@
     "excludeDirectories": ["**/node_modules", "**/dist"]
   },
   "references": [
-    { "path": "./packages/code-studio" },
-    { "path": "./packages/embed-chart" },
-    { "path": "./packages/embed-grid" },
-    { "path": "./packages/embed-widget" }
+    { "path": "./packages/code-studio" }
   ]
 }
