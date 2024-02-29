@@ -40,7 +40,6 @@
     "vite": "^4.3.9"
   },
   "dependencies": {
-    "@deephaven/chart": "file:packages/chart",
     "@deephaven/code-studio": "file:packages/code-studio",
     "@deephaven/tsconfig": "file:packages/tsconfig"
   }

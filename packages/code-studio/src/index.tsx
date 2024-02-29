@@ -1,4 +1,4 @@
-import Plotly from '@deephaven/chart';
+import Plotly from './Plotly';
 
 const trace0 = {
   x: [1, 2, 3, 4],

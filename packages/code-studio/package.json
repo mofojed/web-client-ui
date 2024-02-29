@@ -10,9 +10,6 @@
     "url": "https://github.com/deephaven/web-client-ui.git",
     "directory": "packages/code-studio"
   },
-  "dependencies": {
-    "@deephaven/chart": "file:../chart"
-  },
   "homepage": ".",
   "main": "build/index.html",
   "files": [
@@ -25,7 +22,11 @@
     "preview": "vite preview",
     "update-licenses": "npm-license > licenses.txt"
   },
+  "dependencies": {
+    "plotly.js": "^2.29.1"
+  },
   "devDependencies": {
+    "@types/plotly.js": "^2.12.11",
     "@deephaven/eslint-config": "file:../eslint-config",
     "@deephaven/prettier-config": "file:../prettier-config",
     "@deephaven/stylelint-config": "file:../stylelint-config"
