@@ -16,20 +16,14 @@
     "build"
   ],
   "scripts": {
-    "analyze": "source-map-explorer build/assets/*.js --no-border-checks",
-    "start": "vite",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' vite build",
-    "preview": "vite preview",
-    "update-licenses": "npm-license > licenses.txt"
+    "start": "vite"
   },
   "dependencies": {
     "buffer": "^6.0.3",
-    "plotly.js": "^2.29.1"
+    "plotly.js": "^2.29.1",
+    "vite": "^4.3.9"
   },
   "devDependencies": {
-    "@types/plotly.js": "^2.12.11",
-    "@deephaven/eslint-config": "file:../eslint-config",
-    "@deephaven/prettier-config": "file:../prettier-config",
-    "@deephaven/stylelint-config": "file:../stylelint-config"
+    "@types/plotly.js": "^2.12.11"
   }
 }

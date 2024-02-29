@@ -26,7 +26,6 @@
   "repository": "https://github.com/deephaven/web-client-ui",
   "devDependencies": {
     "@deephaven/tsconfig": "file:../tsconfig",
-    "@types/node": "^16.11.7",
     "@types/plotly.js": "^2.29.1",
     "@vscode/codicons": "0.0.33",
     "chokidar-cli": "^2.1.0",
