@@ -1,7 +1,6 @@
 // This is a dev dependency for building, so importing dev deps is fine
 /* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
 // https://vitejs.dev/config/
@@ -81,7 +80,6 @@ export default defineConfig(({ mode }) => {
       proxy,
     },
     resolve: {
-      dedupe: ['react', 'react-redux', 'redux'],
       alias:
         mode === 'development'
           ? [
@@ -139,6 +137,5 @@ export default defineConfig(({ mode }) => {
     css: {
       devSourcemap: true,
     },
-    plugins: [react()],
   };
 });

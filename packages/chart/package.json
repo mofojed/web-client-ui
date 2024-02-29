@@ -21,11 +21,6 @@
     "./*.js": "./dist/*.js",
     "./*": "./dist/*.js"
   },
-  "scripts": {
-    "build": "cross-env NODE_ENV=production run-p build:*",
-    "build:babel": "babel ./src --out-dir ./dist --extensions \".ts,.tsx,.js,.jsx\" --source-maps --root-mode upward",
-    "build:sass": "sass --embed-sources --load-path=../../node_modules ./src:./dist"
-  },
   "dependencies": {
     "buffer": "^6.0.3",
     "plotly.js": "^2.29.1"
