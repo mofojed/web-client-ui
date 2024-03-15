@@ -1,6 +1,12 @@
 // Wrapper for the Console for use in a golden layout container
 // Will probably need to handle window popping out from golden layout here.
-import React, { PureComponent, ReactElement, RefObject } from 'react';
+import React, {
+  ComponentType,
+  PureComponent,
+  ReactElement,
+  ReactNode,
+  RefObject,
+} from 'react';
 import shortid from 'shortid';
 import debounce from 'lodash.debounce';
 import { connect } from 'react-redux';
@@ -14,7 +20,6 @@ import {
 } from '@deephaven/console';
 import {
   DashboardPanelProps,
-  LayoutManagerContext,
   LayoutUtils,
   PanelEvent,
 } from '@deephaven/dashboard';
@@ -60,8 +65,11 @@ interface PanelState {
 
 type ItemIds = Map<string, string>;
 
-interface ConsolePanelProps extends DashboardPanelProps {
+export interface ConsolePanelProps extends DashboardPanelProps {
   commandHistoryStorage: CommandHistoryStorage;
+
+  /** Element to display if the console panel is displayed without an active session */
+  fallback: ReactNode;
 
   panelState?: PanelState;
 
@@ -90,8 +98,6 @@ export class ConsolePanel extends PureComponent<
   static COMPONENT = 'ConsolePanel';
 
   static TITLE = 'Console';
-
-  static contextType = LayoutManagerContext;
 
   constructor(props: ConsolePanelProps) {
     super(props);
@@ -252,7 +258,8 @@ export class ConsolePanel extends PureComponent<
     object: dh.ide.VariableDescriptor & { title?: string },
     forceOpen = true
   ): void {
-    const { root } = this.context;
+    const { glContainer } = this.props;
+    const { root } = glContainer.layoutManager;
     const oldPanelId =
       object.title != null ? this.getItemId(object.title, false) : null;
     if (
@@ -284,9 +291,7 @@ export class ConsolePanel extends PureComponent<
   handleSettingsChange(consoleSettings: Record<string, unknown>): void {
     const { glEventHub } = this.props;
     log.debug('handleSettingsChange', consoleSettings);
-    this.setState({
-      consoleSettings,
-    });
+    this.setState({ consoleSettings });
     glEventHub.emit(ConsoleEvent.SETTINGS_CHANGED, consoleSettings);
   }
 
@@ -374,6 +379,7 @@ export class ConsolePanel extends PureComponent<
   render(): ReactElement | null {
     const {
       commandHistoryStorage,
+      fallback,
       glContainer,
       glEventHub,
       sessionWrapper,
@@ -403,6 +409,7 @@ export class ConsolePanel extends PureComponent<
         onTabFocus={this.handleTabFocus}
         errorMessage={error != null ? `${error}` : undefined}
       >
+        {session == null && fallback}
         {session != null && (
           <Console
             dh={dh}

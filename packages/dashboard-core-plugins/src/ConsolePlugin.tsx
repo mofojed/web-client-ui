@@ -6,6 +6,7 @@ import {
   DehydratedDashboardPanelProps,
   LayoutUtils,
   PanelComponent,
+  PanelDehydrateFunction,
   PanelHydrateFunction,
   useListener,
   usePanelRegistration,
@@ -13,7 +14,7 @@ import {
 import { FileUtils } from '@deephaven/file-explorer';
 import { CloseOptions, isComponent } from '@deephaven/golden-layout';
 import Log from '@deephaven/log';
-import { useCallback, useRef, useState } from 'react';
+import { ComponentType, ReactNode, useCallback, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import shortid from 'shortid';
 import { ConsoleEvent, NotebookEvent } from './events';
@@ -24,6 +25,7 @@ import {
   LogPanel,
   NotebookPanel,
 } from './panels';
+import { FallbackComponentProps } from './panels/ConsolePanel';
 import { setDashboardConsoleSettings } from './redux';
 
 const log = Log.module('ConsolePlugin');
@@ -40,7 +42,13 @@ function isNotebookPanel(
 }
 
 export type ConsolePluginProps = DashboardPluginComponentProps & {
+  /** Hydrate a ConsolePanel */
   hydrateConsole?: PanelHydrateFunction;
+
+  /** Dehydrate the ConsolePanel. */
+  dehydrateConsole?: PanelDehydrateFunction;
+
+  /** Base URL for links to other notebooks within notebooks. */
   notebooksUrl: string;
 };
 
@@ -62,6 +70,7 @@ export function ConsolePlugin(
   const {
     id,
     hydrateConsole,
+    dehydrateConsole,
     layout,
     panelManager,
     registerComponent,
@@ -548,7 +557,12 @@ export function ConsolePlugin(
     [notebooksUrl]
   );
 
-  usePanelRegistration(registerComponent, ConsolePanel, hydrateConsole);
+  usePanelRegistration(
+    registerComponent,
+    ConsolePanel,
+    hydrateConsole,
+    dehydrateConsole
+  );
   usePanelRegistration(registerComponent, CommandHistoryPanel);
   usePanelRegistration(registerComponent, FileExplorerPanel);
   usePanelRegistration(registerComponent, LogPanel);

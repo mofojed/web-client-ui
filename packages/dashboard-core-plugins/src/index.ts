@@ -3,7 +3,7 @@ export { default as ChartWidgetPlugin } from './ChartWidgetPlugin';
 export { default as ChartPluginConfig } from './ChartPluginConfig';
 export { default as ChartBuilderPlugin } from './ChartBuilderPlugin';
 export { default as ChartBuilderPluginConfig } from './ChartBuilderPluginConfig';
-export { default as ConsolePlugin } from './ConsolePlugin';
+export * from './ConsolePlugin';
 export { default as FilterPlugin } from './FilterPlugin';
 export { default as FilterPluginConfig } from './FilterPluginConfig';
 export { default as GridPanelPlugin } from './GridPanelPlugin';

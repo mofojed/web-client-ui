@@ -1,7 +1,7 @@
 import deepEqual from 'deep-equal';
 import { ThunkAction } from 'redux-thunk';
 import { updateDashboardData } from '@deephaven/dashboard';
-import { SessionWrapper } from '@deephaven/jsapi-utils';
+import { SessionConfig, SessionWrapper } from '@deephaven/jsapi-utils';
 import { RootState } from '@deephaven/redux';
 import { Action } from 'redux';
 import type { dh } from '@deephaven/jsapi-types';
@@ -24,7 +24,21 @@ export const setDashboardConnection =
     dispatch(updateDashboardData(id, { connection }));
 
 /**
- * Set the session wrapper for the dashboard specified
+ * Sets the session configuration for a dashboard.
+ * Can be set without an active session.
+ * @param id The ID of the dashboard to set the session configuration for
+ * @param sessionConfig The session configuration to set for the dashboard
+ */
+export const setDashboardSessionConfig =
+  (
+    id: string,
+    sessionConfig: SessionConfig
+  ): ThunkAction<unknown, RootState, undefined, Action<unknown>> =>
+  dispatch =>
+    dispatch(updateDashboardData(id, { sessionConfig }));
+
+/**
+ * Set the session wrapper for an active session for the dashboard specified
  * @param id The ID of the dashboard to set the session for
  * @param sessionWrapper The session wrapper object to set for the dashboard
  */
