@@ -12,7 +12,6 @@ import {
 } from '@deephaven/dashboard';
 import {
   setDashboardConnection as setDashboardConnectionAction,
-  setDashboardSessionConfig,
   setDashboardSessionWrapper as setDashboardSessionWrapperAction,
   ToolType,
 } from '@deephaven/dashboard-core-plugins';
@@ -180,10 +179,6 @@ function AppInit(props: AppInitProps): JSX.Element {
           setLayoutStorage(layoutStorage);
           setDashboardConnection(DEFAULT_DASHBOARD_ID, connection);
           if (sessionWrapper !== undefined) {
-            setDashboardSessionConfig(
-              DEFAULT_DASHBOARD_ID,
-              sessionWrapper.config
-            );
             setDashboardSessionWrapper(DEFAULT_DASHBOARD_ID, sessionWrapper);
           }
           setUser(user);

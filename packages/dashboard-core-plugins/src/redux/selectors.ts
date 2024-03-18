@@ -127,6 +127,7 @@ export const getDashboardConnection = (
     | undefined;
 
 /**
+ * Gets the active session wrapper for a dashboard
  *
  * @param store The redux store
  * @param dashboardId The dashboard ID to get the SessionWrapper for

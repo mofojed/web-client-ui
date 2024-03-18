@@ -24,20 +24,6 @@ export const setDashboardConnection =
     dispatch(updateDashboardData(id, { connection }));
 
 /**
- * Sets the session configuration for a dashboard.
- * Can be set without an active session.
- * @param id The ID of the dashboard to set the session configuration for
- * @param sessionConfig The session configuration to set for the dashboard
- */
-export const setDashboardSessionConfig =
-  (
-    id: string,
-    sessionConfig: SessionConfig
-  ): ThunkAction<unknown, RootState, undefined, Action<unknown>> =>
-  dispatch =>
-    dispatch(updateDashboardData(id, { sessionConfig }));
-
-/**
  * Set the session wrapper for an active session for the dashboard specified
  * @param id The ID of the dashboard to set the session for
  * @param sessionWrapper The session wrapper object to set for the dashboard
