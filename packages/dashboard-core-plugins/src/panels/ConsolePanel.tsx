@@ -1,7 +1,6 @@
 // Wrapper for the Console for use in a golden layout container
 // Will probably need to handle window popping out from golden layout here.
 import React, {
-  ComponentType,
   PureComponent,
   ReactElement,
   ReactNode,
@@ -10,7 +9,6 @@ import React, {
 import shortid from 'shortid';
 import debounce from 'lodash.debounce';
 import { connect } from 'react-redux';
-import { LoadingOverlay } from '@deephaven/components';
 import {
   CommandHistoryStorage,
   Console,
@@ -40,6 +38,7 @@ import {
   type PluginModuleMap,
 } from '@deephaven/plugin';
 import type { JSZipObject } from 'jszip';
+import { CSSTransition } from 'react-transition-group';
 import { ConsoleEvent } from '../events';
 import Panel from './Panel';
 import { getDashboardSessionWrapper } from '../redux';
@@ -69,7 +68,10 @@ export interface ConsolePanelProps extends DashboardPanelProps {
   commandHistoryStorage: CommandHistoryStorage;
 
   /** Element to display if the console panel is displayed without an active session */
-  fallback: ReactNode;
+  fallback?: ReactNode;
+
+  /** Status bar to display in the console */
+  statusBar?: ReactNode;
 
   panelState?: PanelState;
 
@@ -372,7 +374,7 @@ export class ConsolePanel extends PureComponent<
     if (plugin != null) {
       return getIconForPlugin(plugin);
     }
-    // TODO: #1573 Remove this default and always return getIconForPlugin
+    log.warn(`No plugin found for type ${type}, using default icon`);
     return <ObjectIcon type={type} />;
   }
 
@@ -383,20 +385,65 @@ export class ConsolePanel extends PureComponent<
       glContainer,
       glEventHub,
       sessionWrapper,
+      statusBar,
       timeZone,
       unzip,
     } = this.props;
 
-    if (sessionWrapper == null) {
-      return (
-        <LoadingOverlay isLoading={false} errorMessage="Console is disabled." />
+    const { consoleSettings, error, objectMap } = this.state;
+
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    let content: ReactNode = <></>;
+    if (sessionWrapper != null) {
+      const { config, session, connection, details = {}, dh } = sessionWrapper;
+      const { workerName, processInfoId } = details;
+      const { id: sessionId, type: language } = config;
+      const statusBarChildren = statusBar ?? (
+        <>
+          <div>{ConsoleConstants.LANGUAGE_MAP.get(language)}</div>
+          {workerName != null && (
+            <>
+              <div>•</div>
+              {workerName}
+            </>
+          )}
+          {processInfoId != null && (
+            <>
+              <div>•</div>
+              {processInfoId}
+              <div>•</div>
+            </>
+          )}
+          <HeapUsage
+            connection={connection}
+            defaultUpdateInterval={10 * 1000}
+            hoverUpdateInterval={3 * 1000}
+            monitorDuration={10 * 60 * 1000}
+          />
+        </>
+      );
+      content = (
+        <Console
+          dh={dh}
+          ref={this.consoleRef}
+          settings={consoleSettings}
+          session={session}
+          focusCommandHistory={this.handleFocusCommandHistory}
+          openObject={this.handleOpenObject}
+          closeObject={this.handleCloseObject}
+          commandHistoryStorage={commandHistoryStorage}
+          onSettingsChange={this.handleSettingsChange}
+          language={language}
+          statusBarChildren={statusBarChildren}
+          scope={sessionId}
+          timeZone={timeZone}
+          objectMap={objectMap}
+          unzip={unzip}
+          supportsType={this.supportsType}
+          iconForType={this.iconForType}
+        />
       );
     }
-
-    const { consoleSettings, error, objectMap } = this.state;
-    const { config, session, connection, details = {}, dh } = sessionWrapper;
-    const { workerName, processInfoId } = details;
-    const { id: sessionId, type: language } = config;
 
     return (
       <Panel
@@ -409,51 +456,24 @@ export class ConsolePanel extends PureComponent<
         onTabFocus={this.handleTabFocus}
         errorMessage={error != null ? `${error}` : undefined}
       >
-        {session == null && fallback}
-        {session != null && (
-          <Console
-            dh={dh}
-            ref={this.consoleRef}
-            settings={consoleSettings}
-            session={session}
-            focusCommandHistory={this.handleFocusCommandHistory}
-            openObject={this.handleOpenObject}
-            closeObject={this.handleCloseObject}
-            commandHistoryStorage={commandHistoryStorage}
-            onSettingsChange={this.handleSettingsChange}
-            language={language}
-            statusBarChildren={
-              <>
-                <div>{ConsoleConstants.LANGUAGE_MAP.get(language)}</div>
-                {workerName != null && (
-                  <>
-                    <div>•</div>
-                    {workerName}
-                  </>
-                )}
-                {processInfoId != null && (
-                  <>
-                    <div>•</div>
-                    {processInfoId}
-                    <div>•</div>
-                  </>
-                )}
-                <HeapUsage
-                  connection={connection}
-                  defaultUpdateInterval={10 * 1000}
-                  hoverUpdateInterval={3 * 1000}
-                  monitorDuration={10 * 60 * 1000}
-                />
-              </>
-            }
-            scope={sessionId}
-            timeZone={timeZone}
-            objectMap={objectMap}
-            unzip={unzip}
-            supportsType={this.supportsType}
-            iconForType={this.iconForType}
-          />
-        )}
+        {/* TODO: replace with FadeTransition */}
+        <CSSTransition
+          in={sessionWrapper == null}
+          timeout={300}
+          classNames="fade"
+          unmountOnExit
+        >
+          {fallback ?? <>Default Fallback</>}
+        </CSSTransition>
+        {/* TODO: replace with FadeTransition */}
+        <CSSTransition
+          in={sessionWrapper != null}
+          timeout={300}
+          classNames="fade"
+          unmountOnExit
+        >
+          {content}
+        </CSSTransition>
       </Panel>
     );
   }

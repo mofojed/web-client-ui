@@ -14,7 +14,7 @@ import {
 import { FileUtils } from '@deephaven/file-explorer';
 import { CloseOptions, isComponent } from '@deephaven/golden-layout';
 import Log from '@deephaven/log';
-import { ComponentType, ReactNode, useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import shortid from 'shortid';
 import { ConsoleEvent, NotebookEvent } from './events';
@@ -25,7 +25,6 @@ import {
   LogPanel,
   NotebookPanel,
 } from './panels';
-import { FallbackComponentProps } from './panels/ConsolePanel';
 import { setDashboardConsoleSettings } from './redux';
 
 const log = Log.module('ConsolePlugin');
