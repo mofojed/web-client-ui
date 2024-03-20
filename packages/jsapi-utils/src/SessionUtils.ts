@@ -1,7 +1,6 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import shortid from 'shortid';
-import { requestParentResponse, SESSION_DETAILS_REQUEST } from './MessageUtils';
 import NoConsolesError, { isNoConsolesError } from './NoConsolesError';
 
 const log = Log.module('SessionUtils');
@@ -11,18 +10,35 @@ export interface SessionConfig {
   language: string;
 }
 
+/** Status of a session */
+export type SessionStatus =
+  /** Session is currently running */
+  | 'running'
+
+  /** Session is restarting */
+  | 'restarting'
+
+  /** Session is unresponsive */
+  | 'unresponsive'
+
+  /** Session is disconnected */
+  | 'disconnected';
+
 export interface SessionWrapper {
+  /** Unique ID of the session */
+  id: string;
+
   /** Session object being wrapped */
   session: DhType.IdeSession;
 
   /** Configuration used to create the session */
   config: SessionConfig;
 
+  /** Status of the session */
+  status: SessionStatus;
+
   /** API used when creating the session */
   dh: typeof DhType;
-
-  /** Unique ID of the session */
-  id: string;
 }
 
 /**

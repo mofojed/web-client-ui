@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from '@deephaven/components';
 import Log from '@deephaven/log';
-import type { dh as DhType, IdeSession } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { getCommandHistoryStorage } from '@deephaven/redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { vsInfo } from '@deephaven/icons';
@@ -48,15 +48,17 @@ interface ConsoleContainerProps {
   getDhcApi: (engine: string, jsApiUrl: string) => Promise<DhType>;
   onSessionOpen: (consoleSession: ConsoleSession) => void;
   onSessionClose: (consoleSession: ConsoleSession) => void;
-  openObject: (object: unknown, session?: IdeSession) => void;
-  closeObject: () => void;
+  openObject: (
+    object: DhType.ide.VariableDescriptor,
+    forceOpen?: boolean
+  ) => void;
+  closeObject: (object: DhType.ide.VariableDefinition) => void;
   onSettingsChange: (
     consoleCreatorSettings: Partial<ConsoleSettings>,
     consoleSettings: ConsoleSettings
   ) => void;
   communityCommandHistoryStorage: CommandHistoryStorage;
   enterpriseCommandHistoryStorage: CommandHistoryStorage;
-  serverConfigValues: ServerConfigValues;
 }
 
 // same as community Settings in Console.tsx
@@ -432,82 +434,6 @@ class ConsoleContainer extends Component<
     }
   );
 
-  getStatusBarChildren = memoize((consoleSession: ConsoleSession) => {
-    const { serverConfigValues } = this.props;
-    const isEnterprise = isEnterpriseConsoleSession(consoleSession);
-    const { config, language, sessionDetails } = consoleSession;
-    const engine =
-      getWorkerKind(config.workerKind, serverConfigValues.workerKinds)?.title ??
-      '';
-    const workerId = ConsoleCreator.getRemoteQueryDispatcherName(
-      sessionDetails.workerName ?? ''
-    );
-    const { processInfoId } = sessionDetails;
-    return (
-      <>
-        <div>&nbsp;</div>
-        <div>{workerId}</div>
-        <div>•</div>
-        <div>
-          {ConsoleConstants.LANGUAGE_MAP.get(language ?? '') ?? language}
-        </div>
-        <div>•</div>
-        <div>{`${(config.maxHeapMb / 1024.0).toFixed(1)} GB`}</div>
-        <div>•</div>
-        <div>
-          {config.dispatcherHost}{' '}
-          <FontAwesomeIcon icon={vsInfo} transform="grow-3 down-1" />
-          <Tooltip interactive>
-            <dl className="console-pane-status-details">
-              <dt>Description</dt>
-              <dd>{config.queryDescription}</dd>
-              <dt>Engine</dt>
-              <dd>{engine}</dd>
-              {!isEnterprise && (
-                <>
-                  <dt>Version</dt>
-                  <dd>{consoleSession.engineVersion}</dd>
-                </>
-              )}
-              <dt>Worker</dt>
-              <dd>{workerId}</dd>
-              <dt>Host</dt>
-              <dd>{config.dispatcherHost}</dd>
-              {isEnterprise && (
-                <>
-                  <dt>Port</dt>
-                  <dd>{config.dispatcherPort}</dd>
-                </>
-              )}
-              <dt>Process Info Id</dt>
-              <dd>
-                {processInfoId}
-                <CopyButton copy={`${processInfoId}`} />
-              </dd>
-              <dt>Max heap (MB)</dt>
-              <dd>{config.maxHeapMb}</dd>
-              <dt>JVM Profile</dt>
-              <dd>{config.jvmProfile}</dd>
-              <dt>JVM Args</dt>
-              <dd>
-                {config.jvmArgs.join('\n') || (
-                  <span className="text-muted">None</span>
-                )}
-              </dd>
-              <dt>ENV Vars</dt>
-              <dd>
-                {config.envVars.map(item => item.join('=')).join('\n') || (
-                  <span className="text-muted">None</span>
-                )}
-              </dd>
-            </dl>
-          </Tooltip>
-        </div>
-        <div>•</div>
-      </>
-    );
-  });
-
   render() {
     const {
       closeObject,
@@ -579,11 +505,7 @@ class ConsoleContainer extends Component<
                   this.consoleRef = consoleRef;
                 }}
                 actions={actions}
-                commandHistoryStorage={
-                  isEnterprise
-                    ? enterpriseCommandHistoryStorage
-                    : communityCommandHistoryStorage
-                }
+                commandHistoryStorage={commandHistoryStorage}
                 settings={consoleSettings}
                 session={session}
                 focusCommandHistory={focusCommandHistory}
@@ -606,15 +528,13 @@ class ConsoleContainer extends Component<
 }
 
 const mapStateToProps = (state: RootState) => ({
-  communityCommandHistoryStorage: getCommandHistoryStorage(
+  commandHistoryStorage: getCommandHistoryStorage(
     state
   ) as CommandHistoryStorage,
-  enterpriseCommandHistoryStorage: getEnterpriseCommandHistoryStorage(
-    state
-  ) as CommandHistoryStorage,
-  serverConfigValues: getServerConfigValues(state),
 });
 
-export default connect(mapStateToProps, null, null, { forwardRef: true })(
-  ConsoleContainer
-);
+const ConnectedConsoleContainer = connect(mapStateToProps, null, null, {
+  forwardRef: true,
+})(ConsoleContainer);
+
+export default ConnectedConsoleContainer;

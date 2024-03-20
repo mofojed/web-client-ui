@@ -18,11 +18,7 @@ import {
 import { FileStorage } from '@deephaven/file-explorer';
 import { useApi, useClient } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import {
-  getSessionDetails,
-  loadSessionWrapper,
-  SessionWrapper,
-} from '@deephaven/jsapi-utils';
+import { loadSessionWrapper, SessionWrapper } from '@deephaven/jsapi-utils';
 import Log from '@deephaven/log';
 import { PouchCommandHistoryStorage } from '@deephaven/pouch-storage';
 import {
@@ -125,12 +121,7 @@ function AppInit(props: AppInitProps): JSX.Element {
     function initApp() {
       async function loadApp(): Promise<void> {
         try {
-          const sessionDetails = await getSessionDetails();
-          const sessionWrapper = await loadSessionWrapper(
-            api,
-            connection,
-            sessionDetails
-          );
+          const sessionWrapper = await loadSessionWrapper(api, connection);
 
           const storageService = client.getStorageService();
           const layoutStorage = new GrpcLayoutStorage(
