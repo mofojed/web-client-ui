@@ -7,21 +7,22 @@ import NoConsolesError, { isNoConsolesError } from './NoConsolesError';
 const log = Log.module('SessionUtils');
 
 export interface SessionConfig {
-  type: string;
-  id: string;
-}
-
-export interface SessionDetails {
-  workerName?: string;
-  processInfoId?: string;
+  /** Language used for the session */
+  language: string;
 }
 
 export interface SessionWrapper {
+  /** Session object being wrapped */
   session: DhType.IdeSession;
-  connection: DhType.IdeConnection;
+
+  /** Configuration used to create the session */
   config: SessionConfig;
-  details?: SessionDetails;
+
+  /** API used when creating the session */
   dh: typeof DhType;
+
+  /** Unique ID of the session */
+  id: string;
 }
 
 /**
@@ -42,8 +43,7 @@ export function createConnection(
  */
 export async function createSessionWrapper(
   dh: typeof DhType,
-  connection: DhType.IdeConnection,
-  details: SessionDetails
+  connection: DhType.IdeConnection
 ): Promise<SessionWrapper> {
   log.info('Getting console types...');
 
@@ -61,17 +61,13 @@ export async function createSessionWrapper(
 
   const session = await connection.startSession(type);
 
-  const config = { type, id: shortid.generate() };
+  const config = { language: type };
+
+  const id = shortid.generate();
 
   log.info('Console session established', config);
 
-  return {
-    session,
-    config,
-    connection,
-    details,
-    dh,
-  };
+  return { config, dh, id, session };
 }
 
 export function createCoreClient(
@@ -84,35 +80,13 @@ export function createCoreClient(
   return new dh.CoreClient(websocketUrl, options);
 }
 
-function isSessionDetails(obj: unknown): obj is SessionDetails {
-  return obj != null && typeof obj === 'object';
-}
-
-async function requestParentSessionDetails(): Promise<SessionDetails> {
-  const response = await requestParentResponse(SESSION_DETAILS_REQUEST);
-  if (!isSessionDetails(response)) {
-    throw new Error(`Unexpected session details response: ${response}`);
-  }
-  return response;
-}
-
-export async function getSessionDetails(): Promise<SessionDetails> {
-  const searchParams = new URLSearchParams(window.location.search);
-  switch (searchParams.get('authProvider')) {
-    case 'parent':
-      return requestParentSessionDetails();
-  }
-  return {};
-}
-
 export async function loadSessionWrapper(
   dh: typeof DhType,
-  connection: DhType.IdeConnection,
-  sessionDetails: SessionDetails
+  connection: DhType.IdeConnection
 ): Promise<SessionWrapper | undefined> {
   let sessionWrapper: SessionWrapper | undefined;
   try {
-    sessionWrapper = await createSessionWrapper(dh, connection, sessionDetails);
+    sessionWrapper = await createSessionWrapper(dh, connection);
   } catch (e) {
     // Consoles may be disabled on the server, but we should still be able to start up and open existing objects
     if (!isNoConsolesError(e)) {

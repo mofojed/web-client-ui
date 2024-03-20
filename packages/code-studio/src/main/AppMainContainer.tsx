@@ -161,17 +161,6 @@ export class AppMainContainer extends Component<
   AppMainContainerProps & RouteComponentProps,
   AppMainContainerState
 > {
-  static handleWindowBeforeUnload(event: BeforeUnloadEvent): void {
-    // in development, allow auto-reload
-    if (import.meta.env.PROD) {
-      event.preventDefault();
-      // returnValue is required for beforeReload event prompt
-      // https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload#example
-      // eslint-disable-next-line no-param-reassign
-      event.returnValue = '';
-    }
-  }
-
   static hydrateConsole(
     props: DehydratedDashboardPanelProps,
     id: string
@@ -262,11 +251,6 @@ export class AppMainContainer extends Component<
     this.initWidgets();
     this.initDashboardData();
     this.startListeningForDisconnect();
-
-    window.addEventListener(
-      'beforeunload',
-      AppMainContainer.handleWindowBeforeUnload
-    );
   }
 
   componentDidUpdate(
@@ -286,11 +270,6 @@ export class AppMainContainer extends Component<
     this.dashboardLayouts.forEach(layout => {
       stopListenForCreateDashboard(layout.eventHub, this.handleCreateDashboard);
     });
-
-    window.removeEventListener(
-      'beforeunload',
-      AppMainContainer.handleWindowBeforeUnload
-    );
   }
 
   /** Map from the dashboard ID to the GoldenLayout instance for that dashboard */
