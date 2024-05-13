@@ -35,7 +35,9 @@ import { useXComponent, XComponentType } from './XComponentMap';
  * @param Component The component to wrap
  * @returns The wrapped component
  */
-export function createXComponent<P extends Record<string, unknown>>(
+// React component props extend {}, not Record<string, unknown>. Use the `{}` banned type here so components can be used in the `createXComponent` function.
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function createXComponent<P extends {}>(
   Component: React.ComponentType<P>
 ): XComponentType<P> {
   let forwardedRefComponent: XComponentType<P>;

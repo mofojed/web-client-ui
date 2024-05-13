@@ -898,12 +898,6 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
     });
   }
 
-  getObjects = memoize(
-    (objectMap: Map<string, DhType.ide.VariableDefinition>) => [
-      ...objectMap.values(),
-    ]
-  );
-
   getContextActions = memoize(
     (actions: DropdownAction[]): ResolvableContextAction[] => [
       ...actions,
@@ -989,14 +983,12 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
       consoleHeight,
       consoleHistory,
       isScrollDecorationShown,
-      objectMap,
       showCsvOverlay,
       csvFile,
       csvPaste,
       dragError,
       csvUploadInProgress,
     } = this.state;
-    const consoleMenuObjects = this.getObjects(objectMap);
     const inputMaxHeight = Math.round(consoleHeight * 0.7);
     const contextActions = this.getContextActions(actions);
 
@@ -1009,9 +1001,7 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
           <ConsoleStatusBar
             dh={dh}
             session={session}
-            overflowActions={this.handleOverflowActions}
-            openObject={openObject}
-            objects={consoleMenuObjects}
+            actions={this.handleOverflowActions}
           >
             {statusBarChildren}
           </ConsoleStatusBar>
