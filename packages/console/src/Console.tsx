@@ -34,6 +34,7 @@ import {
   CommandHistoryStorage,
   CommandHistoryStorageItem,
 } from './command-history';
+import ConsoleObjectsMenu from './ConsoleObjectsMenu';
 
 const log = Log.module('Console');
 
@@ -51,7 +52,13 @@ const DEFAULT_SETTINGS: Settings = {
 
 interface ConsoleProps {
   dh: typeof DhType;
+
+  /** Additional children to show in the objects menu */
   statusBarChildren: ReactNode;
+
+  /** Show the objects menu in the status bar. Defaults to false. */
+  showObjectsMenu?: boolean;
+
   settings: Partial<Settings>;
   focusCommandHistory: () => void;
 
@@ -898,6 +905,11 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
     });
   }
 
+  getObjects = memoize(
+    (objectMap: Map<string, DhType.ide.VariableDefinition>) =>
+      Array.from(objectMap.values())
+  );
+
   getContextActions = memoize(
     (actions: DropdownAction[]): ResolvableContextAction[] => [
       ...actions,
@@ -978,17 +990,20 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
       unzip,
       supportsType,
       iconForType,
+      showObjectsMenu,
     } = this.props;
     const {
       consoleHeight,
       consoleHistory,
       isScrollDecorationShown,
+      objectMap,
       showCsvOverlay,
       csvFile,
       csvPaste,
       dragError,
       csvUploadInProgress,
     } = this.state;
+    const consoleMenuObjects = this.getObjects(objectMap);
     const inputMaxHeight = Math.round(consoleHeight * 0.7);
     const contextActions = this.getContextActions(actions);
 
@@ -1001,9 +1016,15 @@ export class Console extends PureComponent<ConsoleProps, ConsoleState> {
           <ConsoleStatusBar
             dh={dh}
             session={session}
-            actions={this.handleOverflowActions}
+            overflowActions={this.handleOverflowActions}
           >
             {statusBarChildren}
+            {showObjectsMenu === true && (
+              <ConsoleObjectsMenu
+                openObject={openObject}
+                objects={consoleMenuObjects}
+              />
+            )}
           </ConsoleStatusBar>
           <div
             className="console-csv-container"

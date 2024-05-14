@@ -13,7 +13,7 @@ function makeConsoleStatusBarWrapper(actions: DropdownActions = []) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = new (dh as any).IdeSession('test');
   const wrapper = render(
-    <ConsoleStatusBar dh={dh} session={session} actions={actions} />
+    <ConsoleStatusBar dh={dh} session={session} overflowActions={actions} />
   );
 
   return wrapper;

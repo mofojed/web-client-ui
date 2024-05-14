@@ -24,14 +24,14 @@ interface ConsoleStatusBarProps {
   children?: ReactNode;
   dh: typeof DhType;
   session: DhType.IdeSession;
-  actions?: DropdownActions;
+  overflowActions?: DropdownActions;
 }
 
 function ConsoleStatusBar({
   children,
   dh,
   session,
-  actions,
+  overflowActions,
 }: ConsoleStatusBarProps): ReactElement {
   const [isCommandRunning, setIsCommandRunning] = useState(false);
 
@@ -78,7 +78,8 @@ function ConsoleStatusBar({
   }
 
   const hasActions =
-    actions != null && (!Array.isArray(actions) || actions.length > 0);
+    overflowActions != null &&
+    (!Array.isArray(overflowActions) || overflowActions.length > 0);
 
   return (
     <div className="console-pane-status-bar">
@@ -97,7 +98,10 @@ function ConsoleStatusBar({
             // no-op: click is handled in `DropdownMenu`
           }}
         >
-          <DropdownMenu actions={actions} popperOptions={POPPER_OPTIONS} />
+          <DropdownMenu
+            actions={overflowActions}
+            popperOptions={POPPER_OPTIONS}
+          />
         </Button>
       )}
     </div>
