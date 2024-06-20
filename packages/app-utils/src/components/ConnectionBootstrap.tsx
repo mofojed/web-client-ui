@@ -185,10 +185,8 @@ export function ConnectionBootstrap({
           status: 'ready',
         });
 
-        // TODO: Remove this, it's debug purposes only
-        // Emit an event to enable or disable the fetch manager
-        window.addEventListener('dh-fetch-manager-status', e => {
-          if ((e as CustomEvent<boolean>).detail) {
+        function handleManagerStatusUpdate(event: Event): void {
+          if ((event as CustomEvent<boolean>).detail) {
             onUpdate({
               fetch: () => objectFetcher(descriptor),
               status: 'ready',
@@ -199,19 +197,20 @@ export function ConnectionBootstrap({
               error: new Error('Fetch manager disabled'),
             });
           }
-        });
-        (window as any).dhDisableFetchManager = () => {
-          window.dispatchEvent(
-            new CustomEvent('dh-fetch-manager-status', { detail: false })
-          );
-        };
-        (window as any).dhEnableFetchManager = () => {
-          window.dispatchEvent(
-            new CustomEvent('dh-fetch-manager-status', { detail: true })
-          );
-        };
+        }
+
+        // TODO: Remove this, it's debug purposes only
+        // Emit an event to enable or disable the fetch manager
+        window.addEventListener(
+          'dhFetchManagerStatus',
+          handleManagerStatusUpdate
+        );
 
         return () => {
+          window.removeEventListener(
+            'dhFetchManagerStatus',
+            handleManagerStatusUpdate
+          );
           // no-op
           // For Core, if the server dies then we can't reconnect anyway, so no need to bother listening for subscription or cleaning up
         };
@@ -263,5 +262,16 @@ export function ConnectionBootstrap({
     </ConnectionContext.Provider>
   );
 }
+
+(window as any).dhDisableFetchManager = () => {
+  window.dispatchEvent(
+    new CustomEvent('dhFetchManagerStatus', { detail: false })
+  );
+};
+(window as any).dhEnableFetchManager = () => {
+  window.dispatchEvent(
+    new CustomEvent('dhFetchManagerStatus', { detail: true })
+  );
+};
 
 export default ConnectionBootstrap;

@@ -28,19 +28,38 @@ export function GridWidgetPlugin(
         setModel(newModel);
       }
 
-      (window as any).dhKillTable = () => {
+      function handleKillTable() {
         table.close();
-      };
+      }
+
+      window.addEventListener('dhKillTable', handleKillTable);
+      return () => window.removeEventListener('dhKillTable', handleKillTable);
     }
 
-    init();
+    const promiseCleanup = init();
 
     return () => {
+      promiseCleanup.then(cleanup => cleanup());
       cancelled = true;
     };
   }, [dh, fetch]);
 
   return model ? <IrisGrid model={model} settings={settings} /> : null;
 }
+
+(window as any).dhKillTable = () => {
+  window.dispatchEvent(new Event('dhKillTable'));
+};
+
+window.addEventListener('keypress', event => {
+  // Listen for Ctrl+Shift+K to kill the table, or Cmd+Shift+K on Mac
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.shiftKey &&
+    event.key.toLowerCase() === 'k'
+  ) {
+    window.dispatchEvent(new Event('dhKillTable'));
+  }
+});
 
 export default GridWidgetPlugin;

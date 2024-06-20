@@ -591,6 +591,10 @@ export class IrisGridPanel extends PureComponent<
       }
     }
 
+    window.addEventListener('dhKillTable', () => {
+      model.close();
+    });
+
     this.setState({ model, modelQueue });
     this.initModelQueue(model, modelQueue);
   }
