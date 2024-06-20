@@ -184,6 +184,33 @@ export function ConnectionBootstrap({
           fetch: () => objectFetcher(descriptor),
           status: 'ready',
         });
+
+        // TODO: Remove this, it's debug purposes only
+        // Emit an event to enable or disable the fetch manager
+        window.addEventListener('dh-fetch-manager-status', e => {
+          if ((e as CustomEvent<boolean>).detail) {
+            onUpdate({
+              fetch: () => objectFetcher(descriptor),
+              status: 'ready',
+            });
+          } else {
+            onUpdate({
+              status: 'error',
+              error: new Error('Fetch manager disabled'),
+            });
+          }
+        });
+        (window as any).dhDisableFetchManager = () => {
+          window.dispatchEvent(
+            new CustomEvent('dh-fetch-manager-status', { detail: false })
+          );
+        };
+        (window as any).dhEnableFetchManager = () => {
+          window.dispatchEvent(
+            new CustomEvent('dh-fetch-manager-status', { detail: true })
+          );
+        };
+
         return () => {
           // no-op
           // For Core, if the server dies then we can't reconnect anyway, so no need to bother listening for subscription or cleaning up

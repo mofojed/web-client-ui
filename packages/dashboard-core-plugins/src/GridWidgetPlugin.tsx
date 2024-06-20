@@ -27,6 +27,10 @@ export function GridWidgetPlugin(
       if (!cancelled) {
         setModel(newModel);
       }
+
+      (window as any).dhKillTable = () => {
+        table.close();
+      };
     }
 
     init();
