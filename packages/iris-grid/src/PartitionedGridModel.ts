@@ -23,11 +23,14 @@ export function isPartitionedGridModel(
 }
 
 export interface PartitionConfig {
-  /** The partition values to set on the model */
+  /**
+   * The partition values to set on the model when in `partition` mode.
+   * Keep them in the config for all modes when we switch modes and then switch back, we want the same partition selected.
+   */
   partitions: unknown[];
 
   /** What data to display - the keys table, the merged table, or the selected partition */
-  mode: 'keys' | 'merged' | 'partition' | 'loading' | 'empty';
+  mode: 'keys' | 'merged' | 'partition';
 }
 
 /**
