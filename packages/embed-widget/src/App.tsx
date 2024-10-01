@@ -69,6 +69,7 @@ function App(): JSX.Element {
   );
   // Get the widget name from the query param `name`.
   const name = searchParams.get('name');
+  const watch = searchParams.get('watch');
   const api = useApi();
   const connection = useConnection();
   const client = useClient();
@@ -121,15 +122,31 @@ function App(): JSX.Element {
 
           setDefinition(newDefinition);
 
-          log.debug(`Widget definition successfully loaded for ${name}`);
+          if (watch != null) {
+            // Listen for updates and just refresh the page when the variable is updated
+            connection.subscribeToFieldUpdates(
+              (changes: dh.ide.VariableChanges) => {
+                const updatedDef = changes.updated.find(
+                  def => def.title === name
+                );
+                if (updatedDef != null) {
+                  // TODO: Should be more graceful, for now just do a full page reload.
+                  log.info('Variable updated', updatedDef, ', reloading page.');
+                  window.location.reload();
+                }
+              }
+            );
+          }
+
+          log.debug('Widget definition successfully loaded for', name);
         } catch (e: unknown) {
-          log.error(`Unable to load widget definition for ${name}`, e);
+          log.error('Unable to load widget definition for', name, ':', e);
           setError(`${e}`);
         }
       }
       initApp();
     },
-    [api, client, connection, dispatch, name, serverConfig, user]
+    [api, client, connection, dispatch, name, serverConfig, user, watch]
   );
 
   const isLoaded = definition != null && error == null;
