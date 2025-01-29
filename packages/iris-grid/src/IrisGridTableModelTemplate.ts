@@ -7,6 +7,7 @@ import {
   type EditableGridModel,
   type EditOperation,
   GridRange,
+  type GridRangeIndex,
   GridUtils,
   memoizeClear,
   type ModelIndex,
@@ -21,7 +22,12 @@ import {
   PromiseUtils,
   assertNotNull,
 } from '@deephaven/utils';
-import { TableUtils, Formatter, FormatterUtils } from '@deephaven/jsapi-utils';
+import {
+  TableUtils,
+  Formatter,
+  FormatterUtils,
+  DateUtils,
+} from '@deephaven/jsapi-utils';
 import IrisGridModel, { type DisplayColumn } from './IrisGridModel';
 import AggregationOperation from './sidebar/aggregations/AggregationOperation';
 import IrisGridUtils from './IrisGridUtils';
@@ -331,19 +337,19 @@ class IrisGridTableModelTemplate<
     this.dispatchEvent(new EventShimCustomEvent(IrisGridModel.EVENT.RECONNECT));
   }
 
-  handleTableUpdate(event: CustomEvent): void {
+  handleTableUpdate(event: DhType.Event<DhType.ViewportData>): void {
     this.copyViewportData(event.detail);
 
     this.dispatchEvent(new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED));
   }
 
-  handleTotalsUpdate(event: CustomEvent): void {
+  handleTotalsUpdate(event: DhType.Event<DhType.ViewportData>): void {
     this.copyTotalsData(event.detail);
 
     this.dispatchEvent(new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED));
   }
 
-  handleRequestFailed(event: CustomEvent): void {
+  handleRequestFailed(event: DhType.Event<unknown>): void {
     this.dispatchEvent(
       new EventShimCustomEvent(IrisGridModel.EVENT.REQUEST_FAILED, event)
     );
@@ -678,6 +684,19 @@ class IrisGridTableModelTemplate<
     const column = this.columnAtDepth(x, depth);
     if (isColumnHeaderGroup(column)) {
       return column.color ?? null;
+    }
+    return null;
+  }
+
+  tooltipForCell(column: GridRangeIndex, row: GridRangeIndex): string | null {
+    if (column === null || row === null) return null;
+    if (TableUtils.isDateType(this.columns[column].type)) {
+      return this.displayString(
+        this.valueForCell(column, row),
+        this.columns[column].type,
+        this.columns[column].name,
+        { formatString: DateUtils.FULL_DATE_FORMAT }
+      );
     }
     return null;
   }

@@ -194,6 +194,7 @@ import {
 import type ColumnHeaderGroup from './ColumnHeaderGroup';
 import { IrisGridThemeContext } from './IrisGridThemeProvider';
 import { isMissingPartitionError } from './MissingPartitionError';
+import { NoPastePermissionModal } from './NoPastePermissionModal';
 
 const log = Log.module('IrisGrid');
 
@@ -442,12 +443,14 @@ export interface IrisGridState {
   toastMessage: JSX.Element | null;
   frozenColumns: readonly ColumnName[];
   showOverflowModal: boolean;
+  showNoPastePermissionModal: boolean;
+  noPastePermissionError: string;
   overflowText: string;
   overflowButtonTooltipProps: CSSProperties | null;
   expandCellTooltipProps: CSSProperties | null;
   expandTooltipDisplayValue: string;
-  linkHoverTooltipProps: CSSProperties | null;
-  linkHoverDisplayValue: string;
+  hoverTooltipProps: CSSProperties | null;
+  hoverDisplayValue: ReactNode;
 
   gotoRow: string;
   gotoRowError: string;
@@ -624,6 +627,8 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
     this.handleCrossColumnSearch = this.handleCrossColumnSearch.bind(this);
     this.handleRollupChange = this.handleRollupChange.bind(this);
     this.handleOverflowClose = this.handleOverflowClose.bind(this);
+    this.handleCloseNoPastePermissionModal =
+      this.handleCloseNoPastePermissionModal.bind(this);
     this.getColumnBoundingRect = this.getColumnBoundingRect.bind(this);
     this.handleGotoRowSelectedRowNumberChanged =
       this.handleGotoRowSelectedRowNumberChanged.bind(this);
@@ -870,12 +875,14 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
       toastMessage: null,
       frozenColumns,
       showOverflowModal: false,
+      showNoPastePermissionModal: false,
+      noPastePermissionError: '',
       overflowText: '',
       overflowButtonTooltipProps: null,
       expandCellTooltipProps: null,
       expandTooltipDisplayValue: 'expand',
-      linkHoverTooltipProps: null,
-      linkHoverDisplayValue: '',
+      hoverTooltipProps: null,
+      hoverDisplayValue: '',
       isGotoShown: false,
       gotoRow: '',
       gotoRowError: '',
@@ -2101,7 +2108,7 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
     // It's possible that the key table does not have any rows of data yet, so just wait until it does have one
     keyTable.addEventListener(
       dh.Table.EVENT_UPDATED,
-      (event: CustomEvent<DhType.ViewportData>) => {
+      (event: DhType.Event<DhType.ViewportData>) => {
         try {
           const { detail: data } = event;
           if (data.rows.length === 0) {
@@ -3853,6 +3860,19 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
     });
   }
 
+  handleOpenNoPastePermissionModal(errorMessage: string): void {
+    this.setState({
+      showNoPastePermissionModal: true,
+      noPastePermissionError: errorMessage,
+    });
+  }
+
+  handleCloseNoPastePermissionModal(): void {
+    this.setState({
+      showNoPastePermissionModal: false,
+    });
+  }
+
   getColumnBoundingRect(): DOMRect {
     const { metrics, shownColumnTooltip } = this.state;
     assertNotNull(metrics);
@@ -3976,37 +3996,31 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
     }
   );
 
-  getLinkHoverTooltip = memoize(
-    (linkHoverTooltipProps: CSSProperties): ReactNode => {
-      if (linkHoverTooltipProps == null) {
-        return null;
-      }
-
-      const { linkHoverDisplayValue } = this.state;
-
-      const wrapperStyle: CSSProperties = {
-        position: 'absolute',
-        ...linkHoverTooltipProps,
-        pointerEvents: 'none',
-      };
-
-      const popperOptions: PopperOptions = {
-        placement: 'bottom',
-      };
-
-      return (
-        <div style={wrapperStyle}>
-          <Tooltip options={popperOptions} ref={this.handleTooltipRef}>
-            <div className="link-hover-tooltip">
-              {linkHoverDisplayValue} - Click once to follow.
-              <br />
-              Click and hold to select this cell.
-            </div>
-          </Tooltip>
-        </div>
-      );
+  getHoverTooltip = memoize((hoverTooltipProps: CSSProperties): ReactNode => {
+    if (hoverTooltipProps == null) {
+      return null;
     }
-  );
+
+    const { hoverDisplayValue } = this.state;
+
+    const wrapperStyle: CSSProperties = {
+      position: 'absolute',
+      ...hoverTooltipProps,
+      pointerEvents: 'none',
+    };
+
+    const popperOptions: PopperOptions = {
+      placement: 'bottom',
+    };
+
+    return (
+      <div style={wrapperStyle}>
+        <Tooltip options={popperOptions} ref={this.handleTooltipRef}>
+          <div className="link-hover-tooltip">{hoverDisplayValue}</div>
+        </Tooltip>
+      </div>
+    );
+  });
 
   handleGotoRowSelectedRowNumberSubmit(): void {
     const { gotoRow: rowNumber } = this.state;
@@ -4279,10 +4293,12 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
       frozenColumns,
       columnHeaderGroups,
       showOverflowModal,
+      showNoPastePermissionModal,
+      noPastePermissionError,
       overflowText,
       overflowButtonTooltipProps,
       expandCellTooltipProps,
-      linkHoverTooltipProps,
+      hoverTooltipProps,
       isGotoShown,
       gotoRow,
       gotoRowError,
@@ -4902,8 +4918,7 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
               this.getOverflowButtonTooltip(overflowButtonTooltipProps)}
             {expandCellTooltipProps &&
               this.getExpandCellTooltip(expandCellTooltipProps)}
-            {linkHoverTooltipProps &&
-              this.getLinkHoverTooltip(linkHoverTooltipProps)}
+            {hoverTooltipProps && this.getHoverTooltip(hoverTooltipProps)}
           </Grid>
           <GotoRow
             ref={this.gotoRowRef}
@@ -5005,6 +5020,11 @@ class IrisGrid extends Component<IrisGridProps, IrisGridState> {
           </div>
         </SlideTransition>
         <ContextActions actions={this.contextActions} />
+        <NoPastePermissionModal
+          isOpen={showNoPastePermissionModal}
+          onClose={this.handleCloseNoPastePermissionModal}
+          errorMessage={noPastePermissionError}
+        />
       </div>
     );
   }

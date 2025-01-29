@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/app-utils",
-  "version": "0.99.0",
+  "version": "0.104.0",
   "description": "Deephaven App Utils",
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
@@ -29,7 +29,7 @@
     "redux": "^4.x"
   },
   "dependencies": {
-    "@adobe/react-spectrum": "3.35.1",
+    "@adobe/react-spectrum": "3.38.0",
     "@deephaven/auth-plugins": "file:../auth-plugins",
     "@deephaven/chart": "file:../chart",
     "@deephaven/components": "file:../components",
@@ -42,7 +42,7 @@
     "@deephaven/iris-grid": "file:../iris-grid",
     "@deephaven/jsapi-bootstrap": "file:../jsapi-bootstrap",
     "@deephaven/jsapi-components": "file:../jsapi-components",
-    "@deephaven/jsapi-types": "^1.0.0-dev0.34.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.37.2",
     "@deephaven/jsapi-utils": "file:../jsapi-utils",
     "@deephaven/log": "file:../log",
     "@deephaven/plugin": "file:../plugin",

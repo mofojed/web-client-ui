@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.104.0](https://github.com/deephaven/web-client-ui/compare/v0.103.0...v0.104.0) (2025-01-23)
+
+### Features
+
+- Add global shortcut to export logs ([#2336](https://github.com/deephaven/web-client-ui/issues/2336)) ([6e813fd](https://github.com/deephaven/web-client-ui/commit/6e813fdc6837de9e85c0e139aaf0de9e02e452c2)), closes [#1963](https://github.com/deephaven/web-client-ui/issues/1963)
+
+## [0.103.0](https://github.com/deephaven/web-client-ui/compare/v0.102.1...v0.103.0) (2025-01-16)
+
+**Note:** Version bump only for package @deephaven/embed-widget
+
+## [0.102.1](https://github.com/deephaven/web-client-ui/compare/v0.102.0...v0.102.1) (2025-01-10)
+
+**Note:** Version bump only for package @deephaven/embed-widget
+
+## [0.102.0](https://github.com/deephaven/web-client-ui/compare/v0.101.0...v0.102.0) (2025-01-03)
+
+**Note:** Version bump only for package @deephaven/embed-widget
+
+## [0.101.0](https://github.com/deephaven/web-client-ui/compare/v0.100.0...v0.101.0) (2024-12-30)
+
+**Note:** Version bump only for package @deephaven/embed-widget
+
+## [0.100.0](https://github.com/deephaven/web-client-ui/compare/v0.99.1...v0.100.0) (2024-12-18)
+
+**Note:** Version bump only for package @deephaven/embed-widget
+
+## [0.99.1](https://github.com/deephaven/web-client-ui/compare/v0.99.0...v0.99.1) (2024-11-29)
+
+### Bug Fixes
+
+- Embed-widget not setting log level on init ([#2301](https://github.com/deephaven/web-client-ui/issues/2301)) ([1309cd2](https://github.com/deephaven/web-client-ui/commit/1309cd21a893e58138535ddbbe04025475a4ef06))
+
 ## [0.99.0](https://github.com/deephaven/web-client-ui/compare/v0.98.0...v0.99.0) (2024-11-15)
 
 ### Features

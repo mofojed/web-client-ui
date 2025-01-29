@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.104.0](https://github.com/deephaven/web-client-ui/compare/v0.103.0...v0.104.0) (2025-01-23)
+
+### Bug Fixes
+
+- monaco editor overflowing at certain zoom levels ([#2346](https://github.com/deephaven/web-client-ui/issues/2346)) ([bbba404](https://github.com/deephaven/web-client-ui/commit/bbba404cb0f5cc207d4787543d5b3db3fb67bd56))
+
+## [0.103.0](https://github.com/deephaven/web-client-ui/compare/v0.102.1...v0.103.0) (2025-01-16)
+
+**Note:** Version bump only for package @deephaven/console
+
+## [0.102.1](https://github.com/deephaven/web-client-ui/compare/v0.102.0...v0.102.1) (2025-01-10)
+
+**Note:** Version bump only for package @deephaven/console
+
+## [0.102.0](https://github.com/deephaven/web-client-ui/compare/v0.101.0...v0.102.0) (2025-01-03)
+
+### Bug Fixes
+
+- Console history did not stick to bottom on visibility changes ([#2324](https://github.com/deephaven/web-client-ui/issues/2324)) ([ca5f6cd](https://github.com/deephaven/web-client-ui/commit/ca5f6cd7b7f6af11d34be8ba532723d834a7be12))
+
+## [0.101.0](https://github.com/deephaven/web-client-ui/compare/v0.100.0...v0.101.0) (2024-12-30)
+
+### Bug Fixes
+
+- Console history did not stick to bottom on visibility changes ([#2320](https://github.com/deephaven/web-client-ui/issues/2320)) ([648e8c0](https://github.com/deephaven/web-client-ui/commit/648e8c030bb3f03ca00fc0503874b4947f3f8d54))
+
+### Reverts
+
+- Revert "fix: Console history did not stick to bottom on visibility changes ([#2320](https://github.com/deephaven/web-client-ui/issues/2320))" ([#2323](https://github.com/deephaven/web-client-ui/issues/2323)) ([9d6719a](https://github.com/deephaven/web-client-ui/commit/9d6719a87e65619c523c9bec50765d768d978580))
+
+## [0.100.0](https://github.com/deephaven/web-client-ui/compare/v0.99.1...v0.100.0) (2024-12-18)
+
+**Note:** Version bump only for package @deephaven/console
+
+## [0.99.1](https://github.com/deephaven/web-client-ui/compare/v0.99.0...v0.99.1) (2024-11-29)
+
+**Note:** Version bump only for package @deephaven/console
+
 ## [0.99.0](https://github.com/deephaven/web-client-ui/compare/v0.98.0...v0.99.0) (2024-11-15)
 
 **Note:** Version bump only for package @deephaven/console

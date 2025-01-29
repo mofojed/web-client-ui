@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/jsapi-nodejs",
-  "version": "0.99.0",
+  "version": "0.104.0",
   "description": "Deephaven utils for consuming Jsapi from a server",
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
@@ -21,15 +21,13 @@
     "build:babel": "babel ./src --out-dir ./dist --extensions \".ts,.tsx,.js,.jsx\" --source-maps --root-mode upward"
   },
   "dependencies": {
+    "@deephaven/log": "file:../log",
+    "@deephaven/utils": "file:../utils",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",
-    "@types/ws": "^8.5.12",
-    "esbuild": "^0.24.0"
-  },
-  "peerDependencies": {
-    "esbuild": "^0.24.0"
+    "@types/ws": "^8.5.12"
   },
   "files": [
     "dist"

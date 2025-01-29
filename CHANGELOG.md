@@ -3,6 +3,82 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.104.0](https://github.com/deephaven/web-client-ui/compare/v0.103.0...v0.104.0) (2025-01-23)
+
+### Features
+
+- Add global shortcut to export logs ([#2336](https://github.com/deephaven/web-client-ui/issues/2336)) ([6e813fd](https://github.com/deephaven/web-client-ui/commit/6e813fdc6837de9e85c0e139aaf0de9e02e452c2)), closes [#1963](https://github.com/deephaven/web-client-ui/issues/1963)
+- Support for log message handlers ([#2347](https://github.com/deephaven/web-client-ui/issues/2347)) ([cbab7a2](https://github.com/deephaven/web-client-ui/commit/cbab7a246ef2dc3c31abcc916c20d4442e9db45a))
+
+### Bug Fixes
+
+- Ensure ErrorBoundary and PanelErrorBoundary do not throw ([#2345](https://github.com/deephaven/web-client-ui/issues/2345)) ([675b110](https://github.com/deephaven/web-client-ui/commit/675b1106cb9b67d898857dd427fb437d2cb9d1ad))
+- monaco editor overflowing at certain zoom levels ([#2346](https://github.com/deephaven/web-client-ui/issues/2346)) ([bbba404](https://github.com/deephaven/web-client-ui/commit/bbba404cb0f5cc207d4787543d5b3db3fb67bd56))
+
+## [0.103.0](https://github.com/deephaven/web-client-ui/compare/v0.102.1...v0.103.0) (2025-01-16)
+
+### Features
+
+- DH-18086: gRPC transport implementation for nodejs backed by http2 ([#2339](https://github.com/deephaven/web-client-ui/issues/2339)) ([3b5c7d3](https://github.com/deephaven/web-client-ui/commit/3b5c7d383797967bc34be643870dcb9236acf786))
+- Made event details generic ([#2343](https://github.com/deephaven/web-client-ui/issues/2343)) ([b3260f0](https://github.com/deephaven/web-client-ui/commit/b3260f05bbd76be0dd804524b4fd52168fb44527))
+
+### Bug Fixes
+
+- Markdown incorrectly rendering inline code blocks ([#2342](https://github.com/deephaven/web-client-ui/issues/2342)) ([f85c76f](https://github.com/deephaven/web-client-ui/commit/f85c76f97fffda5c94a3b3a6f8acc39c4d5bce20)), closes [#2312](https://github.com/deephaven/web-client-ui/issues/2312)
+- Update Spectrum Theme for Missing ContextualHelpTrigger Icon ([#2330](https://github.com/deephaven/web-client-ui/issues/2330)) ([5f6c8d6](https://github.com/deephaven/web-client-ui/commit/5f6c8d6a30099ac33fc6e35536b2ddfa9df528ca))
+
+## [0.102.1](https://github.com/deephaven/web-client-ui/compare/v0.102.0...v0.102.1) (2025-01-10)
+
+### Bug Fixes
+
+- ComboBox show all items on open ([#2328](https://github.com/deephaven/web-client-ui/issues/2328)) ([c08bb7b](https://github.com/deephaven/web-client-ui/commit/c08bb7bacd579bd868ad2c2874cf9db0c5404e66))
+
+## [0.102.0](https://github.com/deephaven/web-client-ui/compare/v0.101.0...v0.102.0) (2025-01-03)
+
+### Features
+
+- Removed esbuild runtime dependency ([#2327](https://github.com/deephaven/web-client-ui/issues/2327)) ([f33ab5a](https://github.com/deephaven/web-client-ui/commit/f33ab5a680ffaeba9e3c776b1117149d16d505b9))
+
+### Bug Fixes
+
+- accordion, disclosure, color picker, color editor export ([#2325](https://github.com/deephaven/web-client-ui/issues/2325)) ([b6e4eb2](https://github.com/deephaven/web-client-ui/commit/b6e4eb2428cff547f962cfe16957b2c4bda23527))
+- Console history did not stick to bottom on visibility changes ([#2324](https://github.com/deephaven/web-client-ui/issues/2324)) ([ca5f6cd](https://github.com/deephaven/web-client-ui/commit/ca5f6cd7b7f6af11d34be8ba532723d834a7be12))
+
+## [0.101.0](https://github.com/deephaven/web-client-ui/compare/v0.100.0...v0.101.0) (2024-12-30)
+
+### Features
+
+- Export Spectrum Menu and SubmenuTrigger ([#2322](https://github.com/deephaven/web-client-ui/issues/2322)) ([d4eab8a](https://github.com/deephaven/web-client-ui/commit/d4eab8addec36b866991c158b5a045f788ccd6ef))
+
+### Bug Fixes
+
+- Console history did not stick to bottom on visibility changes ([#2320](https://github.com/deephaven/web-client-ui/issues/2320)) ([648e8c0](https://github.com/deephaven/web-client-ui/commit/648e8c030bb3f03ca00fc0503874b4947f3f8d54))
+
+### Reverts
+
+- Revert "fix: Console history did not stick to bottom on visibility changes ([#2320](https://github.com/deephaven/web-client-ui/issues/2320))" ([#2323](https://github.com/deephaven/web-client-ui/issues/2323)) ([9d6719a](https://github.com/deephaven/web-client-ui/commit/9d6719a87e65619c523c9bec50765d768d978580))
+
+## [0.100.0](https://github.com/deephaven/web-client-ui/compare/v0.99.1...v0.100.0) (2024-12-18)
+
+### Features
+
+- datetime tooltip to show full value ([#2286](https://github.com/deephaven/web-client-ui/issues/2286)) ([238f611](https://github.com/deephaven/web-client-ui/commit/238f611c1707c06170509eb093485620bb0c5801)), closes [#614](https://github.com/deephaven/web-client-ui/issues/614)
+
+### Bug Fixes
+
+- Allow double and float types to be rollupable ([#2311](https://github.com/deephaven/web-client-ui/issues/2311)) ([ab5b3b6](https://github.com/deephaven/web-client-ui/commit/ab5b3b65e42426b63027c3c520d68605809ce222)), closes [#2295](https://github.com/deephaven/web-client-ui/issues/2295)
+- Swapping esbuild for esbuild-wasm to fix OS specific dependency ([#2317](https://github.com/deephaven/web-client-ui/issues/2317)) ([f37d25f](https://github.com/deephaven/web-client-ui/commit/f37d25f329e780f66e85b27e0cd0e48e70dcfef3))
+- Table plugins - pass through deprecated props ([#2308](https://github.com/deephaven/web-client-ui/issues/2308)) ([d884bff](https://github.com/deephaven/web-client-ui/commit/d884bffe5942af0baa0224a688661e5ea8917ea5)), closes [#2274](https://github.com/deephaven/web-client-ui/issues/2274)
+
+## [0.99.1](https://github.com/deephaven/web-client-ui/compare/v0.99.0...v0.99.1) (2024-11-29)
+
+### Bug Fixes
+
+- Embed-widget not setting log level on init ([#2301](https://github.com/deephaven/web-client-ui/issues/2301)) ([1309cd2](https://github.com/deephaven/web-client-ui/commit/1309cd21a893e58138535ddbbe04025475a4ef06))
+- open file blocks logout ([#2281](https://github.com/deephaven/web-client-ui/issues/2281)) ([7ff0e53](https://github.com/deephaven/web-client-ui/commit/7ff0e53ac41887fa22f2591b5df2439ac9984397)), closes [#1685](https://github.com/deephaven/web-client-ui/issues/1685)
+- Partial holidays range breaks ([#2297](https://github.com/deephaven/web-client-ui/issues/2297)) ([ab4c02f](https://github.com/deephaven/web-client-ui/commit/ab4c02fe50eea0339a585b40fb3d56376ea9517b))
+- Update react-spectrum packages ([#2303](https://github.com/deephaven/web-client-ui/issues/2303)) ([2216274](https://github.com/deephaven/web-client-ui/commit/2216274b416d9b1587a29c130dd19dd21accaa4b))
+
 ## [0.99.0](https://github.com/deephaven/web-client-ui/compare/v0.98.0...v0.99.0) (2024-11-15)
 
 ### Features

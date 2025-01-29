@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.104.0](https://github.com/deephaven/web-client-ui/compare/v0.103.0...v0.104.0) (2025-01-23)
+
+**Note:** Version bump only for package @deephaven/grid
+
+## [0.103.0](https://github.com/deephaven/web-client-ui/compare/v0.102.1...v0.103.0) (2025-01-16)
+
+**Note:** Version bump only for package @deephaven/grid
+
+## [0.102.0](https://github.com/deephaven/web-client-ui/compare/v0.101.0...v0.102.0) (2025-01-03)
+
+**Note:** Version bump only for package @deephaven/grid
+
+## [0.101.0](https://github.com/deephaven/web-client-ui/compare/v0.100.0...v0.101.0) (2024-12-30)
+
+**Note:** Version bump only for package @deephaven/grid
+
+## [0.100.0](https://github.com/deephaven/web-client-ui/compare/v0.99.1...v0.100.0) (2024-12-18)
+
+### Features
+
+- datetime tooltip to show full value ([#2286](https://github.com/deephaven/web-client-ui/issues/2286)) ([238f611](https://github.com/deephaven/web-client-ui/commit/238f611c1707c06170509eb093485620bb0c5801)), closes [#614](https://github.com/deephaven/web-client-ui/issues/614)
+
 ## [0.99.0](https://github.com/deephaven/web-client-ui/compare/v0.98.0...v0.99.0) (2024-11-15)
 
 **Note:** Version bump only for package @deephaven/grid
