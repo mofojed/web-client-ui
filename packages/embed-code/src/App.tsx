@@ -1,0 +1,303 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { nanoid } from 'nanoid';
+import {
+  AppDashboards,
+  GrpcLayoutStorage,
+  LocalWorkspaceStorage,
+  useConnection,
+  useServerConfig,
+  useUser,
+} from '@deephaven/app-utils';
+import type GoldenLayout from '@deephaven/golden-layout';
+import type { ItemConfig } from '@deephaven/golden-layout';
+import {
+  ErrorBoundary,
+  LoadingOverlay,
+  Shortcut,
+  ShortcutRegistry,
+  ToastContainer,
+} from '@deephaven/components'; // Use the loading spinner from the Deephaven components package
+import type { dh } from '@deephaven/jsapi-types';
+import Log from '@deephaven/log';
+import { useDashboardPlugins } from '@deephaven/plugin';
+import {
+  getAllDashboardsData,
+  type CreateDashboardPayload,
+  setDashboardPluginData,
+  emitPanelOpen,
+  useCreateDashboardListener,
+} from '@deephaven/dashboard';
+import {
+  getVariableDescriptor,
+  useApi,
+  useClient,
+} from '@deephaven/jsapi-bootstrap';
+import { EMPTY_ARRAY } from '@deephaven/utils';
+import {
+  setDefaultWorkspaceSettings,
+  setWorkspace,
+  setApi,
+  setUser,
+  setServerConfigValues,
+} from '@deephaven/redux';
+import './App.scss'; // Styles for in this app
+import {
+  createSessionWrapper,
+  getSessionDetails,
+  SessionWrapper,
+} from '@deephaven/jsapi-utils';
+
+const log = Log.module('EmbedWidget.App');
+
+const LAYOUT_SETTINGS = {
+  hasHeaders: true,
+  defaultComponentConfig: { isClosable: false },
+};
+
+export function fetchVariableDefinition(
+  connection: dh.IdeConnection,
+  name: string,
+  timeout = FETCH_TIMEOUT
+): Promise<dh.ide.VariableDefinition> {}
+
+/**
+ * A functional React component that displays a Deephaven Widget using the @deephaven/plugin package.
+ * It will attempt to open and display the widget specified with the `name` parameter, expecting it to be present on the server.
+ * E.g. http://localhost:4010/?name=myWidget will attempt to open a widget `myWidget` by emitting a `PanelEvent.OPEN` event.
+ * If no query param is provided, it will display an error.
+ * By default, tries to connect to the server defined in the VITE_CORE_API_URL variable, which is set to http://localhost:10000/jsapi
+ * See Vite docs for how to update these env vars: https://vitejs.dev/guide/env-and-mode.html
+ */
+function App(): JSX.Element {
+  const [error, setError] = useState<string>();
+  const [definition, setDefinition] = useState<dh.ide.VariableDefinition>();
+  const [code, setCode] = useState('');
+  const [sessionWrapper, setSessionWrapper] = useState<SessionWrapper>();
+
+  // Get the code we'll run.
+  const api = useApi();
+  const connection = useConnection();
+  const client = useClient();
+  const user = useUser();
+  const dispatch = useDispatch();
+  const serverConfig = useServerConfig();
+
+  useEffect(function listenForCode() {
+    log.debug('Listening for messages...');
+    const listener = (event: MessageEvent) => {
+      const { data } = event;
+      log.debug('Received message...', data);
+      if (data?.code != null) {
+        setCode(data.code);
+      }
+    };
+    window.addEventListener('message', listener);
+    return () => {
+      window.removeEventListener('message', listener);
+    };
+  }, []);
+
+  useEffect(
+    function initializeApp() {
+      async function initApp(): Promise<void> {
+        try {
+          const storageService = client.getStorageService();
+          const layoutStorage = new GrpcLayoutStorage(
+            storageService,
+            import.meta.env.VITE_STORAGE_PATH_LAYOUTS ?? ''
+          );
+          const workspaceStorage = new LocalWorkspaceStorage(layoutStorage);
+          const loadedWorkspace = await workspaceStorage.load({
+            isConsoleAvailable: false,
+          });
+          const {
+            data: { settings },
+          } = loadedWorkspace;
+          // Set any shortcuts that user has overridden on this platform
+          const { shortcutOverrides = {} } = settings;
+          const isMac = Shortcut.isMacPlatform;
+          const platformOverrides = isMac
+            ? shortcutOverrides.mac ?? {}
+            : shortcutOverrides.windows ?? {};
+          Object.entries(platformOverrides).forEach(([id, keyState]) => {
+            ShortcutRegistry.get(id)?.setKeyState(keyState);
+          });
+          dispatch(setApi(api));
+          dispatch(setServerConfigValues(serverConfig));
+          dispatch(setUser(user));
+          dispatch(setWorkspace(loadedWorkspace));
+          dispatch(
+            setDefaultWorkspaceSettings(
+              LocalWorkspaceStorage.makeDefaultWorkspaceSettings(serverConfig)
+            )
+          );
+
+          log.debug('Starting session...');
+
+          const sessionDetails = await getSessionDetails();
+
+          const newSessionWrapper = await createSessionWrapper(
+            api,
+            connection,
+            sessionDetails
+          );
+
+          setSessionWrapper(newSessionWrapper);
+        } catch (e: unknown) {
+          log.error('Unable to initialize app', e);
+          setError(`${e}`);
+        }
+      }
+      initApp();
+    },
+    [api, client, connection, dispatch, serverConfig, user]
+  );
+
+  useEffect(
+    function initializeDescriptor() {
+      async function initDescriptor(): Promise<void> {
+        try {
+          if (code === '' || sessionWrapper == null) {
+            return;
+          }
+
+          // Run the actual code snippet in the session
+          log.debug(`Running code ${code}...`);
+
+          const result = await sessionWrapper.session.runCode(code);
+
+          // Just get the last result and set it
+          const newDefinition =
+            result.changes.created[result.changes.created.length - 1] ??
+            result.changes.updated[result.changes.updated.length - 1];
+
+          setDefinition(newDefinition);
+
+          log.debug(`Widget definition successfully loaded for ${code}`);
+        } catch (e) {
+          log.error('Unable to initialize descriptor', e);
+          setError(`${e}`);
+        }
+      }
+      initDescriptor();
+    },
+    [code, sessionWrapper]
+  );
+
+  const isLoaded = definition != null && error == null;
+  const isLoading = definition == null && error == null;
+
+  const fetch = useMemo(() => {
+    if (definition == null) {
+      return async () => {
+        throw new Error('Definition is null');
+      };
+    }
+    return () => connection.getObject(definition);
+  }, [connection, definition]);
+
+  const [goldenLayout, setGoldenLayout] = useState<GoldenLayout | null>(null);
+  const [dashboardId, setDashboardId] = useState('default-embed-widget'); // Can't be DEFAULT_DASHBOARD_ID because its dashboard layout is not stored in dashboardData
+
+  const handleCreateDashboard = useCallback(
+    ({ pluginId, data }: CreateDashboardPayload) => {
+      const id = nanoid();
+      dispatch(setDashboardPluginData(id, pluginId, data));
+      setDashboardId(id);
+    },
+    [dispatch]
+  );
+
+  useCreateDashboardListener(goldenLayout?.eventHub, handleCreateDashboard);
+
+  const [hasEmittedWidget, setHasEmittedWidget] = useState(false);
+
+  const handleDashboardInitialized = useCallback(() => {
+    // TODO: We want it to actually refresh the widget...
+    if (goldenLayout == null || definition == null || hasEmittedWidget) {
+      return;
+    }
+
+    setHasEmittedWidget(true);
+    emitPanelOpen(goldenLayout.eventHub, {
+      fetch,
+      widget: getVariableDescriptor(definition),
+    });
+  }, [goldenLayout, definition, fetch, hasEmittedWidget]);
+
+  const allDashboardData = useSelector(getAllDashboardsData);
+
+  const dashboardPlugins = useDashboardPlugins();
+
+  const layoutConfig = (allDashboardData[dashboardId]?.layoutConfig ??
+    EMPTY_ARRAY) as ItemConfig[];
+
+  const hasMultipleComponents = useMemo(() => {
+    function getComponentCount(config: ItemConfig[]) {
+      if (config.length === 0) {
+        return 0;
+      }
+
+      let count = 0;
+      for (let i = 0; i < config.length; i += 1) {
+        const item = config[i];
+        if (item.type === 'react-component' || item.type === 'component') {
+          count += 1;
+        } else if (item.content != null) {
+          count += getComponentCount(item.content);
+        }
+      }
+      return count;
+    }
+    return getComponentCount(layoutConfig) > 1;
+  }, [layoutConfig]);
+
+  // Do this instead of changing layoutSettings because it will create
+  // a new gl instance and can cause some loading failures likely due to
+  // some race conditions w/ deephaven UI
+  useEffect(
+    function togglePanelHeaders() {
+      if (goldenLayout != null) {
+        if (hasMultipleComponents) {
+          goldenLayout.enableHeaders();
+        } else {
+          goldenLayout.disableHeaders();
+        }
+      }
+    },
+    [hasMultipleComponents, goldenLayout]
+  );
+
+  return (
+    <div className="App">
+      {isLoaded && (
+        <ErrorBoundary>
+          <AppDashboards
+            dashboards={[
+              {
+                id: dashboardId,
+                layoutConfig,
+                layoutSettings: LAYOUT_SETTINGS,
+              },
+            ]}
+            activeDashboard={dashboardId}
+            onLayoutInitialized={handleDashboardInitialized}
+            onGoldenLayoutChange={setGoldenLayout}
+            plugins={dashboardPlugins}
+          />
+        </ErrorBoundary>
+      )}
+      {!isLoaded && (
+        <LoadingOverlay
+          isLoaded={isLoaded}
+          isLoading={isLoading}
+          errorMessage={error ?? null}
+        />
+      )}
+      <ToastContainer />
+    </div>
+  );
+}
+
+export default App;
