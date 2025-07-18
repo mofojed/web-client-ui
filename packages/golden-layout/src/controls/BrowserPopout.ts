@@ -160,6 +160,8 @@ export default class BrowserPopout extends EventEmitter {
       height: this._dimensions.height,
       innerWidth: this._dimensions.width,
       innerHeight: this._dimensions.height,
+      left: this._dimensions.left + window.screenX,
+      top: this._dimensions.top + window.screenY,
       menubar: 'no',
       toolbar: 'no',
       location: 'no',
@@ -170,6 +172,7 @@ export default class BrowserPopout extends EventEmitter {
     });
 
     // I'm not entirely sure how __glInstance is mounted to the popout window
+    // TODO: It gets set in `LayoutManager_adjustToWindowMode` when it detects a popout window (via query param)
     this._popoutWindow = window.open(url, title, options) as Window & {
       __glInstance: LayoutManager;
     };
@@ -196,15 +199,15 @@ export default class BrowserPopout extends EventEmitter {
      * window or raising an event on the window object - both would introduce knowledge
      * about the parent to the child window which we'd rather avoid
      */
-    let checkReadyInterval = window.setInterval(() => {
-      if (
-        this._popoutWindow?.__glInstance &&
-        this._popoutWindow.__glInstance.isInitialised
-      ) {
-        this._onInitialised();
-        window.clearInterval(checkReadyInterval);
-      }
-    }, 10);
+    // let checkReadyInterval = window.setInterval(() => {
+    //   if (
+    //     this._popoutWindow?.__glInstance &&
+    //     this._popoutWindow.__glInstance.isInitialised
+    //   ) {
+    //     this._onInitialised();
+    //     window.clearInterval(checkReadyInterval);
+    //   }
+    // }, 10);
   }
 
   /**
@@ -233,26 +236,28 @@ export default class BrowserPopout extends EventEmitter {
    */
   _createUrl() {
     var config: Partial<Config> = { content: this._config };
-    const storageKey = 'gl-window-config-' + getUniqueId();
+    // const storageKey = 'gl-window-config-' + getUniqueId();
 
-    config = minifyConfig(config);
+    // TODO: We could popout a whole stack like this...
+    const name = (config?.content?.[0] as any)?.props?.metadata?.name;
+    return `http://localhost:4010/?name=${name}`;
 
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(config));
-    } catch (e: any) {
-      throw new Error('Error while writing to localStorage ' + e.toString());
-    }
+    // try {
+    //   localStorage.setItem(storageKey, JSON.stringify(config));
+    // } catch (e: any) {
+    //   throw new Error('Error while writing to localStorage ' + e.toString());
+    // }
 
-    const urlParts = document.location.href.split('?');
+    // const urlParts = document.location.href.split('?');
 
-    // URL doesn't contain GET-parameters
-    if (urlParts.length === 1) {
-      return urlParts[0] + '?gl-window=' + storageKey;
+    // // URL doesn't contain GET-parameters
+    // if (urlParts.length === 1) {
+    //   return urlParts[0] + '?gl-window=' + storageKey;
 
-      // URL contains GET-parameters
-    } else {
-      return document.location.href + '&gl-window=' + storageKey;
-    }
+    //   // URL contains GET-parameters
+    // } else {
+    //   return document.location.href + '&gl-window=' + storageKey;
+    // }
   }
 
   /**

@@ -825,7 +825,7 @@ class LayoutUtils {
         borderGrabWidth: 10,
       },
       settings: {
-        showPopoutIcon: false,
+        showPopoutIcon: true,
         showCloseIcon: false,
         constrainDragToContainer: false,
       },
