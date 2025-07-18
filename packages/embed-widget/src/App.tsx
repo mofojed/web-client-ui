@@ -214,6 +214,10 @@ function App(): JSX.Element {
     [hasMultipleComponents, goldenLayout]
   );
 
+  useEffect(() => {
+    document.title = `${name} (${definition?.type ?? 'Loading...'})`;
+  }, [name, definition]);
+
   return (
     <div className="App">
       {isLoaded && (

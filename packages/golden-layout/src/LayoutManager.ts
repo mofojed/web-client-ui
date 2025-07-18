@@ -625,41 +625,41 @@ export class LayoutManager extends EventEmitter {
     parentId?: string,
     indexInParent?: number
   ): BrowserPopout | undefined {
-    let config = configOrContentItem;
-    let configArray: ItemConfig[] = [];
+    // let config = configOrContentItem;
+    // let configArray: ItemConfig[] = [];
     const isItem = configOrContentItem instanceof AbstractContentItem;
     const self = this;
 
-    if (isItem) {
-      configArray = this.toConfig(configOrContentItem).content;
-      parentId = getUniqueId();
+    // if (isItem) {
+    //   configArray = this.toConfig(configOrContentItem).content;
+    //   parentId = getUniqueId();
 
-      /**
-       * If the item is the only component within a stack or for some
-       * other reason the only child of its parent the parent will be destroyed
-       * when the child is removed.
-       *
-       * In order to support this we move up the tree until we find something
-       * that will remain after the item is being popped out
-       */
-      let parent = configOrContentItem.parent;
-      let child = configOrContentItem;
-      while (parent?.contentItems.length === 1 && !parent.isRoot) {
-        child = parent;
-        parent = parent.parent;
-      }
+    //   /**
+    //    * If the item is the only component within a stack or for some
+    //    * other reason the only child of its parent the parent will be destroyed
+    //    * when the child is removed.
+    //    *
+    //    * In order to support this we move up the tree until we find something
+    //    * that will remain after the item is being popped out
+    //    */
+    //   let parent = configOrContentItem.parent;
+    //   let child = configOrContentItem;
+    //   while (parent?.contentItems.length === 1 && !parent.isRoot) {
+    //     child = parent;
+    //     parent = parent.parent;
+    //   }
 
-      parent?.addId(parentId);
-      if (indexInParent == undefined || Number.isNaN(indexInParent)) {
-        indexInParent = parent?.contentItems.indexOf(child);
-      }
-    } else {
-      if (!(configOrContentItem instanceof Array)) {
-        configArray = [configOrContentItem];
-      } else {
-        configArray = configOrContentItem;
-      }
-    }
+    //   // parent?.addId(parentId);
+    //   if (indexInParent == undefined || Number.isNaN(indexInParent)) {
+    //     indexInParent = parent?.contentItems.indexOf(child);
+    //   }
+    // } else {
+    //   if (!(configOrContentItem instanceof Array)) {
+    //     configArray = [configOrContentItem];
+    //   } else {
+    //     configArray = configOrContentItem;
+    //   }
+    // }
 
     if (!dimensions && isItem) {
       const windowLeft = window.screenX || window.screenLeft;
@@ -686,33 +686,65 @@ export class LayoutManager extends EventEmitter {
       };
     }
 
-    if (isItem) {
-      configOrContentItem.remove();
-    }
-
-    if (!dimensions || !parentId || indexInParent === undefined) {
+    if (!dimensions) {
       return;
     }
 
-    const browserPopout = new BrowserPopout(
-      configArray,
-      dimensions,
-      parentId,
-      indexInParent,
-      this
-    );
-
-    browserPopout.on('initialised', function () {
-      self.emit('windowOpened', browserPopout);
+    let url = 'http://localhost:4010/';
+    if (isItem) {
+      configOrContentItem.remove();
+      url +=
+        '?name=' + (configOrContentItem.config as any)?.props?.metadata?.name;
+    }
+    const options = this._serializeWindowOptions({
+      width: dimensions.width,
+      height: dimensions.height,
+      innerWidth: dimensions.width,
+      innerHeight: dimensions.height,
+      left: dimensions.left + window.screenX,
+      top: dimensions.top + window.screenY,
+      popup: true,
     });
 
-    browserPopout.on('closed', function () {
-      self._$reconcilePopoutWindows();
-    });
+    window.open(url, '_blank', options);
 
-    this.openPopouts.push(browserPopout);
+    // const browserPopout = new BrowserPopout(
+    //   configArray,
+    //   dimensions,
+    //   parentId,
+    //   indexInParent,
+    //   this
+    // );
 
-    return browserPopout;
+    // browserPopout.on('initialised', function () {
+    //   self.emit('windowOpened', browserPopout);
+    // });
+
+    // browserPopout.on('closed', function () {
+    //   self._$reconcilePopoutWindows();
+    // });
+
+    // this.openPopouts.push(browserPopout);
+
+    // return browserPopout;
+  }
+
+  /**
+   * Serialises a map of key:values to a window options string
+   *
+   * @param windowOptions
+   *
+   * @returns serialised window options
+   */
+  _serializeWindowOptions(windowOptions: Record<string, unknown>) {
+    var windowOptionsString = [],
+      key;
+
+    for (key in windowOptions) {
+      windowOptionsString.push(key + '=' + windowOptions[key]);
+    }
+
+    return windowOptionsString.join(',');
   }
 
   /**
