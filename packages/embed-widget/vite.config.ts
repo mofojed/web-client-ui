@@ -60,6 +60,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port,
       proxy,
+      cors: false, // Disable CORS for dev server
     },
     preview: {
       port,
