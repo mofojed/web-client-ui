@@ -167,24 +167,56 @@ export default class DragProxy extends EventEmitter {
     }
   }
 
+  _isOffScreenDrop(event: JQuery.TriggeredEvent): boolean {
+    const { screenX, screenY } = event;
+
+    if (screenX === undefined || screenY === undefined) {
+      return false;
+    }
+
+    if (
+      screenX < window.screenX ||
+      screenY < window.screenY ||
+      screenX > window.screenX + window.outerWidth ||
+      screenY > window.screenY + window.outerHeight
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   /**
    * Callback when the drag has finished. Determines the drop area
    * and adds the child to it
    */
-  _onDrop() {
+  _onDrop(event: JQuery.TriggeredEvent) {
+    console.log('xxx DragProxy _onDrop called with event:', event);
     this._layoutManager.dropTargetIndicator?.hide();
 
-    /*
-     * Valid drop area found
-     */
     if (this._area !== null) {
+      /*
+       * Valid drop area found
+       */
       this._area.contentItem._$onDrop(this._contentItem, this._area);
-
+    } else if (this._isOffScreenDrop(event)) {
+      /** The drop happened off screen, let's create a popout */
+      const dimensions = {
+        left: event.screenX ?? 0,
+        top: event.screenY ?? 0,
+        // width: this._originalParent?.element.width() ?? 800,
+        // height: this._originalParent?.element.height() ?? 600,
+        // We could use the original parent dimensions, but it actually kinda feels better to use a fixed size
+        width: 800,
+        height: 600,
+      };
+      console.log('xxx Creating popout with dimensions:', dimensions);
+      this._layoutManager.createPopout(this._contentItem, dimensions);
+    } else if (this._lastValidArea !== null) {
       /**
        * No valid drop area available at present, but one has been found before.
        * Use it
        */
-    } else if (this._lastValidArea !== null) {
       this._lastValidArea.contentItem._$onDrop(
         this._contentItem,
         this._lastValidArea

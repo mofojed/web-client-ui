@@ -697,15 +697,13 @@ export class LayoutManager extends EventEmitter {
         '?name=' + (configOrContentItem.config as any)?.props?.metadata?.name;
     }
     const options = this._serializeWindowOptions({
-      width: dimensions.width,
-      height: dimensions.height,
-      innerWidth: dimensions.width,
-      innerHeight: dimensions.height,
-      left: dimensions.left + window.screenX,
-      top: dimensions.top + window.screenY,
+      ...dimensions,
       popup: true,
     });
 
+    console.log('Opening window with url:', url, 'and options:', options);
+
+    // TODO: We should track the handle...
     window.open(url, '_blank', options);
 
     // const browserPopout = new BrowserPopout(

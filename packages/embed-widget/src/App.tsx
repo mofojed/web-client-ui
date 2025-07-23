@@ -75,6 +75,15 @@ function App(): JSX.Element {
   const dispatch = useDispatch();
   const serverConfig = useServerConfig();
 
+  // TODO: Remove this, was just for researching
+  // useEffect(() => {
+  //   (window as any).popoutController = {
+  //     receiveMessage: (message: unknown) => {
+  //       console.log('Received message from parent:', message);
+  //     },
+  //   };
+  // }, []);
+
   useEffect(
     function initializeApp() {
       async function initApp(): Promise<void> {
