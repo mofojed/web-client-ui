@@ -156,12 +156,13 @@ class Popper extends Component<PopperProps, PopperState> {
       modifiers: { preventOverflow: { boundariesElement: 'viewport' } },
       ...options,
     };
-    document.body.appendChild(this.element);
 
     let parent = this.getVisibleElement(this.container.current);
     if (parent == null) {
       parent = this.container.current;
     }
+
+    parent.ownerDocument.body.appendChild(this.element);
 
     popper = new PopperJs(referenceObject || parent, this.element, options);
     popper.scheduleUpdate();
@@ -177,7 +178,7 @@ class Popper extends Component<PopperProps, PopperState> {
 
         if (
           popperEl instanceof HTMLElement &&
-          !popperEl.contains(document.activeElement)
+          !popperEl.contains(popperEl.ownerDocument.activeElement)
         ) {
           popperEl.focus();
         }
@@ -200,8 +201,8 @@ class Popper extends Component<PopperProps, PopperState> {
     // If component is exiting and unmounted in
     // the same frame, destroy can be called twice.
     // Check to make sure removeChild isn't called twice.
-    if (document.body.contains(this.element)) {
-      document.body.removeChild(this.element);
+    if (this.element.ownerDocument.body.contains(this.element)) {
+      this.element.ownerDocument.body.removeChild(this.element);
     }
 
     if (updateState) {
