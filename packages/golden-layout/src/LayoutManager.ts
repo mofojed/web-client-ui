@@ -728,7 +728,17 @@ export class LayoutManager extends EventEmitter {
       //   ,
       //   portal
       // );
-      portal.append((configOrContentItem as any).container._element);
+      const panelContent = $(
+        '.dh-panel',
+        (configOrContentItem as any).container._element
+      )[0];
+      if (!panelContent) {
+        console.warn(
+          'No panel content found in the popout window. Make sure to include a .dh-panel element in the HTML.'
+        );
+        return;
+      }
+      portal.append(panelContent);
       // portal.appendChild((configOrContentItem as any).container._element[0]);
       // }, 2000);
     });
