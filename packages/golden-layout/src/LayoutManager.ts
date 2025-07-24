@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import lm from './base';
 import {
   ColumnItemConfig,
@@ -752,23 +753,33 @@ export class LayoutManager extends EventEmitter {
         return;
       }
       console.log('xxx found portal', portal);
+
+      const configInstance = (configOrContentItem as any).instance;
+      const key = configInstance._key();
+      const portalComponent = ReactDOM.createPortal(
+        configInstance._getReactComponent(),
+        // get reactComponent from configOrContentItem
+        portal[0],
+        key
+      );
+      this.addReactChild(key, portalComponent);
       // const popout = new Popout(
       //   this,
       //   ,
       //   portal
       // );
 
-      const panelContent = $(
-        '.dh-panel',
-        (configOrContentItem as any).container._element
-      )[0];
-      if (!panelContent) {
-        console.warn(
-          'No panel content found in the popout window. Make sure to include a .dh-panel element in the HTML.'
-        );
-        return;
-      }
-      portal.append(panelContent);
+      // const panelContent = $(
+      //   '.dh-panel',
+      //   (configOrContentItem as any).container._element
+      // )[0];
+      // if (!panelContent) {
+      //   console.warn(
+      //     'No panel content found in the popout window. Make sure to include a .dh-panel element in the HTML.'
+      //   );
+      //   return;
+      // }
+      // portal.append(panelContent);
       // portal.append((configOrContentItem as any).container._element);
       // portal.appendChild((configOrContentItem as any).container._element[0]);
       // }, 2000);

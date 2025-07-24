@@ -142,13 +142,14 @@ class IrisGridProxyModel extends IrisGridModel implements PartitionedGridModel {
   }
 
   close(): void {
-    this.originalModel.close();
-    if (this.model !== this.originalModel) {
-      this.model.close();
-    }
-    if (this.modelPromise != null) {
-      this.modelPromise.cancel();
-    }
+    // TODO: Turning off table closing because when dragging to another tab it was breaking things
+    // this.originalModel.close();
+    // if (this.model !== this.originalModel) {
+    //   this.model.close();
+    // }
+    // if (this.modelPromise != null) {
+    //   this.modelPromise.cancel();
+    // }
   }
 
   handleModelEvent(event: CustomEvent): void {
