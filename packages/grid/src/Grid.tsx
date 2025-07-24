@@ -521,6 +521,11 @@ class Grid extends PureComponent<GridProps, GridState> {
     }
   }
 
+  private getWindowDocument(): Document {
+    // Pull it from the canvas element, since we may be a portal into another window
+    return this.canvas?.ownerDocument ?? window.document;
+  }
+
   componentDidUpdate(prevProps: GridProps, prevState: GridState): void {
     const { renderError } = this.state;
 
@@ -624,12 +629,13 @@ class Grid extends PureComponent<GridProps, GridState> {
 
     this.canvas?.removeEventListener('wheel', this.handleWheel);
 
-    window.removeEventListener(
+    const ownerDocument = this.getWindowDocument();
+    ownerDocument.removeEventListener(
       'mousemove',
       this.handleMouseDrag as unknown as EventListenerOrEventListenerObject,
       true
     );
-    window.removeEventListener(
+    ownerDocument.removeEventListener(
       'mouseup',
       this.handleMouseUp as unknown as EventListenerOrEventListenerObject,
       true
@@ -1863,8 +1869,9 @@ class Grid extends PureComponent<GridProps, GridState> {
   }
 
   handleMouseDown(event: React.MouseEvent): void {
-    window.addEventListener('mousemove', this.handleMouseDrag, true);
-    window.addEventListener('mouseup', this.handleMouseUp, true);
+    const document = this.getWindowDocument();
+    document.addEventListener('mousemove', this.handleMouseDrag, true);
+    document.addEventListener('mouseup', this.handleMouseUp, true);
 
     if (event.button != null && event.button !== 0) {
       return;
@@ -1902,8 +1909,9 @@ class Grid extends PureComponent<GridProps, GridState> {
       return;
     }
 
-    window.removeEventListener('mousemove', this.handleMouseDrag, true);
-    window.removeEventListener('mouseup', this.handleMouseUp, true);
+    const document = this.getWindowDocument();
+    document.removeEventListener('mousemove', this.handleMouseDrag, true);
+    document.removeEventListener('mouseup', this.handleMouseUp, true);
 
     if (event.button != null && event.button !== 0) {
       return;
