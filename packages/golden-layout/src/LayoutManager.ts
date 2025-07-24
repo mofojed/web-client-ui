@@ -43,6 +43,7 @@ import {
   stripTags,
 } from './utils';
 import { DragListenerEvent } from './utils/DragListener';
+import Popout from './items/Popout';
 
 export type ComponentConstructor<
   C extends ComponentConfig | ReactComponentConfig = ComponentConfig,
@@ -690,11 +691,10 @@ export class LayoutManager extends EventEmitter {
       return;
     }
 
-    let url = 'http://localhost:4010/';
+    let url = new URL(window.location.href);
     if (isItem) {
+      url.searchParams.set('popoutId', `${configOrContentItem.config.id}`);
       configOrContentItem.remove();
-      url +=
-        '?name=' + (configOrContentItem.config as any)?.props?.metadata?.name;
     }
     const options = this._serializeWindowOptions({
       ...dimensions,
@@ -704,7 +704,34 @@ export class LayoutManager extends EventEmitter {
     console.log('Opening window with url:', url, 'and options:', options);
 
     // TODO: We should track the handle...
-    window.open(url, '_blank', options);
+    const popoutWindow = window.open(url, '_blank', options);
+    if (!popoutWindow) {
+      throw new Error(
+        'Popout blocked. Please allow popups for this site to use this feature.'
+      );
+    }
+
+    popoutWindow.addEventListener('load', () => {
+      // TODO: How do we actually render the content in the new window...
+      // setTimeout(() => {
+      // const portal = popout.document.querySelector('#deephaven-portal');
+      const portal = $('#deephaven-portal', popoutWindow.document);
+      if (portal == null) {
+        console.warn(
+          'No portal found in the popout window. Make sure to include a #deephaven-portal element in the HTML.'
+        );
+        return;
+      }
+      console.log('xxx found portal', portal);
+      // const popout = new Popout(
+      //   this,
+      //   ,
+      //   portal
+      // );
+      portal.append((configOrContentItem as any).container._element);
+      // portal.appendChild((configOrContentItem as any).container._element[0]);
+      // }, 2000);
+    });
 
     // const browserPopout = new BrowserPopout(
     //   configArray,

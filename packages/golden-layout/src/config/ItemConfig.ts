@@ -8,7 +8,8 @@ export type ItemConfig =
   | ReactComponentConfig
   | RootItemConfig
   | RowItemConfig
-  | StackItemConfig;
+  | StackItemConfig
+  | PopoutItemConfig;
 
 export interface ItemConfigAttributes {
   /**
@@ -69,6 +70,10 @@ export interface ColumnItemConfig extends ItemConfigAttributes {
 
 export interface RootItemConfig extends ItemConfigAttributes {
   type: 'root';
+}
+
+export interface PopoutItemConfig extends ItemConfigAttributes {
+  type: 'popout';
 }
 
 export interface StackItemHeaderConfig {

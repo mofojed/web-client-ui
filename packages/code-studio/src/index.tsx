@@ -6,6 +6,7 @@ import { LoadingOverlay, preloadTheme } from '@deephaven/components';
 import { ApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { store } from '@deephaven/redux';
 import { logInit } from '@deephaven/log';
+import AppChild from './AppChild';
 
 logInit(
   parseInt(import.meta.env.VITE_LOG_LEVEL ?? '', 10),
@@ -65,20 +66,27 @@ async function getCorePlugins() {
   ];
 }
 
+const params = new URLSearchParams(window.location.search);
+const popoutId = params.get('popoutId');
+const isChild = popoutId != null && popoutId.length > 0;
 ReactDOM.render(
-  <ApiBootstrap apiUrl={apiURL.href} setGlobally>
-    <Suspense fallback={<LoadingOverlay />}>
-      <Provider store={store}>
-        <AppBootstrap
-          getCorePlugins={getCorePlugins}
-          serverUrl={apiURL.origin}
-          pluginsUrl={pluginsURL.href}
-          logMetadata={logMetadata}
-        >
-          <AppRoot />
-        </AppBootstrap>
-      </Provider>
-    </Suspense>
-  </ApiBootstrap>,
+  isChild ? (
+    <AppChild />
+  ) : (
+    <ApiBootstrap apiUrl={apiURL.href} setGlobally>
+      <Suspense fallback={<LoadingOverlay />}>
+        <Provider store={store}>
+          <AppBootstrap
+            getCorePlugins={getCorePlugins}
+            serverUrl={apiURL.origin}
+            pluginsUrl={pluginsURL.href}
+            logMetadata={logMetadata}
+          >
+            <AppRoot />
+          </AppBootstrap>
+        </Provider>
+      </Suspense>
+    </ApiBootstrap>
+  ),
   document.getElementById('root')
 );
