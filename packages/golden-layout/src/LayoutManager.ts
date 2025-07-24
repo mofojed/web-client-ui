@@ -703,6 +703,14 @@ export class LayoutManager extends EventEmitter {
 
     console.log('Opening window with url:', url, 'and options:', options);
 
+    // We could get the furthest left/top that we can place the window, from `window.screen`.
+    // I don't think it's possible to place something outside of that screen
+    console.log('Available screen:', {
+      left: (window.screen as any).availLeft,
+      top: (window.screen as any).availTop,
+      width: window.screen.availWidth,
+      height: window.screen.availHeight,
+    });
     // TODO: We should track the handle...
     const popoutWindow = window.open(url, '_blank', options);
     if (!popoutWindow) {
