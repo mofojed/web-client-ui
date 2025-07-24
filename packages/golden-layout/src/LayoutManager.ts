@@ -718,14 +718,29 @@ export class LayoutManager extends EventEmitter {
         'Popout blocked. Please allow popups for this site to use this feature.'
       );
     }
-    window.document.querySelectorAll('style').forEach(style => {
-      // Copy styles to the new window
-      // TODO: Does this work?
-      popoutWindow.document.head.appendChild(style.cloneNode(true));
-    });
+    // window.document.querySelectorAll('style').forEach(style => {
+    //   // Copy styles to the new window
+    //   // TODO: Does this work?
+    //   popoutWindow.document.head.appendChild(style.cloneNode(true));
+    // });
     // popoutWindow.document
 
     popoutWindow.addEventListener('load', () => {
+      const windowStyles = window.document.head.querySelectorAll('style');
+      console.log('Window styles:', windowStyles);
+      // Copy the styles from the current window to the new window
+      windowStyles.forEach(style => {
+        // Check if the style is already in the new window
+        // if (
+        //   popoutWindow.document.head.querySelector(
+        //     `style[id="${style.id}"]`
+        //   ) === null
+        // ) {
+        // If not, clone and append it
+        popoutWindow.document.head.appendChild(style.cloneNode(true));
+        // }
+      });
+
       // TODO: How do we actually render the content in the new window...
       // setTimeout(() => {
       // const portal = popout.document.querySelector('#deephaven-portal');
@@ -743,18 +758,18 @@ export class LayoutManager extends EventEmitter {
       //   portal
       // );
 
-      // const panelContent = $(
-      //   '.dh-panel',
-      //   (configOrContentItem as any).container._element
-      // )[0];
-      // if (!panelContent) {
-      //   console.warn(
-      //     'No panel content found in the popout window. Make sure to include a .dh-panel element in the HTML.'
-      //   );
-      //   return;
-      // }
-      // portal.append(panelContent);
-      portal.append((configOrContentItem as any).container._element);
+      const panelContent = $(
+        '.dh-panel',
+        (configOrContentItem as any).container._element
+      )[0];
+      if (!panelContent) {
+        console.warn(
+          'No panel content found in the popout window. Make sure to include a .dh-panel element in the HTML.'
+        );
+        return;
+      }
+      portal.append(panelContent);
+      // portal.append((configOrContentItem as any).container._element);
       // portal.appendChild((configOrContentItem as any).container._element[0]);
       // }, 2000);
     });
