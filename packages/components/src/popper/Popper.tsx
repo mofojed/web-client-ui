@@ -83,8 +83,6 @@ class Popper extends Component<PopperProps, PopperState> {
     this.handleEnter = this.handleEnter.bind(this);
     this.handleExit = this.handleExit.bind(this);
     this.handleBlur = this.handleBlur.bind(this);
-    this.element = document.createElement('div');
-    this.element.className = 'popper-container';
     this.container = React.createRef<HTMLDivElement>();
 
     // cancelAnimationFrame does nothing if the handle isn't recognized
@@ -118,7 +116,7 @@ class Popper extends Component<PopperProps, PopperState> {
     this.destroyPopper(false);
   }
 
-  element: HTMLDivElement;
+  element!: HTMLDivElement;
 
   container: React.RefObject<HTMLDivElement>;
 
@@ -138,6 +136,14 @@ class Popper extends Component<PopperProps, PopperState> {
     return this.getVisibleElement(element.parentElement);
   }
 
+  initElement(): void {
+    if (this.container.current == null) {
+      throw new Error('Popper container is not set');
+    }
+    this.element = this.container.current.ownerDocument.createElement('div');
+    this.element.className = 'popper-container';
+  }
+
   initPopper(): void {
     let { popper } = this.state;
     const { closeOnBlur, referenceObject } = this.props;
@@ -148,6 +154,13 @@ class Popper extends Component<PopperProps, PopperState> {
 
     if (this.container.current === null) {
       return;
+    }
+
+    if (this.element == null) {
+      this.initElement();
+    }
+    if (this.element == null) {
+      throw new Error('Popper element is not set');
     }
 
     let { options } = this.props;
@@ -174,7 +187,7 @@ class Popper extends Component<PopperProps, PopperState> {
       // set the focus to the .popper element. This is necessary for close on
       // blur to work.
       if (closeOnBlur) {
-        const popperEl = this.element.querySelector(`.${POPPER_CLASS_NAME}`);
+        const popperEl = this.element?.querySelector(`.${POPPER_CLASS_NAME}`);
 
         if (
           popperEl instanceof HTMLElement &&
@@ -201,8 +214,8 @@ class Popper extends Component<PopperProps, PopperState> {
     // If component is exiting and unmounted in
     // the same frame, destroy can be called twice.
     // Check to make sure removeChild isn't called twice.
-    if (this.element.ownerDocument.body.contains(this.element)) {
-      this.element.ownerDocument.body.removeChild(this.element);
+    if (this.element?.ownerDocument.body.contains(this.element) ?? false) {
+      this.element?.ownerDocument.body.removeChild(this.element);
     }
 
     if (updateState) {
@@ -228,7 +241,7 @@ class Popper extends Component<PopperProps, PopperState> {
     if (!(e.relatedTarget instanceof HTMLElement)) {
       return;
     }
-    if (!this.element.contains(e.relatedTarget)) {
+    if (this.element != null && !this.element.contains(e.relatedTarget)) {
       this.hide();
     }
   }
@@ -299,7 +312,9 @@ class Popper extends Component<PopperProps, PopperState> {
         style={{ display: 'none' }}
         data-testid={dataTestId}
       >
-        {popper && ReactDOM.createPortal(this.renderContent(), this.element)}
+        {popper &&
+          this.element != null &&
+          ReactDOM.createPortal(this.renderContent(), this.element)}
       </div>
     );
   }
