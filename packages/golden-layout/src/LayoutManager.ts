@@ -727,7 +727,7 @@ export class LayoutManager extends EventEmitter {
     // popoutWindow.document
 
     popoutWindow.addEventListener('load', () => {
-      const windowStyles = window.document.head.querySelectorAll('link, style');
+      const windowStyles = window.document.head.querySelectorAll('style');
       console.log('Window styles:', windowStyles);
       // Copy the styles from the current window to the new window
       windowStyles.forEach(style => {
