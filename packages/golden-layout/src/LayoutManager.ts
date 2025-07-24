@@ -742,24 +742,43 @@ export class LayoutManager extends EventEmitter {
         // }
       });
 
+      // Now we copy the spectrum-theme-provider element...
+      const themeProvider = window.document
+        .querySelector('.spectrum-theme-provider')
+        ?.cloneNode(false);
+      if (!themeProvider || !(themeProvider instanceof HTMLElement)) {
+        throw new Error(
+          'No .spectrum-theme-provider found in the main window. Make sure to include it in the HTML.'
+        );
+      }
+
+      // Make it full screen
+      themeProvider.style.position = 'fixed';
+      themeProvider.style.top = '0';
+      themeProvider.style.left = '0';
+      themeProvider.style.right = '0';
+      themeProvider.style.bottom = '0';
+
       // TODO: How do we actually render the content in the new window...
       // setTimeout(() => {
       // const portal = popout.document.querySelector('#deephaven-portal');
       const portal = $('#deephaven-portal', popoutWindow.document);
       if (portal == null) {
-        console.warn(
+        throw new Error(
           'No portal found in the popout window. Make sure to include a #deephaven-portal element in the HTML.'
         );
-        return;
       }
       console.log('xxx found portal', portal);
+
+      portal.append(themeProvider);
 
       const configInstance = (configOrContentItem as any).instance;
       const key = configInstance._key();
       const portalComponent = ReactDOM.createPortal(
         configInstance._getReactComponent(),
         // get reactComponent from configOrContentItem
-        portal[0],
+        // portal[0],
+        themeProvider,
         key
       );
       this.addReactChild(key, portalComponent);
