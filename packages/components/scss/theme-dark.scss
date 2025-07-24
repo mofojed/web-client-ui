@@ -1,0 +1,860 @@
+// TODO: Remove this file
+// This is just hacked in to get the popper dark theme working and some other styling things corrected
+
+/* stylelint-disable custom-property-empty-line-before */
+/* stylelint-disable alpha-value-notation */
+:root {
+  --dh-color-loading-spinner-primary: var(--dh-color-accent-bg);
+  --dh-color-loading-spinner-secondary: color-mix(
+    in srgb,
+    var(--dh-color-gray-800) 50%,
+    transparent
+  );
+  --dh-color-quickactions-bg: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 90%,
+    transparent
+  );
+  --dh-color-radial-reaction: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 60%,
+    transparent
+  );
+  --dh-color-colorpicker-border: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 10%,
+    transparent
+  );
+
+  /* Logo */
+  --dh-logo-img: var(--dh-logo-dark-img);
+
+  /* Login */
+  --dh-color-login-form-bg: var(--dh-color-gray-400);
+  --dh-color-login-status-message: var(--dh-color-gray-600);
+  --dh-color-login-logo-bg: var(--dh-color-gray-900);
+  --dh-color-login-footer-fg: var(--dh-color-gray-700);
+
+  /* We should base this color on something from the palette, but for now just
+   * hard coding the original value */
+  --dh-color-random-area-plot-animation-fg-fill: color-mix(
+    in srgb,
+    var(--dh-color-accent) 8%,
+    transparent
+  );
+  --dh-color-random-area-plot-animation-fg-stroke: color-mix(
+    in srgb,
+    var(--dh-color-accent) 20%,
+    transparent
+  );
+  --dh-color-random-area-plot-animation-bg: var(--dh-color-gray-75);
+  --dh-color-random-area-plot-animation-grid: var(--dh-color-gray-300);
+
+  /* Actions */
+  --dh-color-action-bg: var(--dh-color-gray-75);
+  --dh-color-action-fg: var(--dh-color-text);
+  --dh-color-action-border: var(--dh-color-border);
+
+  --dh-color-action-down-bg: var(--dh-color-gray-300);
+
+  --dh-color-action-hover-bg: var(--dh-color-gray-50);
+  --dh-color-action-hover-fg: var(--dh-color-text-hover);
+  --dh-color-action-hover-border: var(--dh-color-hover-border);
+
+  --dh-color-action-active-bg: var(--dh-color-gray-800);
+  --dh-color-action-active-fg: var(--dh-color-gray-50);
+  --dh-color-action-active-border: var(--dh-color-gray-800);
+
+  --dh-color-action-active-hover-bg: var(--dh-color-gray-900);
+  --dh-color-action-active-hover-fg: var(--dh-color-gray-50);
+  --dh-color-action-active-hover-border: var(--dh-color-gray-900);
+
+  --dh-color-action-disabled-bg: transparent;
+  --dh-color-action-disabled-fg: var(--dh-color-text-disabled);
+  --dh-color-action-disabled-border: var(--dh-color-gray-300);
+
+  /* Icons */
+  --dh-color-icon-fg: var(--dh-color-gray-700);
+  --dh-color-icon-disabled-fg: var(--dh-color-gray-400);
+
+  /* Inputs */
+  --dh-color-input-bg: var(--dh-color-gray-75);
+  --dh-color-input-fg: var(--dh-color-text);
+  --dh-color-input-border: var(--dh-color-border);
+  --dh-color-input-placeholder: var(--dh-color-gray-600);
+  --dh-color-input-active-bg: var(--dh-color-input-bg);
+  --dh-color-input-disabled-bg: var(--dh-color-disabled-bg);
+  --dh-color-input-disabled-border: transparent;
+  --dh-color-input-disabled-fg: var(--dh-color-text-disabled);
+  --dh-color-input-hover-border: var(--dh-color-hover-border);
+  --dh-color-input-focus-border: var(--dh-color-border-focus);
+
+  /* Form Controls */
+  --dh-color-search-icon: var(--dh-color-fg);
+  --dh-color-form-control-error: var(--dh-color-visual-negative);
+  --dh-color-form-control-error-shadow: color-mix(
+    in srgb,
+    var(--dh-color-visual-negative) 25%,
+    transparent
+  );
+
+  /* Labels */
+  --dh-color-label-text: var(--dh-color-gray-700);
+
+  /* Selectors (pickers, dropdowns, select, etc.) */
+  --dh-color-selector-fg: var(--dh-color-icon-fg);
+  --dh-color-selector-bg: var(--dh-color-gray-75);
+  --dh-color-selector-hover-bg: var(--dh-color-gray-50);
+  --dh-color-selector-hover-fg: var(--dh-color-gray-900);
+  --dh-color-selector-disabled-fg: var(--dh-color-icon-disabled-fg);
+
+  /* Item List */
+  --dh-color-item-list-bg: transparent;
+  --dh-color-item-list-active-bg: var(--dh-color-highlight-active);
+  --dh-color-item-list-hover-bg: var(--dh-color-highlight-hover);
+  --dh-color-item-list-selected-fg: var(--dh-color-text);
+  --dh-color-item-list-selected-bg: var(--dh-color-highlight-selected);
+  --dh-color-item-list-selected-hover-bg: var(
+    --dh-color-highlight-selected-hover
+  );
+  --dh-color-item-list-selected-inactive-bg: var(--dh-color-gray-200);
+  --dh-color-item-list-selected-border: var(--dh-color-accent-900);
+  --dh-color-item-list-drop-target-fg: var(--dh-color-white);
+
+  --dh-color-item-list-keyboard-selected-bg: color-mix(
+    in srgb,
+    var(--dh-color-accent) 50%,
+    transparent
+  );
+
+  /* 
+   * There are a couple of related variables used in Enterprise SingleClickItemList.
+   * that aren't consumed in DHC. We should see if there is a way to include these
+   * in the theming variables.
+   * --dh-color-item-list-keyboard-selected-border
+   * --dh-color-item-list-keyboard-selected-hover-bg
+   */
+
+  /* Golden Layout */
+  --dh-color-golden-layout-tab-header-bg: var(--dh-color-gray-75);
+  --dh-color-golden-layout-tab-bg: var(--dh-color-gray-75);
+  --dh-color-golden-layout-tab-selected-bg: var(--dh-color-content-bg);
+
+  /* Navigation Menu */
+  --dh-color-menu-item-fg: var(--dh-color-gray-700);
+
+  /* Hr */
+  --dh-color-hr: var(--dh-color-gray-300);
+
+  /* Dialogs */
+  --dh-color-dialog-title-fg: var(--dh-color-heading-text);
+  --dh-color-dialog-fg: var(--dh-color-text);
+
+  /* Popovers */
+  --dh-color-popover-bg: var(--dh-color-bg);
+
+  /* Tooltips */
+  --dh-color-tooltip-bg: var(--dh-color-gray-400);
+  --dh-color-tooltip-fg: var(--dh-color-fg);
+  --dh-color-tooltip-box-shadow: var(--dh-color-dropshadow);
+
+  /* Wells */
+  --dh-color-well-bg: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 2%,
+    transparent
+  );
+  --dh-color-well-border: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 5%,
+    transparent
+  );
+
+  /* Switch */
+  --dh-toggle-switch-bg: var(--dh-color-gray-500);
+}
+
+/* stylelint-disable custom-property-empty-line-before, color-hex-length */
+:root {
+  /* Gray */
+  --dh-color-gray-50: #1a171a;
+  --dh-color-gray-75: #211f22;
+  --dh-color-gray-100: #2d2a2e;
+  --dh-color-gray-200: #322f33;
+  --dh-color-gray-300: #373438;
+  --dh-color-gray-400: #403e41;
+  --dh-color-gray-500: #5b5a5c;
+  --dh-color-gray-600: #929192;
+  --dh-color-gray-700: #c0bfbf;
+  --dh-color-gray-800: #f0f0ee;
+  --dh-color-gray-900: #fcfcfa;
+
+  --dh-color-gray-light: var(--dh-color-gray-900);
+  --dh-color-gray-mid: var(--dh-color-gray-600);
+  --dh-color-gray-dark: var(--dh-color-gray-300);
+
+  /** Black & White */
+  --dh-color-black: var(--dh-color-gray-50);
+  --dh-color-white: var(--dh-color-gray-800);
+  --dh-color-true-black: #000000;
+  --dh-color-true-white: #ffffff;
+
+  /* Reds HSL components */
+  --dh-color-red-100: #471521;
+  --dh-color-red-200: #5d1b2b;
+  --dh-color-red-300: #762336;
+  --dh-color-red-400: #912b45;
+  --dh-color-red-500: #ab3452;
+  --dh-color-red-600: #c73f61;
+  --dh-color-red-700: #e14c71;
+  --dh-color-red-800: #f85e85;
+  --dh-color-red-900: #ff7b9e;
+  --dh-color-red-1000: #ff99b6;
+  --dh-color-red-1100: #ffb4c9;
+  --dh-color-red-1200: #ffcbd9;
+  --dh-color-red-1300: #ffdee7;
+  --dh-color-red-1400: #ffecf1;
+
+  /* Orange HSL components */
+  --dh-color-orange-100: #471800;
+  --dh-color-orange-200: #5a2202;
+  --dh-color-orange-300: #702f06;
+  --dh-color-orange-400: #87390c;
+  --dh-color-orange-500: #9f4612;
+  --dh-color-orange-600: #b7541b;
+  --dh-color-orange-700: #d06425;
+  --dh-color-orange-800: #e67533;
+  --dh-color-orange-900: #fa8648;
+  --dh-color-orange-1000: #ffa069;
+  --dh-color-orange-1100: #ffb98d;
+  --dh-color-orange-1200: #ffcfaf;
+  --dh-color-orange-1300: #ffe0cb;
+  --dh-color-orange-1400: #ffeee2;
+
+  /* Yellow HSL components */
+  --dh-color-yellow-100: #2e2700;
+  --dh-color-yellow-200: #3d3300;
+  --dh-color-yellow-300: #4d4100;
+  --dh-color-yellow-400: #5f5005;
+  --dh-color-yellow-500: #725f0b;
+  --dh-color-yellow-600: #856e13;
+  --dh-color-yellow-700: #9a811b;
+  --dh-color-yellow-800: #ae9024;
+  --dh-color-yellow-900: #c3a32f;
+  --dh-color-yellow-1000: #d7b53a;
+  --dh-color-yellow-1100: #eac448;
+  --dh-color-yellow-1200: #fad459;
+  --dh-color-yellow-1300: #ffe77a;
+  --dh-color-yellow-1400: #fff3ac;
+
+  /* Chartreuse HSL components */
+  --dh-color-chartreuse-100: #1f2b00;
+  --dh-color-chartreuse-200: #2b3805;
+  --dh-color-chartreuse-300: #39470b;
+  --dh-color-chartreuse-400: #495611;
+  --dh-color-chartreuse-500: #596718;
+  --dh-color-chartreuse-600: #69781f;
+  --dh-color-chartreuse-700: #7a8927;
+  --dh-color-chartreuse-800: #8e9c30;
+  --dh-color-chartreuse-900: #a1ae3a;
+  --dh-color-chartreuse-1000: #b2c046;
+  --dh-color-chartreuse-1100: #c2d153;
+  --dh-color-chartreuse-1200: #d5e166;
+  --dh-color-chartreuse-1300: #e3ee84;
+  --dh-color-chartreuse-1400: #f0f7ae;
+
+  /* Celery HSL components */
+  --dh-color-celery-100: #122d15;
+  --dh-color-celery-200: #173a1a;
+  --dh-color-celery-300: #1e4b22;
+  --dh-color-celery-400: #255c2a;
+  --dh-color-celery-500: #2d6d32;
+  --dh-color-celery-600: #36803d;
+  --dh-color-celery-700: #409347;
+  --dh-color-celery-800: #4da654;
+  --dh-color-celery-900: #5fb967;
+  --dh-color-celery-1000: #77ca7e;
+  --dh-color-celery-1100: #93d999;
+  --dh-color-celery-1200: #b2e5b7;
+  --dh-color-celery-1300: #ceeed1;
+  --dh-color-celery-1400: #e4f6e6;
+
+  /* Green HSL components */
+  --dh-color-green-100: #22291d;
+  --dh-color-green-200: #2d3625;
+  --dh-color-green-300: #38462d;
+  --dh-color-green-400: #445636;
+  --dh-color-green-500: #50673d;
+  --dh-color-green-600: #5b7a45;
+  --dh-color-green-700: #678c4c;
+  --dh-color-green-800: #74a053;
+  --dh-color-green-900: #81b45a;
+  --dh-color-green-1000: #8ec762;
+  --dh-color-green-1100: #9bd96c;
+  --dh-color-green-1200: #ace97e;
+  --dh-color-green-1300: #c3f59d;
+  --dh-color-green-1400: #dcfbc2;
+
+  /* Seafoam HSL components */
+  --dh-color-seafoam-100: #1f2925;
+  --dh-color-seafoam-200: #263630;
+  --dh-color-seafoam-300: #2f463e;
+  --dh-color-seafoam-400: #37574b;
+  --dh-color-seafoam-500: #3e6959;
+  --dh-color-seafoam-600: #447b68;
+  --dh-color-seafoam-700: #488f79;
+  --dh-color-seafoam-800: #4ca388;
+  --dh-color-seafoam-900: #4fb798;
+  --dh-color-seafoam-1000: #54cba5;
+  --dh-color-seafoam-1100: #5edeb8;
+  --dh-color-seafoam-1200: #78edc8;
+  --dh-color-seafoam-1300: #9ef8d7;
+  --dh-color-seafoam-1400: #cbfce8;
+
+  /* Cyan HSL components */
+  --dh-color-cyan-100: #142b2d;
+  --dh-color-cyan-200: #1a373a;
+  --dh-color-cyan-300: #21474b;
+  --dh-color-cyan-400: #29585c;
+  --dh-color-cyan-500: #31696e;
+  --dh-color-cyan-600: #3a7a81;
+  --dh-color-cyan-700: #438d94;
+  --dh-color-cyan-800: #4da0a8;
+  --dh-color-cyan-900: #59b4bc;
+  --dh-color-cyan-1000: #65c6cf;
+  --dh-color-cyan-1100: #74d6e1;
+  --dh-color-cyan-1200: #88e6f1;
+  --dh-color-cyan-1300: #a4f2fb;
+  --dh-color-cyan-1400: #cafaff;
+
+  /* Blue HSL components */
+  --dh-color-blue-100: #112451;
+  --dh-color-blue-200: #16306c;
+  --dh-color-blue-300: #1d3d88;
+  --dh-color-blue-400: #254ba4;
+  --dh-color-blue-500: #2f5bc0;
+  --dh-color-blue-600: #3b6bda;
+  --dh-color-blue-700: #4c7dee;
+  --dh-color-blue-800: #6390fa;
+  --dh-color-blue-900: #7ca3ff;
+  --dh-color-blue-1000: #97b6ff;
+  --dh-color-blue-1100: #afc8ff;
+  --dh-color-blue-1200: #c7d9ff;
+  --dh-color-blue-1300: #dbe6ff;
+  --dh-color-blue-1400: #ecf1ff;
+
+  /* Indigo HSL components */
+  --dh-color-indigo-100: #1a1e62;
+  --dh-color-indigo-200: #252a75;
+  --dh-color-indigo-300: #32388a;
+  --dh-color-indigo-400: #40489f;
+  --dh-color-indigo-500: #4f58b4;
+  --dh-color-indigo-600: #5f68c8;
+  --dh-color-indigo-700: #707bdb;
+  --dh-color-indigo-800: #828ded;
+  --dh-color-indigo-900: #959ffa;
+  --dh-color-indigo-1000: #aab2ff;
+  --dh-color-indigo-1100: #bec5ff;
+  --dh-color-indigo-1200: #d2d6ff;
+  --dh-color-indigo-1300: #e1e5ff;
+  --dh-color-indigo-1400: #eff0ff;
+
+  /* Purple HSL components */
+  --dh-color-purple-100: #311067;
+  --dh-color-purple-200: #3d1f79;
+  --dh-color-purple-300: #4b2f8c;
+  --dh-color-purple-400: #5a3f9f;
+  --dh-color-purple-500: #6850b1;
+  --dh-color-purple-600: #7861c3;
+  --dh-color-purple-700: #8873d5;
+  --dh-color-purple-800: #9887e5;
+  --dh-color-purple-900: #a99af3;
+  --dh-color-purple-1000: #b9aefb;
+  --dh-color-purple-1100: #cac1fe;
+  --dh-color-purple-1200: #dad3ff;
+  --dh-color-purple-1300: #e8e3ff;
+  --dh-color-purple-1400: #f4effe;
+
+  /* Fuchsia HSL components */
+  --dh-color-fuchsia-100: #450f44;
+  --dh-color-fuchsia-200: #551a55;
+  --dh-color-fuchsia-300: #662969;
+  --dh-color-fuchsia-400: #77377e;
+  --dh-color-fuchsia-500: #884794;
+  --dh-color-fuchsia-600: #9858aa;
+  --dh-color-fuchsia-700: #a76bbf;
+  --dh-color-fuchsia-800: #b67ed4;
+  --dh-color-fuchsia-900: #c592e5;
+  --dh-color-fuchsia-1000: #d2a7f0;
+  --dh-color-fuchsia-1100: #debcf6;
+  --dh-color-fuchsia-1200: #e9cff9;
+  --dh-color-fuchsia-1300: #f2e0fb;
+  --dh-color-fuchsia-1400: #f9edfc;
+
+  /* Magenta HSL components */
+  --dh-color-magenta-100: #520427;
+  --dh-color-magenta-200: #641034;
+  --dh-color-magenta-300: #791e45;
+  --dh-color-magenta-400: #8d2d57;
+  --dh-color-magenta-500: #a13c69;
+  --dh-color-magenta-600: #b54c7d;
+  --dh-color-magenta-700: #ca5d93;
+  --dh-color-magenta-800: #dc70a8;
+  --dh-color-magenta-900: #ee83ba;
+  --dh-color-magenta-1000: #fb99cd;
+  --dh-color-magenta-1100: #ffb1dc;
+  --dh-color-magenta-1200: #ffc9e7;
+  --dh-color-magenta-1300: #ffddf0;
+  --dh-color-magenta-1400: #ffecf6;
+}
+
+/* stylelint-disable alpha-value-notation */
+/* stylelint-disable custom-property-empty-line-before */
+:root {
+  --dh-color-chart-bg: var(--dh-color-content-bg);
+  --dh-color-chart-plot-bg: var(--dh-color-gray-200);
+  --dh-color-chart-title: var(--dh-color-text);
+  --dh-color-chart-legend-fg: var(--dh-color-text);
+
+  /* Colorway */
+  --dh-color-chart-colorway: var(--dh-color-visual-cyan)
+    var(--dh-color-visual-green) var(--dh-color-visual-yellow)
+    var(--dh-color-visual-purple) var(--dh-color-visual-orange)
+    var(--dh-color-visual-red) var(--dh-color-visual-chartreuse)
+    var(--dh-color-visual-fuchsia) var(--dh-color-visual-seafoam)
+    var(--dh-color-visual-magenta) var(--dh-color-white);
+  --dh-color-chart-grid: var(--dh-color-gray-400);
+  --dh-color-chart-axis-line: var(--dh-color-gray-500);
+  --dh-color-chart-axis-line-zero: var(--dh-color-gray-700);
+
+  /* Error band */
+  --dh-color-chart-error-band-line: var(--dh-color-green-1400);
+
+  /* OHLC */
+  --dh-color-chart-ohlc-increase: var(--dh-color-visual-green);
+  --dh-color-chart-ohlc-decrease: var(--dh-color-visual-red);
+
+  --dh-color-plotly-axis-text: var(--dh-color-gray-500);
+  --dh-color-plotly-zoombox: color-mix(
+    in srgb,
+    var(--dh-color-true-black) 50%,
+    transparent
+  );
+  --dh-color-plotly-zoombox-corners-fill: var(--dh-color-white);
+  --dh-color-plotly-zoombox-corners-stroke: var(--dh-color-gray-75);
+
+  --dh-color-plotly-modebar-btn-active: color-mix(
+    in srgb,
+    var(--dh-color-true-white) 30%,
+    transparent
+  );
+  --dh-color-plotly-modebar-btn-warning: var(--dh-color-visual-orange);
+  --dh-color-plotly-notifier-note-bg: var(--dh-color-gray-500);
+
+  /* Geo */
+  --dh-color-chart-geo-coastline: var(--dh-color-gray-200);
+  --dh-color-chart-geo-land: var(--dh-color-gray-700);
+  --dh-color-chart-geo-ocean: var(--dh-color-gray-300);
+  --dh-color-chart-geo-lake: var(--dh-color-blue-200);
+  --dh-color-chart-geo-river: var(--dh-color-blue-200);
+
+  /* Indicator */
+  --dh-color-chart-indicator-increase: var(--dh-color-visual-green);
+  --dh-color-chart-indicator-decrease: var(--dh-color-visual-red);
+  --dh-color-chart-indicator-gauge: var(--dh-color-green-1000);
+}
+
+:root {
+  /* Editor */
+  --dh-color-editor-bg: var(--dh-color-content-bg);
+  --dh-color-editor-fg: var(--dh-color-gray-900);
+  --dh-color-editor-error-fg: var(--dh-color-visual-red);
+  --dh-color-editor-line-number-fg: var(--dh-color-gray-600);
+  --dh-color-editor-line-number-active-fg: var(--dh-color-gray-800);
+  --dh-color-editor-line-highlight-bg: var(--dh-color-gray-200);
+  --dh-color-editor-selection-bg: var(--dh-color-text-highlight);
+  --dh-color-editor-inactive-selection-bg: var(--dh-color-gray-300);
+  --dh-color-editor-selection-highlight-bg: var(--dh-color-gray-500);
+  --dh-color-editor-word-highlight-bg: var(--dh-color-gray-500);
+
+  /* Code rules */
+  --dh-color-editor-comment: var(--dh-color-gray-700);
+  --dh-color-editor-delimiter: var(--dh-color-gray-700);
+  --dh-color-editor-identifier-js: var(--dh-color-visual-yellow);
+  --dh-color-editor-identifier-namespace: var(--dh-color-visual-red);
+  --dh-color-editor-identifier: var(--dh-color-gray-900);
+  --dh-color-editor-keyword: var(--dh-color-visual-cyan);
+  --dh-color-editor-number: var(--dh-color-visual-purple);
+  --dh-color-editor-operator: var(--dh-color-visual-red);
+  --dh-color-editor-predefined: var(--dh-color-visual-green);
+  --dh-color-editor-storage: var(--dh-color-visual-red);
+  --dh-color-editor-string-delim: var(--dh-color-gray-700);
+  --dh-color-editor-string: var(--dh-color-visual-yellow);
+
+  /* Brackets */
+  --dh-color-editor-bracket-fg1: var(--dh-color-visual-yellow);
+  --dh-color-editor-bracket-fg2: var(--dh-color-visual-purple);
+  --dh-color-editor-bracket-fg3: var(--dh-color-visual-blue);
+  --dh-color-editor-bracket-fg4: var(--dh-color-visual-yellow);
+  --dh-color-editor-bracket-fg5: var(--dh-color-visual-purple);
+  --dh-color-editor-bracket-fg6: var(--dh-color-visual-blue);
+  --dh-color-editor-unexpected-bracket-fg: var(--dh-color-visual-negative);
+
+  /* Input */
+  --dh-color-editor-focus-border: var(--dh-color-focus-border);
+  --dh-color-editor-input-option-active-border: var(--dh-color-focus-ring);
+  --dh-color-editor-input-bg: var(--dh-color-bg);
+  --dh-color-editor-input-fg: var(--dh-color-text);
+  --dh-color-editor-input-border: var(--dh-color-border);
+
+  /* Menus */
+  --dh-color-editor-context-menu-bg: var(--dh-color-gray-300);
+  --dh-color-editor-context-menu-fg: var(--dh-color-text);
+  --dh-color-editor-menu-selection-bg: var(--dh-color-highlight-hover);
+  --dh-color-editor-menu-selection-fg: var(--dh-color-text);
+
+  /* Logging */
+  --dh-color-editor-log-date: var(--dh-color-gray-700);
+  --dh-color-editor-log-error: var(--dh-color-visual-red);
+  --dh-color-editor-log-info: var(--dh-color-visual-cyan);
+  --dh-color-editor-log-stdout: var(--dh-color-gray-900);
+  --dh-color-editor-log-warn: var(--dh-color-visual-yellow);
+  --dh-color-editor-log-debug: var(--dh-color-visual-purple);
+  --dh-color-editor-log-trace: var(--dh-color-visual-green);
+
+  /* Find */
+  --dh-color-editor-find-bg: var(--dh-color-gray-200);
+  --dh-color-editor-find-match-bg: var(--dh-color-highlight-selected);
+  --dh-color-editor-find-match-highlight-bg: color-mix(
+    in srgb,
+    var(--dh-color-orange-800) 35%,
+    transparent
+  );
+  --dh-color-editor-find-option-active-bg: var(--dh-color-accent-700);
+  --dh-color-editor-find-option-active-fg: var(--dh-color-gray-900);
+
+  /* Suggest */
+  --dh-color-editor-suggest-bg: var(--dh-color-gray-200);
+  --dh-color-editor-suggest-border: var(--dh-color-gray-400);
+  --dh-color-editor-suggest-fg: var(--dh-color-text);
+  --dh-color-editor-suggest-selected-bg: var(--dh-color-highlight-selected);
+  --dh-color-editor-suggest-selected-fg: var(--dh-color-text);
+  --dh-color-editor-suggest-highlight-fg: var(--dh-color-accent-700);
+  --dh-color-editor-suggest-focus-highlight-fg: var(--dh-color-accent-700);
+  --dh-color-editor-suggest-hover-bg: var(--dh-color-highlight-hover);
+
+  /* Links */
+  --dh-color-editor-link-foreground: var(--dh-color-accent-1000);
+  --dh-color-editor-link-active-fg: var(--dh-color-accent-1100);
+}
+
+:root {
+  /* Grid */
+  --dh-color-grid-bg: var(--dh-color-gray-75);
+
+  /* Header */
+  --dh-color-grid-header-bg: var(--dh-color-gray-100);
+  --dh-color-grid-header-text: var(--dh-color-heading-text);
+  --dh-color-grid-header-separator: var(--dh-color-gray-50);
+  --dh-color-grid-header-separator-hover: var(--dh-color-gray-600);
+  --dh-color-grid-header-separator-hidden-hover: var(--dh-color-accent-700);
+  --dh-color-grid-header-sort-bar: var(--dh-color-visual-purple);
+  --dh-color-grid-header-reverse-bar: var(--dh-color-visual-green);
+  --dh-color-grid-header-bar-casing: var(--dh-color-gray-50);
+
+  /* Row */
+  --dh-color-grid-row-0-bg: var(--dh-color-gray-300);
+  --dh-color-grid-row-1-bg: var(--dh-color-gray-100);
+  --dh-color-grid-row-hover-bg: var(--dh-color-highlight-hover);
+  --dh-color-grid-row-hover-bg-selected: var(
+    --dh-color-highlight-selected-hover
+  );
+  --dh-color-grid-row-shadow-alpha: 0.15;
+
+  /* Selection */
+  --dh-color-grid-selection: var(--dh-color-highlight-selected);
+  --dh-color-grid-selection-outline: var(--dh-color-accent-900);
+  --dh-color-grid-selection-outline-casing: var(--dh-color-gray-50);
+
+  /** Sroll Bar */
+  --dh-color-grid-scroll-bar-active-selection-tick: var(--dh-color-accent-400);
+  --dh-color-grid-scroll-bar-bg: var(--dh-color-gray-100);
+  --dh-color-grid-scroll-bar-hover-bg: var(--dh-color-gray-200);
+  --dh-color-grid-scroll-bar-casing: var(--dh-color-gray-400);
+  --dh-color-grid-scroll-bar-corner: var(--dh-color-gray-100);
+  --dh-color-grid-scroll-bar: var(--dh-color-gray-500);
+  --dh-color-grid-scroll-bar-hover: var(--dh-color-gray-600);
+  --dh-color-grid-scroll-bar-active: var(--dh-color-gray-700);
+
+  /* Text */
+  --dh-color-grid-text: var(--dh-color-text);
+  --dh-color-grid-text-hyperlink: var(--dh-color-accent-1000);
+  --dh-color-grid-text-pending: var(--dh-color-yellow-1300);
+  --dh-color-grid-text-error: var(--dh-color-visual-negative);
+
+  /* Data Types */
+  --dh-color-grid-date: var(--dh-color-visual-notice);
+  --dh-color-grid-number-positive: var(--dh-color-visual-positive);
+  --dh-color-grid-number-negative: var(--dh-color-visual-negative);
+  --dh-color-grid-number-zero: var(--dh-color-visual-notice);
+  --dh-color-grid-string-null: var(--dh-color-gray-600);
+
+  /* Filter Bar */
+  --dh-color-grid-filter-bar-active-bg: color-mix(
+    in srgb,
+    var(--dh-color-accent-700) 50%,
+    transparent
+  );
+  --dh-color-grid-filter-bar-active: var(--dh-color-accent-600);
+  --dh-color-grid-filter-bar-expanded-bg: var(--dh-color-gray-200);
+  --dh-color-grid-filter-bar-expanded-active-bg: color-mix(
+    in srgb,
+    var(--dh-color-accent-1000) 19%,
+    transparent
+  );
+  --dh-color-grid-filter-bar-expanded-active-cell-bg: color-mix(
+    in srgb,
+    var(--dh-color-accent-700) 32%,
+    transparent
+  );
+  --dh-color-grid-filter-bar-separator: var(--dh-color-gray-600);
+  --dh-color-grid-filter-bar-error: var(--dh-color-visual-negative);
+  --dh-color-grid-filter-icon: var(--dh-color-accent-600);
+
+  /* Context Menu */
+  --dh-color-grid-context-menu-sort-icon: var(--dh-color-visual-purple);
+  --dh-color-grid-context-menu-reverse-icon: var(--dh-color-visual-green);
+
+  /* Column */
+  --dh-color-grid-column-linker-hover-bg: var(
+    --dh-color-highlight-selected-hover
+  );
+  --dh-color-grid-column-grouped-divider: var(--dh-color-gray-50);
+
+  /* Tree */
+  --dh-color-grid-tree-line: var(--dh-color-gray-500);
+  --dh-color-grid-tree-marker: var(--dh-color-gray-700);
+  --dh-color-grid-tree-marker-hover: var(--dh-color-gray-900);
+
+  /* Floating */
+  --dh-color-grid-floating-row: var(--dh-color-gray-300);
+  --dh-color-grid-floating-row-bg: var(--dh-color-gray-200);
+  --dh-color-grid-floating-divider-inner: var(--dh-color-gray-200);
+  --dh-color-grid-floating-divider-outer: var(--dh-color-gray-50);
+
+  /* Overflow Button */
+  --dh-color-grid-overflow-button: var(--dh-color-gray-700);
+  --dh-color-grid-overflow-button-hover: var(--dh-color-gray-900);
+
+  /* Data Bars */
+  --dh-color-grid-data-bar-positive: var(--dh-color-visual-positive);
+  --dh-color-grid-data-bar-negative: var(--dh-color-visual-negative);
+  --dh-color-grid-data-bar-marker: var(--dh-color-white);
+  --dh-color-grid-data-bar-zero-line: var(--dh-color-gray-300);
+
+  /* Scrim */
+  --dh-color-grid-scrim: var(--dh-color-gray-50);
+}
+
+/* stylelint-disable custom-property-empty-line-before */
+/* stylelint-disable alpha-value-notation */
+:root {
+  /* General */
+  --dh-color-bg: var(--dh-color-black);
+  --dh-color-content-bg: var(--dh-color-gray-100);
+  --dh-color-subdued-content-bg: var(--dh-color-gray-75);
+  --dh-color-surface-bg: var(--dh-color-gray-200);
+  --dh-color-fg: var(--dh-color-white);
+  --dh-color-border: var(--dh-color-gray-500);
+  --dh-color-hover-border: var(--dh-color-gray-600);
+  --dh-color-border-focus: var(--dh-color-accent-800);
+  --dh-color-disabled-bg: var(--dh-color-gray-300);
+  --dh-color-scrollbar: var(--dh-color-fg);
+
+  /* Text */
+  --dh-color-heading-text: var(--dh-color-gray-900);
+  --dh-color-text: var(--dh-color-gray-800);
+  --dh-color-text-disabled: var(--dh-color-gray-600);
+  --dh-color-text-highlight: color-mix(
+    in srgb,
+    var(--dh-color-blue-700) 30%,
+    transparent
+  );
+  --dh-color-text-hover: var(--dh-color-gray-900);
+
+  /*
+   * Contrast Colors
+   *
+   * Note that React Spectrum guidance suggests that background colors containing
+   * yellow, orange, chartreuse or cyan should use a dark contrast color. All
+   * others should use light.
+   * https://spectrum.adobe.com/page/using-color/#Solid-color-background-with-black-or-white
+   */
+  --dh-color-contrast-dark: var(--dh-color-gray-50);
+  --dh-color-contrast-light: var(--dh-color-gray-900);
+
+  /** Accent Colors */
+  --dh-color-accent-100: var(--dh-color-blue-100);
+  --dh-color-accent-200: var(--dh-color-blue-200);
+  --dh-color-accent-300: var(--dh-color-blue-300);
+  --dh-color-accent-400: var(--dh-color-blue-400);
+  --dh-color-accent-500: var(--dh-color-blue-500);
+  --dh-color-accent-600: var(--dh-color-blue-600);
+  --dh-color-accent-700: var(--dh-color-blue-700);
+  --dh-color-accent-800: var(--dh-color-blue-800);
+  --dh-color-accent-900: var(--dh-color-blue-900);
+  --dh-color-accent-1000: var(--dh-color-blue-1000);
+  --dh-color-accent-1100: var(--dh-color-blue-1100);
+  --dh-color-accent-1200: var(--dh-color-blue-1200);
+  --dh-color-accent-1300: var(--dh-color-blue-1300);
+  --dh-color-accent-1400: var(--dh-color-blue-1400);
+
+  /* Accent */
+  --dh-color-accent: var(--dh-color-accent-600);
+  --dh-color-accent-bg: var(--dh-color-accent);
+  --dh-color-accent-hover-bg: var(--dh-color-accent-500);
+  --dh-color-accent-down-bg: var(--dh-color-accent-400);
+  --dh-color-accent-key-focus-bg: var(--dh-color-accent-500);
+  --dh-color-accent-contrast: var(--dh-color-contrast-light);
+
+  /* Background Defaults */
+  --dh-color-gray-bg: var(--dh-color-gray-700);
+  --dh-color-red-bg: var(--dh-color-red-700);
+  --dh-color-orange-bg: var(--dh-color-orange-800);
+  --dh-color-yellow-bg: var(--dh-color-yellow-1000);
+  --dh-color-chartreuse-bg: var(--dh-color-chartreuse-900);
+  --dh-color-celery-bg: var(--dh-color-celery-800);
+  --dh-color-green-bg: var(--dh-color-green-700);
+  --dh-color-seafoam-bg: var(--dh-color-seafoam-700);
+  --dh-color-cyan-bg: var(--dh-color-cyan-700);
+  --dh-color-blue-bg: var(--dh-color-blue-700);
+  --dh-color-indigo-bg: var(--dh-color-indigo-700);
+  --dh-color-purple-bg: var(--dh-color-purple-700);
+  --dh-color-fuchsia-bg: var(--dh-color-fuchsia-700);
+  --dh-color-magenta-bg: var(--dh-color-magenta-700);
+
+  /* Visual Colors */
+  --dh-color-visual-gray: var(--dh-color-gray-600);
+  --dh-color-visual-red: var(--dh-color-red-800);
+  --dh-color-visual-orange: var(--dh-color-orange-900);
+  --dh-color-visual-yellow: var(--dh-color-yellow-1200);
+  --dh-color-visual-chartreuse: var(--dh-color-chartreuse-1100);
+  --dh-color-visual-celery: var(--dh-color-celery-1000);
+  --dh-color-visual-green: var(--dh-color-green-1100);
+  --dh-color-visual-seafoam: var(--dh-color-seafoam-1100);
+  --dh-color-visual-cyan: var(--dh-color-cyan-1100);
+  --dh-color-visual-blue: var(--dh-color-blue-600);
+  --dh-color-visual-indigo: var(--dh-color-indigo-900);
+  --dh-color-visual-purple: var(--dh-color-purple-1100);
+  --dh-color-visual-fuchsia: var(--dh-color-fuchsia-900);
+  --dh-color-visual-magenta: var(--dh-color-magenta-900);
+
+  --dh-color-visual-positive: var(--dh-color-green-1200);
+  --dh-color-visual-negative: var(--dh-color-red-800);
+  --dh-color-visual-notice: var(--dh-color-yellow-1200);
+  --dh-color-visual-info: var(--dh-color-cyan-1100);
+
+  /* Focus */
+  --dh-color-focus: var(--dh-color-blue-800);
+  --dh-color-focus-border: var(--dh-color-blue-800);
+  --dh-color-focus-ring: var(--dh-color-focus);
+
+  /* Highlight */
+  --dh-color-highlight-active: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 20%,
+    transparent
+  );
+  --dh-color-highlight-hover: color-mix(
+    in srgb,
+    var(--dh-color-visual-gray) 18%,
+    transparent
+  );
+  --dh-color-highlight-invalid: color-mix(
+    in srgb,
+    var(--dh-color-visual-red) 15%,
+    transparent
+  );
+  --dh-color-highlight-selected: color-mix(
+    in srgb,
+    var(--dh-color-accent) 9%,
+    transparent
+  );
+  --dh-color-highlight-selected-hover: color-mix(
+    in srgb,
+    var(--dh-color-accent) 15%,
+    transparent
+  );
+
+  /* Keyboard selected */
+  --dh-color-keyboard-selected-bg: color-mix(
+    in srgb,
+    var(--dh-color-accent) 50%,
+    transparent
+  );
+
+  /* Shadows / Overlays */
+  --dh-color-dropshadow: color-mix(
+    in srgb,
+    var(--dh-color-true-black) 80%,
+    transparent
+  );
+  --dh-color-overlay-modal-bg: color-mix(
+    in srgb,
+    var(--dh-color-black) 50%,
+    transparent
+  );
+  --dh-color-overlay-hover-bg: color-mix(
+    in srgb,
+    var(--dh-color-white) 8%,
+    transparent
+  );
+
+  /* Negative */
+  --dh-color-negative: var(--dh-color-red-600);
+  --dh-color-negative-bg: var(--dh-color-negative);
+  --dh-color-negative-hover-bg: var(--dh-color-red-500);
+  --dh-color-negative-down-bg: var(--dh-color-red-400);
+  --dh-color-negative-key-focus-bg: var(--dh-color-red-500);
+  --dh-color-negative-contrast: var(--dh-color-contrast-light);
+
+  /* Neutral */
+  --dh-color-neutral: var(--dh-color-gray-500);
+  --dh-color-neutral-bg: var(--dh-color-neutral);
+  --dh-color-neutral-hover-bg: var(--dh-color-gray-300);
+  --dh-color-neutral-down-bg: var(--dh-color-gray-200);
+  --dh-color-neutral-key-focus-bg: var(--dh-color-gray-300);
+  --dh-color-neutral-contrast: var(--dh-color-contrast-light);
+
+  --dh-color-neutral-subdued-bg: var(--dh-color-gray-400);
+  --dh-color-neutral-subdued-hover-bg: var(--dh-color-gray-300);
+  --dh-color-neutral-subdued-down-bg: var(--dh-color-gray-200);
+  --dh-color-neutral-subdued-key-focus-bg: var(--dh-color-gray-300);
+
+  /* Positive */
+  --dh-color-positive: var(--dh-color-green-900);
+  --dh-color-positive-bg: var(--dh-color-positive);
+  --dh-color-positive-hover-bg: var(--dh-color-green-800);
+  --dh-color-positive-down-bg: var(--dh-color-green-700);
+  --dh-color-positive-key-focus-bg: var(--dh-color-green-800);
+  --dh-color-positive-contrast: var(--dh-color-contrast-dark);
+
+  /* Informative */
+  --dh-color-info: var(--dh-color-indigo-900);
+  --dh-color-info-bg: var(--dh-color-info);
+  --dh-color-info-hover-bg: var(--dh-color-indigo-800);
+  --dh-color-info-down-bg: var(--dh-color-indigo-700);
+  --dh-color-info-key-focus-bg: var(--dh-color-indigo-800);
+  --dh-color-info-contrast: var(--dh-color-contrast-dark);
+
+  /* Notice */
+  --dh-color-notice: var(--dh-color-yellow-1000);
+  --dh-color-notice-bg: var(--dh-color-notice);
+  --dh-color-notice-hover-bg: var(--dh-color-yellow-900);
+  --dh-color-notice-down-bg: var(--dh-color-yellow-800);
+  --dh-color-notice-key-focus-bg: var(--dh-color-yellow-1000);
+  --dh-color-notice-contrast: var(--dh-color-contrast-dark);
+
+  /* Editing */
+  --dh-color-modified: var(--dh-color-yellow-1300);
+}

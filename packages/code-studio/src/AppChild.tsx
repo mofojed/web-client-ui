@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import Log from '@deephaven/log';
 
+// TODO: We'd need to import the proper theme files
+import '@deephaven/components/scss/theme-dark.scss';
+
 const log = Log.module('AppChild');
 
 function AppChild(): JSX.Element {
