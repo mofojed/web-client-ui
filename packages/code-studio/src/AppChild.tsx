@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Log from '@deephaven/log';
 
 // TODO: We'd need to import the proper theme files
-import '@deephaven/components/scss/theme-dark.scss';
+import '@deephaven/components/scss/theme-hack.scss';
 
 const log = Log.module('AppChild');
 

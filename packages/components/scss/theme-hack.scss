@@ -858,3 +858,658 @@
   /* Editing */
   --dh-color-modified: var(--dh-color-yellow-1300);
 }
+
+/* stylelint-disable custom-property-empty-line-before */
+/* stylelint-disable alpha-value-notation */
+
+/**
+ * Intentionally using the classname twice so we have higher specificity than spectrum's definitions
+ * This is to ensure that our overrides are applied regardless of CSS chunk loading order
+ */
+.dh-spectrum-alias.dh-spectrum-alias {
+  /*********** Override variables in spectrum-global.css **********************/
+  --spectrum-alias-background-color-default: var(--dh-color-bg);
+  --spectrum-alias-background-color-disabled: var(--dh-color-disabled-bg);
+
+  --spectrum-alias-label-text-color: var(--dh-color-label-text);
+  --spectrum-alias-text-color: var(--dh-color-text);
+  --spectrum-alias-text-color-hover: var(--dh-color-text-hover);
+  --spectrum-alias-text-color-disabled: var(--dh-color-text-disabled);
+  --spectrum-alias-border-color: var(--dh-color-border);
+  --spectrum-alias-border-color-hover: var(--dh-color-hover-border);
+  --spectrum-alias-border-color-focus: var(--dh-color-border-focus);
+  --spectrum-alias-input-border-color-key-focus: var(
+    --spectrum-alias-border-color-focus
+  );
+  --spectrum-alias-focus-color: var(--dh-color-focus);
+  --spectrum-alias-focus-ring-color: var(--dh-color-focus-ring);
+  --spectrum-alias-icon-color: var(--dh-color-icon-fg);
+  --spectrum-alias-icon-color-disabled: var(--dh-color-icon-disabled-fg);
+
+  --spectrum-actionbutton-background-color-disabled: var(
+    --dh-color-action-disabled-bg
+  );
+  --spectrum-actionbutton-border-color-disabled: var(
+    --dh-color-action-disabled-border
+  );
+  --spectrum-actionbutton-text-color-disabled: var(
+    --dh-color-action-disabled-fg
+  );
+
+  /*********** Override variables in spectrum-darkest.css *********************/
+  --spectrum-body-text-color: var(--dh-color-text);
+
+  /* Shadows / Overlays */
+  --spectrum-alias-dropshadow-color: var(--dh-color-dropshadow);
+  --spectrum-alias-background-color-modal-overlay: var(
+    --dh-color-overlay-modal-bg
+  );
+  --spectrum-alias-background-color-hover-overlay: var(
+    --dh-color-overlay-hover-bg
+  );
+
+  /* Color Picker Borders */
+  --spectrum-colorarea-border-color: var(--dh-color-colorpicker-border);
+  --spectrum-colorarea-border-color-hover: var(--dh-color-colorpicker-border);
+  --spectrum-colorarea-border-color-down: var(--dh-color-colorpicker-border);
+  --spectrum-colorarea-border-color-key-focus: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorslider-border-color: var(--dh-color-colorpicker-border);
+  --spectrum-colorslider-border-color-hover: var(--dh-color-colorpicker-border);
+  --spectrum-colorslider-border-color-down: var(--dh-color-colorpicker-border);
+  --spectrum-colorslider-border-color-key-focus: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorslider-vertical-border-color: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorslider-vertical-border-color-hover: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorslider-vertical-border-color-down: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorslider-vertical-border-color-key-focus: var(
+    --dh-color-colorpicker-border
+  );
+  --spectrum-colorwheel-border-color: var(--dh-color-colorpicker-border);
+  --spectrum-colorwheel-border-color-hover: var(--dh-color-colorpicker-border);
+  --spectrum-colorwheel-border-color-down: var(--dh-color-colorpicker-border);
+  --spectrum-colorwheel-border-color-key-focus: var(
+    --dh-color-colorpicker-border
+  );
+
+  /* Highlight */
+  --spectrum-alias-highlight-active: var(--dh-color-highlight-active);
+  --spectrum-alias-highlight-hover: var(--dh-color-highlight-hover);
+  --spectrum-alias-highlight-invalid: var(--dh-color-highlight-invalid);
+  --spectrum-alias-highlight-selected: var(--dh-color-highlight-selected);
+  --spectrum-alias-highlight-selected-hover: var(
+    --dh-color-highlight-selected-hover
+  );
+
+  --spectrum-alias-text-highlight-color: var(--dh-color-text-highlight);
+  --spectrum-alias-background-color-quickactions: var(
+    --dh-color-quickactions-bg
+  );
+  --spectrum-alias-radial-reaction-color-default: var(
+    --dh-color-radial-reaction
+  );
+
+  --spectrum-alias-appframe-border-color: var(--spectrum-global-color-gray-50);
+  --spectrum-alias-appframe-separator-color: var(
+    --spectrum-global-color-gray-50
+  );
+  --spectrum-alias-pasteboard-background-color: var(
+    --spectrum-global-color-gray-50
+  );
+
+  /* Tabs */
+  --spectrum-tabs-compact-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-compact-vertical-rule-color: var(
+    --spectrum-global-color-gray-200
+  );
+  --spectrum-tabs-compact-vertical-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-compact-vertical-emphasized-rule-color: var(
+    --spectrum-global-color-gray-200
+  );
+  --spectrum-tabs-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-quiet-compact-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-quiet-compact-vertical-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-quiet-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+  --spectrum-tabs-quiet-vertical-emphasized-selection-indicator-color: var(
+    --spectrum-global-color-blue-500
+  );
+
+  /* Wells */
+  --spectrum-well-background-color: var(--dh-color-well-bg);
+  --spectrum-well-border-color: var(--dh-color-well-border);
+
+  /* PATCH: This is missing in Spectrum css */
+  --spectrum-tray-background-color: var(--spectrum-global-color-gray-100);
+
+  --react-spectrum-datepicker-placeholder-color: var(
+    --spectrum-global-color-gray-600
+  ); /* 4.8:1 contrast ratio */
+
+  /* Accent */
+  --spectrum-accent-background-color-default: var(--dh-color-accent-bg);
+  --spectrum-accent-background-color-hover: var(--dh-color-accent-hover-bg);
+  --spectrum-accent-background-color-down: var(--dh-color-accent-down-bg);
+  --spectrum-accent-background-color-key-focus: var(
+    --dh-color-accent-key-focus-bg
+  );
+
+  --spectrum-accent-color-100: var(--dh-color-accent-100);
+  --spectrum-accent-color-200: var(--dh-color-accent-200);
+  --spectrum-accent-color-300: var(--dh-color-accent-300);
+  --spectrum-accent-color-400: var(--dh-color-accent-400);
+  --spectrum-accent-color-500: var(--dh-color-accent-500);
+  --spectrum-accent-color-600: var(--dh-color-accent-600);
+  --spectrum-accent-color-700: var(--dh-color-accent-700);
+  --spectrum-accent-color-800: var(--dh-color-accent-800);
+  --spectrum-accent-color-900: var(--dh-color-accent-900);
+  --spectrum-accent-color-1000: var(--dh-color-accent-1000);
+  --spectrum-accent-color-1100: var(--dh-color-accent-1100);
+  --spectrum-accent-color-1200: var(--dh-color-accent-1200);
+  --spectrum-accent-color-1300: var(--dh-color-accent-1300);
+  --spectrum-accent-color-1400: var(--dh-color-accent-1400);
+
+  /* Neutral */
+  --spectrum-neutral-background-color-default: var(--dh-color-neutral-bg);
+  --spectrum-neutral-background-color-hover: var(--dh-color-neutral-hover-bg);
+  --spectrum-neutral-background-color-down: var(--dh-color-neutral-down-bg);
+  --spectrum-neutral-background-color-key-focus: var(
+    --dh-color-neutral-key-focus-bg
+  );
+
+  --spectrum-neutral-subdued-background-color-default: var(
+    --dh-color-neutral-subdued-bg
+  );
+  --spectrum-neutral-subdued-background-color-hover: var(
+    --dh-color-neutral-subdued-hover-bg
+  );
+  --spectrum-neutral-subdued-background-color-down: var(
+    --dh-color-neutral-subdued-down-bg
+  );
+  --spectrum-neutral-subdued-background-color-key-focus: var(
+    --dh-color-neutral-subdued-key-focus-bg
+  );
+
+  /* Negative */
+  --spectrum-negative-background-color-default: var(--dh-color-negative-bg);
+  --spectrum-negative-background-color-hover: var(--dh-color-negative-hover-bg);
+  --spectrum-negative-background-color-down: var(--dh-color-negative-down-bg);
+  --spectrum-negative-background-color-key-focus: var(
+    --dh-color-negative-key-focus-bg
+  );
+
+  /* Positive */
+  --spectrum-positive-background-color-default: var(--dh-color-positive-bg);
+  --spectrum-positive-background-color-hover: var(--dh-color-positive-hover-bg);
+  --spectrum-positive-background-color-down: var(--dh-color-positive-down-bg);
+  --spectrum-positive-background-color-key-focus: var(
+    --dh-color-positive-key-focus-bg
+  );
+
+  /* Informative */
+  --spectrum-informative-background-color-default: var(--dh-color-info-bg);
+  --spectrum-informative-background-color-hover: var(--dh-color-info-hover-bg);
+  --spectrum-informative-background-color-down: var(--dh-color-info-down-bg);
+  --spectrum-informative-background-color-key-focus: var(
+    --dh-color-info-key-focus-bg
+  );
+
+  /* Notice */
+  --spectrum-notice-background-color-default: var(--dh-color-notice-bg);
+  --spectrum-notice-background-color-hover: var(--dh-color-notice-hover-bg);
+  --spectrum-notice-background-color-down: var(--dh-color-notice-down-bg);
+  --spectrum-notice-background-color-key-focus: var(
+    --dh-color-notice-key-focus-bg
+  );
+
+  /* Default Background */
+  --spectrum-gray-background-color-default: var(--dh-color-gray-bg);
+  --spectrum-red-background-color-default: var(--dh-color-red-bg);
+  --spectrum-orange-background-color-default: var(--dh-color-orange-bg);
+  --spectrum-yellow-background-color-default: var(--dh-color-yellow-bg);
+  --spectrum-chartreuse-background-color-default: var(--dh-color-chartreuse-bg);
+  --spectrum-celery-background-color-default: var(--dh-color-celery-bg);
+  --spectrum-green-background-color-default: var(--dh-color-green-bg);
+  --spectrum-seafoam-background-color-default: var(--dh-color-seafoam-bg);
+  --spectrum-cyan-background-color-default: var(--dh-color-cyan-bg);
+  --spectrum-blue-background-color-default: var(--dh-color-blue-bg);
+  --spectrum-indigo-background-color-default: var(--dh-color-indigo-bg);
+  --spectrum-purple-background-color-default: var(--dh-color-purple-bg);
+  --spectrum-fuchsia-background-color-default: var(--dh-color-fuchsia-bg);
+  --spectrum-magenta-background-color-default: var(--dh-color-magenta-bg);
+
+  /* Visual levels */
+  --spectrum-negative-visual-color: var(--dh-color-visual-negative);
+  --spectrum-positive-visual-color: var(--dh-color-visual-positive);
+  --spectrum-notice-visual-color: var(--dh-color-visual-notice);
+  --spectrum-informative-visual-color: var(--dh-color-visual-info);
+
+  /* Visual */
+  --spectrum-gray-visual-color: var(--dh-color-visual-gray);
+  --spectrum-red-visual-color: var(--dh-color-visual-red);
+  --spectrum-orange-visual-color: var(--dh-color-visual-orange);
+  --spectrum-yellow-visual-color: var(--dh-color-visual-yellow);
+  --spectrum-chartreuse-visual-color: var(--dh-color-visual-chartreuse);
+  --spectrum-celery-visual-color: var(--dh-color-visual-celery);
+  --spectrum-green-visual-color: var(--dh-color-visual-green);
+  --spectrum-seafoam-visual-color: var(--dh-color-visual-seafoam);
+  --spectrum-cyan-visual-color: var(--dh-color-visual-cyan);
+  --spectrum-blue-visual-color: var(--dh-color-visual-blue);
+  --spectrum-indigo-visual-color: var(--dh-color-visual-indigo);
+  --spectrum-purple-visual-color: var(--dh-color-visual-purple);
+  --spectrum-fuchsia-visual-color: var(--dh-color-visual-fuchsia);
+  --spectrum-magenta-visual-color: var(--dh-color-visual-magenta);
+
+  /*********** Override component specific variables **************************/
+
+  /* Textfield */
+  --spectrum-textfield-background-color: var(--dh-color-input-bg);
+  --spectrum-textfield-background-color-down: var(--dh-color-input-active-bg);
+  --spectrum-textfield-background-color-disabled: var(
+    --dh-color-input-disabled-bg
+  );
+  --spectrum-textfield-border-color: var(--dh-color-input-border);
+  --spectrum-textfield-border-color-disabled: var(
+    --dh-color-input-disabled-border
+  );
+
+  /* Fieldbutton */
+  --spectrum-fieldbutton-background-color: var(--dh-color-selector-bg);
+  --spectrum-fieldbutton-background-color-hover: var(
+    --dh-color-selector-hover-bg
+  );
+  --spectrum-fieldbutton-background-color-disabled: var(
+    --dh-color-input-disabled-bg
+  );
+  --spectrum-fieldbutton-border-color: var(--dh-color-input-border);
+  --spectrum-fieldbutton-border-color-hover: var(--dh-color-input-hover-border);
+  --spectrum-fieldbutton-icon-color: var(--dh-color-selector-fg);
+  --spectrum-fieldbutton-icon-color-hover: var(--dh-color-selector-hover-fg);
+
+  /* Dialogs */
+  --spectrum-dialog-title-text-color: var(--dh-color-dialog-title-fg);
+  --spectrum-dialog-content-text-color: var(--dh-color-dialog-fg);
+
+  /* Popovers */
+  --spectrum-popover-background-color: var(--dh-color-popover-bg);
+}
+
+[class*='spectrum'] {
+  /* --font-family-sans-serif is defined in Bootstrap's _root.scss. We want
+  Spectrum to use the same default font-family */
+  font-family: var(--font-family-sans-serif) !important;
+}
+
+/* Override _reboot.scss */
+label[class*='spectrum-'] {
+  margin-bottom: 0;
+}
+
+/*
+* This workaround can be removed when this fix is pulled in
+* https://github.com/adobe/react-spectrum/issues/7571
+*/
+[class*='spectrum-Menu-itemGrid'] svg,
+svg[class*='spectrum-Textfield-validationIcon'] {
+  /* set as border-box by reboot, but spectrum expects this to be content-box */
+  box-sizing: content-box;
+}
+
+svg[class*='spectrum-Textfield-validationIcon'] {
+  /* set as border-box by reboot, but spectrum expects this to be content-box */
+  box-sizing: content-box;
+}
+
+svg[class*='spectrum-Accordion-itemIndicator'] {
+  /* set as border-box by reboot, but spectrum expects this to be content-box */
+  box-sizing: content-box;
+}
+
+.svg-inline--fa[class*='spectrum-Icon--sizeS'] {
+  /* 
+  Resize fontawesome icons used inside a spectrum icon wrapper to match
+  our icon size. Spectrum icons are 18px by default, but our icons are built on a 16px grid.
+  */
+  --spectrum-alias-workflow-icon-size: var(--dh-svg-inline-icon-size);
+}
+
+/** 
+ * Spectrum action button icons only include right padding if the the icon is 
+ * the only child. In cases where we add a <Tooltip>, we have to manually add 
+ * the right padding ourselves to keep the icon centered.
+ */
+.action-button-icon-with-tooltip {
+  padding-right: var(
+    --spectrum-actionbutton-icon-padding-x,
+    var(--spectrum-global-dimension-size-85)
+  );
+}
+
+/* Table */
+[class*='spectrum-Table-headCell'] {
+  /* 
+  Tables are styled with the assumption that the header is the same color as the bg
+  which means they look bad against any other background color, instead just inherit the bg.
+  There is also no variable exposed for this, so we have to target the class directly.
+ */
+  --dh-table-header-cell-background-color: transparent;
+
+  background: var(--dh-table-header-cell-background-color);
+}
+
+[class*='spectrum-Table-row'] {
+  /* border of selected color is hard-coded as blue rather than accent color */
+  --spectrum-table-row-border-color-selected: var(
+    --dh-color-item-list-selected-border
+  );
+}
+
+[class*='spectrum-Table--quiet'] {
+  /* Quiet shouldn't assume a bg color */
+  --spectrum-alias-background-color-default: transparent;
+}
+
+[class*='spectrum-ListView'] {
+  /* border of selected color is hard-coded as blue rather than accent color */
+  --spectrum-listview-item-border-color-selected: var(
+    --dh-color-item-list-selected-border
+  );
+}
+
+/**
+  Adjust Spectrum button text and icon alignment to account for DH using a
+  different font and smaller icons. Spectrum `ButtonGroup` will add additional
+  `-spectrum-ButtonGroup` classes to child buttons (including DH ones), so we
+  explicitly exclude our buttons from the selector.
+  */
+button[class*='spectrum-Button']:not(.btn):not(.btn-socketed) {
+  /* make the icon closer to the text */
+  --spectrum-button-primary-text-gap: var(--spectrum-global-dimension-size-75);
+
+  /* Center the text vertically. We use a different font then spectrum so we require different custom centering */
+  padding-bottom: calc(var(--spectrum-global-dimension-size-50) - 1px);
+  padding-top: calc(var(--spectrum-global-dimension-size-50));
+}
+button[class*='spectrum-Button']:not(.btn):not(.btn-socketed) svg {
+  /* 
+    We use smaller icons than Spectrum, so we need to adjust the padding to 
+    center when we use our icons inside of Spectrum buttons.
+    */
+  padding-bottom: var(--spectrum-global-dimension-size-25);
+}
+
+span[class*='spectrum-Checkbox-label'],
+span[class*='spectrum-Radio-label'] {
+  /* I have no idea why these spectrum labels aren't centered,
+   but this fixes it. Maybe difference in font baselines.
+   */
+  margin-top: var(--spectrum-global-dimension-size-85);
+}
+label[class*='spectrum-Radio'] {
+  --spectrum-radio-emphasized-circle-border-color-error: var(
+    --dh-color-negative-bg
+  );
+  --spectrum-radio-emphasized-circle-border-color-error-hover: var(
+    --dh-color-negative-hover-bg
+  );
+  --spectrum-radio-emphasized-circle-border-color-error-down: var(
+    --dh-color-negative-down-bg
+  );
+  --spectrum-radio-circle-border-color-error-key-focus: var(
+    --dh-color-negative-key-focus-bg
+  );
+  --spectrum-radio-circle-border-color-error-selected-key-focus: var(
+    --dh-color-negative-key-focus-bg
+  );
+}
+
+span[class*='spectrum-ToggleSwitch-switch'] {
+  /* increase contrast of switch in off position */
+  background: var(--dh-toggle-switch-bg);
+}
+
+/**
+ * Intentionally using the classname twice so we have higher specificity than spectrum's definitions
+ * This is to ensure that our overrides are applied regardless of CSS chunk loading order
+ */
+.dh-spectrum-palette.dh-spectrum-palette {
+  /* Gray */
+  --spectrum-gray-50: var(--dh-color-gray-50);
+  --spectrum-gray-75: var(--dh-color-gray-75);
+  --spectrum-gray-100: var(--dh-color-gray-100);
+  --spectrum-gray-200: var(--dh-color-gray-200);
+  --spectrum-gray-300: var(--dh-color-gray-300);
+  --spectrum-gray-400: var(--dh-color-gray-400);
+  --spectrum-gray-500: var(--dh-color-gray-500);
+  --spectrum-gray-600: var(--dh-color-gray-600);
+  --spectrum-gray-700: var(--dh-color-gray-700);
+  --spectrum-gray-800: var(--dh-color-gray-800);
+  --spectrum-gray-900: var(--dh-color-gray-900);
+
+  /* Blue */
+  --spectrum-blue-100: var(--dh-color-blue-100);
+  --spectrum-blue-200: var(--dh-color-blue-200);
+  --spectrum-blue-300: var(--dh-color-blue-300);
+  --spectrum-blue-400: var(--dh-color-blue-400);
+  --spectrum-blue-500: var(--dh-color-blue-500);
+  --spectrum-blue-600: var(--dh-color-blue-600);
+  --spectrum-blue-700: var(--dh-color-blue-700);
+  --spectrum-blue-800: var(--dh-color-blue-800);
+  --spectrum-blue-900: var(--dh-color-blue-900);
+  --spectrum-blue-1000: var(--dh-color-blue-1000);
+  --spectrum-blue-1100: var(--dh-color-blue-1100);
+  --spectrum-blue-1200: var(--dh-color-blue-1200);
+  --spectrum-blue-1300: var(--dh-color-blue-1300);
+  --spectrum-blue-1400: var(--dh-color-blue-1400);
+
+  /* Red */
+  --spectrum-red-100: var(--dh-color-red-100);
+  --spectrum-red-200: var(--dh-color-red-200);
+  --spectrum-red-300: var(--dh-color-red-300);
+  --spectrum-red-400: var(--dh-color-red-400);
+  --spectrum-red-500: var(--dh-color-red-500);
+  --spectrum-red-600: var(--dh-color-red-600);
+  --spectrum-red-700: var(--dh-color-red-700);
+  --spectrum-red-800: var(--dh-color-red-800);
+  --spectrum-red-900: var(--dh-color-red-900);
+  --spectrum-red-1000: var(--dh-color-red-1000);
+  --spectrum-red-1100: var(--dh-color-red-1100);
+  --spectrum-red-1200: var(--dh-color-red-1200);
+  --spectrum-red-1300: var(--dh-color-red-1300);
+  --spectrum-red-1400: var(--dh-color-red-1400);
+
+  /* Orange */
+  --spectrum-orange-100: var(--dh-color-orange-100);
+  --spectrum-orange-200: var(--dh-color-orange-200);
+  --spectrum-orange-300: var(--dh-color-orange-300);
+  --spectrum-orange-400: var(--dh-color-orange-400);
+  --spectrum-orange-500: var(--dh-color-orange-500);
+  --spectrum-orange-600: var(--dh-color-orange-600);
+  --spectrum-orange-700: var(--dh-color-orange-700);
+  --spectrum-orange-800: var(--dh-color-orange-800);
+  --spectrum-orange-900: var(--dh-color-orange-900);
+  --spectrum-orange-1000: var(--dh-color-orange-1000);
+  --spectrum-orange-1100: var(--dh-color-orange-1100);
+  --spectrum-orange-1200: var(--dh-color-orange-1200);
+  --spectrum-orange-1300: var(--dh-color-orange-1300);
+  --spectrum-orange-1400: var(--dh-color-orange-1400);
+
+  /* Yellow */
+  --spectrum-yellow-100: var(--dh-color-yellow-100);
+  --spectrum-yellow-200: var(--dh-color-yellow-200);
+  --spectrum-yellow-300: var(--dh-color-yellow-300);
+  --spectrum-yellow-400: var(--dh-color-yellow-400);
+  --spectrum-yellow-500: var(--dh-color-yellow-500);
+  --spectrum-yellow-600: var(--dh-color-yellow-600);
+  --spectrum-yellow-700: var(--dh-color-yellow-700);
+  --spectrum-yellow-800: var(--dh-color-yellow-800);
+  --spectrum-yellow-900: var(--dh-color-yellow-900);
+  --spectrum-yellow-1000: var(--dh-color-yellow-1000);
+  --spectrum-yellow-1100: var(--dh-color-yellow-1100);
+  --spectrum-yellow-1200: var(--dh-color-yellow-1200);
+  --spectrum-yellow-1300: var(--dh-color-yellow-1300);
+  --spectrum-yellow-1400: var(--dh-color-yellow-1400);
+
+  /* Chartreuse */
+  --spectrum-chartreuse-100: var(--dh-color-chartreuse-100);
+  --spectrum-chartreuse-200: var(--dh-color-chartreuse-200);
+  --spectrum-chartreuse-300: var(--dh-color-chartreuse-300);
+  --spectrum-chartreuse-400: var(--dh-color-chartreuse-400);
+  --spectrum-chartreuse-500: var(--dh-color-chartreuse-500);
+  --spectrum-chartreuse-600: var(--dh-color-chartreuse-600);
+  --spectrum-chartreuse-700: var(--dh-color-chartreuse-700);
+  --spectrum-chartreuse-800: var(--dh-color-chartreuse-800);
+  --spectrum-chartreuse-900: var(--dh-color-chartreuse-900);
+  --spectrum-chartreuse-1000: var(--dh-color-chartreuse-1000);
+  --spectrum-chartreuse-1100: var(--dh-color-chartreuse-1100);
+  --spectrum-chartreuse-1200: var(--dh-color-chartreuse-1200);
+  --spectrum-chartreuse-1300: var(--dh-color-chartreuse-1300);
+  --spectrum-chartreuse-1400: var(--dh-color-chartreuse-1400);
+
+  /* Celery */
+  --spectrum-celery-100: var(--dh-color-celery-100);
+  --spectrum-celery-200: var(--dh-color-celery-200);
+  --spectrum-celery-300: var(--dh-color-celery-300);
+  --spectrum-celery-400: var(--dh-color-celery-400);
+  --spectrum-celery-500: var(--dh-color-celery-500);
+  --spectrum-celery-600: var(--dh-color-celery-600);
+  --spectrum-celery-700: var(--dh-color-celery-700);
+  --spectrum-celery-800: var(--dh-color-celery-800);
+  --spectrum-celery-900: var(--dh-color-celery-900);
+  --spectrum-celery-1000: var(--dh-color-celery-1000);
+  --spectrum-celery-1100: var(--dh-color-celery-1100);
+  --spectrum-celery-1200: var(--dh-color-celery-1200);
+  --spectrum-celery-1300: var(--dh-color-celery-1300);
+  --spectrum-celery-1400: var(--dh-color-celery-1400);
+
+  /* Green */
+  --spectrum-green-100: var(--dh-color-green-100);
+  --spectrum-green-200: var(--dh-color-green-200);
+  --spectrum-green-300: var(--dh-color-green-300);
+  --spectrum-green-400: var(--dh-color-green-400);
+  --spectrum-green-500: var(--dh-color-green-500);
+  --spectrum-green-600: var(--dh-color-green-600);
+  --spectrum-green-700: var(--dh-color-green-700);
+  --spectrum-green-800: var(--dh-color-green-800);
+  --spectrum-green-900: var(--dh-color-green-900);
+  --spectrum-green-1000: var(--dh-color-green-1000);
+  --spectrum-green-1100: var(--dh-color-green-1100);
+  --spectrum-green-1200: var(--dh-color-green-1200);
+  --spectrum-green-1300: var(--dh-color-green-1300);
+  --spectrum-green-1400: var(--dh-color-green-1400);
+
+  /* Seafoam */
+  --spectrum-seafoam-100: var(--dh-color-seafoam-100);
+  --spectrum-seafoam-200: var(--dh-color-seafoam-200);
+  --spectrum-seafoam-300: var(--dh-color-seafoam-300);
+  --spectrum-seafoam-400: var(--dh-color-seafoam-400);
+  --spectrum-seafoam-500: var(--dh-color-seafoam-500);
+  --spectrum-seafoam-600: var(--dh-color-seafoam-600);
+  --spectrum-seafoam-700: var(--dh-color-seafoam-700);
+  --spectrum-seafoam-800: var(--dh-color-seafoam-800);
+  --spectrum-seafoam-900: var(--dh-color-seafoam-900);
+  --spectrum-seafoam-1000: var(--dh-color-seafoam-1000);
+  --spectrum-seafoam-1100: var(--dh-color-seafoam-1100);
+  --spectrum-seafoam-1200: var(--dh-color-seafoam-1200);
+  --spectrum-seafoam-1300: var(--dh-color-seafoam-1300);
+  --spectrum-seafoam-1400: var(--dh-color-seafoam-1400);
+
+  /* Cyan */
+  --spectrum-cyan-100: var(--dh-color-cyan-100);
+  --spectrum-cyan-200: var(--dh-color-cyan-200);
+  --spectrum-cyan-300: var(--dh-color-cyan-300);
+  --spectrum-cyan-400: var(--dh-color-cyan-400);
+  --spectrum-cyan-500: var(--dh-color-cyan-500);
+  --spectrum-cyan-600: var(--dh-color-cyan-600);
+  --spectrum-cyan-700: var(--dh-color-cyan-700);
+  --spectrum-cyan-800: var(--dh-color-cyan-800);
+  --spectrum-cyan-900: var(--dh-color-cyan-900);
+  --spectrum-cyan-1000: var(--dh-color-cyan-1000);
+  --spectrum-cyan-1100: var(--dh-color-cyan-1100);
+  --spectrum-cyan-1200: var(--dh-color-cyan-1200);
+  --spectrum-cyan-1300: var(--dh-color-cyan-1300);
+  --spectrum-cyan-1400: var(--dh-color-cyan-1400);
+
+  /* Indigo */
+  --spectrum-indigo-100: var(--dh-color-indigo-100);
+  --spectrum-indigo-200: var(--dh-color-indigo-200);
+  --spectrum-indigo-300: var(--dh-color-indigo-300);
+  --spectrum-indigo-400: var(--dh-color-indigo-400);
+  --spectrum-indigo-500: var(--dh-color-indigo-500);
+  --spectrum-indigo-600: var(--dh-color-indigo-600);
+  --spectrum-indigo-700: var(--dh-color-indigo-700);
+  --spectrum-indigo-800: var(--dh-color-indigo-800);
+  --spectrum-indigo-900: var(--dh-color-indigo-900);
+  --spectrum-indigo-1000: var(--dh-color-indigo-1000);
+  --spectrum-indigo-1100: var(--dh-color-indigo-1100);
+  --spectrum-indigo-1200: var(--dh-color-indigo-1200);
+  --spectrum-indigo-1300: var(--dh-color-indigo-1300);
+  --spectrum-indigo-1400: var(--dh-color-indigo-1400);
+
+  /* Purple */
+  --spectrum-purple-100: var(--dh-color-purple-100);
+  --spectrum-purple-200: var(--dh-color-purple-200);
+  --spectrum-purple-300: var(--dh-color-purple-300);
+  --spectrum-purple-400: var(--dh-color-purple-400);
+  --spectrum-purple-500: var(--dh-color-purple-500);
+  --spectrum-purple-600: var(--dh-color-purple-600);
+  --spectrum-purple-700: var(--dh-color-purple-700);
+  --spectrum-purple-800: var(--dh-color-purple-800);
+  --spectrum-purple-900: var(--dh-color-purple-900);
+  --spectrum-purple-1000: var(--dh-color-purple-1000);
+  --spectrum-purple-1100: var(--dh-color-purple-1100);
+  --spectrum-purple-1200: var(--dh-color-purple-1200);
+  --spectrum-purple-1300: var(--dh-color-purple-1300);
+  --spectrum-purple-1400: var(--dh-color-purple-1400);
+
+  /* Fuchsia */
+  --spectrum-fuchsia-100: var(--dh-color-fuchsia-100);
+  --spectrum-fuchsia-200: var(--dh-color-fuchsia-200);
+  --spectrum-fuchsia-300: var(--dh-color-fuchsia-300);
+  --spectrum-fuchsia-400: var(--dh-color-fuchsia-400);
+  --spectrum-fuchsia-500: var(--dh-color-fuchsia-500);
+  --spectrum-fuchsia-600: var(--dh-color-fuchsia-600);
+  --spectrum-fuchsia-700: var(--dh-color-fuchsia-700);
+  --spectrum-fuchsia-800: var(--dh-color-fuchsia-800);
+  --spectrum-fuchsia-900: var(--dh-color-fuchsia-900);
+  --spectrum-fuchsia-1000: var(--dh-color-fuchsia-1000);
+  --spectrum-fuchsia-1100: var(--dh-color-fuchsia-1100);
+  --spectrum-fuchsia-1200: var(--dh-color-fuchsia-1200);
+  --spectrum-fuchsia-1300: var(--dh-color-fuchsia-1300);
+  --spectrum-fuchsia-1400: var(--dh-color-fuchsia-1400);
+
+  /* Magenta */
+  --spectrum-magenta-100: var(--dh-color-magenta-100);
+  --spectrum-magenta-200: var(--dh-color-magenta-200);
+  --spectrum-magenta-300: var(--dh-color-magenta-300);
+  --spectrum-magenta-400: var(--dh-color-magenta-400);
+  --spectrum-magenta-500: var(--dh-color-magenta-500);
+  --spectrum-magenta-600: var(--dh-color-magenta-600);
+  --spectrum-magenta-700: var(--dh-color-magenta-700);
+  --spectrum-magenta-800: var(--dh-color-magenta-800);
+  --spectrum-magenta-900: var(--dh-color-magenta-900);
+  --spectrum-magenta-1000: var(--dh-color-magenta-1000);
+  --spectrum-magenta-1100: var(--dh-color-magenta-1100);
+  --spectrum-magenta-1200: var(--dh-color-magenta-1200);
+  --spectrum-magenta-1300: var(--dh-color-magenta-1300);
+  --spectrum-magenta-1400: var(--dh-color-magenta-1400);
+}
