@@ -97,7 +97,7 @@ export default class DragProxy extends EventEmitter {
     this._updateTree();
     this._layoutManager._$calculateItemAreas();
 
-    $(document.body).append(this.element);
+    $(contentItem.element[0].ownerDocument.body).append(this.element);
 
     // Need to set dimensions after adding the element, or `Component.setSize()` will not pass the `.is('visible')` test and won't update
     this._setDimensions();

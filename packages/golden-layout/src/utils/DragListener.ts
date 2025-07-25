@@ -38,8 +38,8 @@ class DragListener extends EventEmitter {
     super();
 
     this._eElement = eElement;
-    this._oDocument = $(document);
-    this._eBody = $(document.body);
+    this._oDocument = $(eElement[0].ownerDocument);
+    this._eBody = $(this._oDocument[0].body);
     // used by drag sources, to destroy listener at the right time
     this._destroyAfterMouseUp = destroyAfterMouseUp;
 
