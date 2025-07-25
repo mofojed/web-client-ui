@@ -719,27 +719,13 @@ export class LayoutManager extends EventEmitter {
         'Popout blocked. Please allow popups for this site to use this feature.'
       );
     }
-    // window.document.querySelectorAll('style').forEach(style => {
-    //   // Copy styles to the new window
-    //   // TODO: Does this work?
-    //   popoutWindow.document.head.appendChild(style.cloneNode(true));
-    // });
-    // popoutWindow.document
 
     popoutWindow.addEventListener('load', () => {
       const windowStyles = window.document.head.querySelectorAll('style');
       console.log('Window styles:', windowStyles);
       // Copy the styles from the current window to the new window
       windowStyles.forEach(style => {
-        // Check if the style is already in the new window
-        // if (
-        //   popoutWindow.document.head.querySelector(
-        //     `style[id="${style.id}"]`
-        //   ) === null
-        // ) {
-        // If not, clone and append it
         popoutWindow.document.head.appendChild(style.cloneNode(true));
-        // }
       });
 
       // Now we copy the spectrum-theme-provider element...
