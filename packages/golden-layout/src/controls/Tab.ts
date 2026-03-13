@@ -39,7 +39,6 @@ export default class Tab {
     this.contentItem = contentItem;
     this.titleElement = this.element.find('.lm_title');
     this.closeElement = this.element.find('.lm_close_tab');
-    this.closeElement[contentItem.config.isClosable ? 'show' : 'hide']();
 
     this.setTitle(contentItem.config.title);
     this.contentItem.on('titleChanged', this.setTitle, this);
@@ -71,7 +70,11 @@ export default class Tab {
     this.element.on('auxclick', this._onTabClick);
     this.element.on('mouseup', this._onMouseUp);
 
-    if (this.contentItem.config.isClosable) {
+    const showCloseIcon =
+      contentItem.layoutManager.config.settings.showCloseIcon ?? true;
+    const isClosable = contentItem.config.isClosable ?? true;
+    if (showCloseIcon && isClosable) {
+      this.closeElement.show();
       this.closeElement.on('click', this._onCloseClick);
       this.closeElement.on('mousedown', this._onCloseMousedown);
     } else {

@@ -1,5 +1,6 @@
 import { makeEventFunctions } from '@deephaven/golden-layout';
 
+// TODO: Should this just be an `| UriVariableDescriptor` to handle both cases? Would probably need special checks in a bunch of other places where metadata assumes records...
 export type WidgetDescriptor = {
   type: string;
   name?: string | null;
