@@ -834,7 +834,7 @@ class LayoutUtils {
       },
       settings: {
         showPopoutIcon: false,
-        showCloseIcon: false,
+        showCloseIcon: true,
         constrainDragToContainer: false,
       },
     } as Config;
