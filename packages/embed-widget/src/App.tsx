@@ -27,6 +27,7 @@ import {
   setUser,
   setServerConfigValues,
 } from '@deephaven/redux';
+import { useMcpApp } from './useMcpApp';
 import './App.scss'; // Styles for in this app
 
 const log = Log.module('EmbedWidget.App');
@@ -38,6 +39,9 @@ const log = Log.module('EmbedWidget.App');
  * If no query param is provided, it will display an error.
  * By default, tries to connect to the server defined in the VITE_CORE_API_URL variable, which is set to http://localhost:10000/jsapi
  * See Vite docs for how to update these env vars: https://vitejs.dev/guide/env-and-mode.html
+ *
+ * Also connects as an MCP App to report widget status to an MCP host if
+ * running inside one.
  */
 function App(): JSX.Element {
   const [error, setError] = useState<string>();
@@ -46,6 +50,9 @@ function App(): JSX.Element {
     () => new URLSearchParams(window.location.search),
     []
   );
+
+  const mcpApp = useMcpApp();
+
   // Get the widget name from the query param `name`.
   const name = searchParams.get('name');
   const api = useApi();
@@ -119,6 +126,43 @@ function App(): JSX.Element {
       initApp();
     },
     [api, client, connection, dispatch, name, serverConfig, user]
+  );
+
+  // Report widget state to the MCP host
+  useEffect(
+    function reportMcpContext() {
+      if (mcpApp.app == null || !mcpApp.isConnected) {
+        return;
+      }
+      if (definition != null) {
+        mcpApp.app
+          .updateModelContext({
+            content: [
+              {
+                type: 'text',
+                text: `Widget "${name}" (type: ${definition.type}) loaded successfully.`,
+              },
+            ],
+          })
+          .catch((err: unknown) => {
+            log.warn('Failed to update MCP model context:', err);
+          });
+      } else if (error != null) {
+        mcpApp.app
+          .updateModelContext({
+            content: [
+              {
+                type: 'text',
+                text: `Widget "${name}" failed to load: ${error}`,
+              },
+            ],
+          })
+          .catch((err: unknown) => {
+            log.warn('Failed to update MCP model context:', err);
+          });
+      }
+    },
+    [mcpApp.app, mcpApp.isConnected, definition, error, name]
   );
 
   const isLoaded = definition != null && error == null;
