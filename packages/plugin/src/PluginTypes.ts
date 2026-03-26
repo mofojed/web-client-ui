@@ -135,6 +135,8 @@ export interface WidgetComponentProps<T = unknown> {
    * dh.ui uses this to identify widgets within a dashboard or panel.
    */
   __dhId?: string;
+
+  metadata?: WidgetDescriptor;
 }
 
 export interface WidgetPanelProps<T = unknown> extends WidgetComponentProps<T> {

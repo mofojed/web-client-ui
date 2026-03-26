@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import usePlugins from './usePlugins';
-import { isWidgetPlugin } from './PluginTypes';
+import { isWidgetPlugin, type WidgetComponentProps } from './PluginTypes';
 
-export type WidgetViewProps = {
-  /** Fetch function to return the widget */
-  fetch: () => Promise<unknown>;
-
+export type WidgetViewProps = WidgetComponentProps & {
   /** Type of the widget */
   type: string;
 };
 
-export function WidgetView({ fetch, type }: WidgetViewProps): JSX.Element {
+export function WidgetView({
+  fetch,
+  type,
+  metadata,
+}: WidgetViewProps): JSX.Element {
   const plugins = usePlugins();
   const plugin = useMemo(
     () =>
@@ -22,7 +23,7 @@ export function WidgetView({ fetch, type }: WidgetViewProps): JSX.Element {
 
   if (plugin != null) {
     const Component = plugin.component;
-    return <Component fetch={fetch} />;
+    return <Component fetch={fetch} metadata={metadata} />;
   }
 
   throw new Error(`Unknown widget type '${type}'`);

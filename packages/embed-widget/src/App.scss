@@ -1,14 +1,11 @@
 // Import Deephaven styling so we can use it's variables
 @import '@deephaven/components/scss/custom.scss';
 
+/**
+  * Styling the embed-widget app component, we want it only to be the size of the component itself. 
+  * Then it can be embedded and resize dynamically.
+  */
 .App {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 100vh;
-  width: 100vw;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
