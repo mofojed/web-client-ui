@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 import type { dh } from '@deephaven/jsapi-types';
 import { IrisGridUtils, type InputFilter } from '@deephaven/iris-grid';
 import {
@@ -6,6 +6,8 @@ import {
   useDashboardId,
   useAppSelector,
   useDhId,
+  LayoutManagerContext,
+  DashboardIdContext,
 } from '@deephaven/dashboard';
 import { type RootState } from '@deephaven/redux';
 import { getInputFiltersForDashboard } from './redux';
@@ -30,13 +32,14 @@ export function useDashboardColumnFilters(
   columns: readonly { name: string; type: string }[] | null,
   table?: dh.Table
 ): InputFilter[] {
-  const { eventHub } = useLayoutManager();
-  const dashboardId = useDashboardId();
+  const layoutManager = useContext(LayoutManagerContext);
+  const eventHub = layoutManager?.eventHub;
+  const dashboardId = useContext(DashboardIdContext);
   const panelId = useDhId() as FilterColumnSourceId | null;
 
   useEffect(
     function columnsChanged() {
-      if (panelId == null || columns == null) {
+      if (panelId == null || columns == null || eventHub == null) {
         return;
       }
       emitFilterColumnsChanged(eventHub, panelId, columns);
@@ -46,7 +49,7 @@ export function useDashboardColumnFilters(
 
   useEffect(
     function tableChanged() {
-      if (table == null || panelId == null) {
+      if (table == null || panelId == null || eventHub == null) {
         return;
       }
       emitFilterTableChanged(eventHub, panelId, table);
@@ -58,7 +61,7 @@ export function useDashboardColumnFilters(
   // and we are using null to indicate unmount, not change
   useEffect(
     function cleanupOnUnmount() {
-      if (panelId == null) {
+      if (panelId == null || eventHub == null) {
         return;
       }
       return () => {
@@ -70,7 +73,8 @@ export function useDashboardColumnFilters(
   );
 
   const getInputFilters = useCallback(
-    (s: RootState) => getInputFiltersForDashboard(s, dashboardId),
+    (s: RootState) =>
+      dashboardId != null ? getInputFiltersForDashboard(s, dashboardId) : [],
     [dashboardId]
   );
 

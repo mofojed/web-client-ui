@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import {
@@ -15,7 +15,7 @@ import { useSelector } from 'react-redux';
 import { getSettings, type RootState } from '@deephaven/redux';
 import { LoadingOverlay } from '@deephaven/components';
 import {
-  useLayoutManager,
+  LayoutManagerContext,
   useListener,
   usePersistentState,
 } from '@deephaven/dashboard';
@@ -32,7 +32,8 @@ export function GridWidgetPlugin({
   fetch,
 }: WidgetComponentProps<DhType.Table>): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
-  const { eventHub } = useLayoutManager();
+  const layoutManager = useContext(LayoutManagerContext);
+  const eventHub = layoutManager?.eventHub;
 
   const fetchResult = useIrisGridModel(fetch);
   const model =
@@ -102,11 +103,12 @@ export function GridWidgetPlugin({
 
   const irisGridRef = useRef<IrisGridType | null>(null);
 
-  const { alwaysFetchColumns: linkerAlwaysFetchColumns, ...linkerProps } =
-    useGridLinker(
-      fetchResult.status === 'success' ? fetchResult.model : null,
-      irisGridRef.current
-    );
+  // const { alwaysFetchColumns: linkerAlwaysFetchColumns, ...linkerProps } =
+  //   useGridLinker(
+  //     fetchResult.status === 'success' ? fetchResult.model : null,
+  //     irisGridRef.current
+  //   );
+  const linkerAlwaysFetchColumns = useMemo(() => [], []);
 
   const handleClearAllFilters = useCallback(() => {
     if (irisGridRef.current == null) {
@@ -172,7 +174,7 @@ export function GridWidgetPlugin({
       inputFilters={inputFilters}
       customFilters={customFilters}
       // eslint-disable-next-line react/jsx-props-no-spreading
-      {...linkerProps}
+      // {...linkerProps}
       alwaysFetchColumns={alwaysFetchColumns}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...hydratedState}

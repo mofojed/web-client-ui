@@ -8,17 +8,17 @@ import type { EventEmitter } from '@deephaven/golden-layout';
  * @param callback Callback to call when the event is triggered
  */
 export function useListener(
-  eventEmitter: EventEmitter,
+  eventEmitter: EventEmitter | null | undefined,
   eventName: string,
   // eslint-disable-next-line @typescript-eslint/ban-types
   callback: Function
 ): void {
   useEffect(
     function initEventEmitter() {
-      eventEmitter.on(eventName, callback);
+      eventEmitter?.on(eventName, callback);
 
       return () => {
-        eventEmitter.off(eventName, callback);
+        eventEmitter?.off(eventName, callback);
       };
     },
     [eventEmitter, eventName, callback]
