@@ -15,12 +15,14 @@ services:
   deephaven-server:
     image: ghcr.io/deephaven/server:${DHC_VERSION:-edge}
     pull_policy: always
-    ports:
-      - '15000:10000'
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
     healthcheck:
-      test: ['CMD-SHELL', 'curl -f http://localhost:10000/health || exit 1']
+      test:
+        [
+          'CMD-SHELL',
+          "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:10000/jsapi/dh-core.js')\"",
+        ]
       interval: 10s
       timeout: 5s
       retries: 12
