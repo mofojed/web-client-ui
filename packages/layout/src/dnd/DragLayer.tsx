@@ -114,29 +114,54 @@ export default function DragLayer({
     setHover(null);
   }, []);
 
-  const handleDragMove = useCallback((event: DragMoveEvent) => {
-    if (event.over == null) {
-      setHover(null);
-      return;
-    }
-    const overId = String(event.over.id);
-    if (!isStackDroppableId(overId)) return;
-    const stackId = stackIdFromDroppable(overId);
-    const { rect } = event.over;
-    const zone: DropZone = computeDropZone(
-      {
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-      },
-      pointerRef.current
-    );
-    setHover(prev => {
-      if (prev && prev.stackId === stackId && prev.zone === zone) return prev;
-      return { stackId, zone };
-    });
-  }, []);
+  const handleDragMove = useCallback(
+    (event: DragMoveEvent) => {
+      if (event.over == null) {
+        setHover(null);
+        return;
+      }
+      const overId = String(event.over.id);
+      if (!isStackDroppableId(overId)) return;
+      const stackId = stackIdFromDroppable(overId);
+      // suppress all drop indicators on the source stack — dropping a panel
+      // back into its own stack is either a no-op or surprising mid-drag UX
+      if (stackId === sourceStackId) {
+        setHover(null);
+        return;
+      }
+      const { rect } = event.over;
+      const pointer = pointerRef.current;
+      let zone: DropZone = computeDropZone(
+        {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        },
+        pointer
+      );
+      // if the pointer is over the stack's tab strip, treat it as a center
+      // drop (join the stack) rather than a top-edge split
+      const stackEl = document.querySelector(`[data-stack-id="${stackId}"]`);
+      const tabsEl = stackEl?.querySelector('.dh-layout-tabs');
+      if (tabsEl != null) {
+        const tabsRect = tabsEl.getBoundingClientRect();
+        if (
+          pointer.x >= tabsRect.left &&
+          pointer.x <= tabsRect.right &&
+          pointer.y >= tabsRect.top &&
+          pointer.y <= tabsRect.bottom
+        ) {
+          zone = 'center';
+        }
+      }
+      setHover(prev => {
+        if (prev && prev.stackId === stackId && prev.zone === zone) return prev;
+        return { stackId, zone };
+      });
+    },
+    [sourceStackId]
+  );
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
