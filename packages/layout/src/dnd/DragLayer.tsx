@@ -182,7 +182,8 @@ export default function DragLayer({
       const stackId = stackIdFromDroppable(overId);
 
       // 2. tab strip → join stack at the precise insertion index. allowed
-      //    even on the source stack (intra-stack reorder).
+      //    even on the source stack (intra-stack reorder), but suppressed
+      //    if the source has only the panel being dragged (no-op).
       const stackEl = document.querySelector(`[data-stack-id="${stackId}"]`);
       const tabsEl = stackEl?.querySelector('.dh-layout-tabs');
       if (tabsEl != null) {
@@ -193,6 +194,13 @@ export default function DragLayer({
           pointer.y >= tabsRect.top &&
           pointer.y <= tabsRect.bottom
         ) {
+          if (
+            stackId === sourceStackId &&
+            getStackChildCount(sourceStackId) <= 1
+          ) {
+            setHover(null);
+            return;
+          }
           const tabBounds = Array.from(
             tabsEl.querySelectorAll('.dh-layout-tab')
           ).map(el => {
@@ -221,15 +229,7 @@ export default function DragLayer({
         }
       }
 
-      // 3. body drops on the source stack are suppressed — the body is
-      //    where 5-zone hotspots live and dropping a panel back into its
-      //    own body is a no-op
-      if (stackId === sourceStackId) {
-        setHover(null);
-        return;
-      }
-
-      // 4. fall back to the geometric 5-zone hotspot inside the stack rect
+      // 3. fall back to the geometric 5-zone hotspot inside the stack rect
       const { rect } = event.over;
       const zone: DropZone = computeDropZone(
         {
@@ -240,6 +240,23 @@ export default function DragLayer({
         },
         pointer
       );
+
+      // for source-stack body drops: edge zones split the panel off into a
+      // new row/column (a useful operation), but center is a no-op (panel
+      // already in this stack). suppress center entirely; suppress edges
+      // too if the source stack contains only the panel being dragged
+      // (splitting from a single-panel stack would be a no-op).
+      if (stackId === sourceStackId) {
+        if (zone === 'center') {
+          setHover(null);
+          return;
+        }
+        if (getStackChildCount(sourceStackId) <= 1) {
+          setHover(null);
+          return;
+        }
+      }
+
       setHover(prev => {
         if (
           prev != null &&
@@ -253,7 +270,7 @@ export default function DragLayer({
         return { kind: 'stackZone', stackId, zone };
       });
     },
-    [dashboardRef, rootNodeId, sourceStackId]
+    [dashboardRef, rootNodeId, sourceStackId, getStackChildCount]
   );
 
   const handleDragEnd = useCallback(
