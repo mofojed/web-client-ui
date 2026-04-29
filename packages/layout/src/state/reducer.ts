@@ -127,6 +127,8 @@ function insertAtTarget(
       });
     case 'sibling':
       return splitWithPanel(root, target.nodeId, target.side, panel);
+    case 'rootSibling':
+      return splitWithPanel(root, root.id, target.side, panel);
     default: {
       const exhaustive: never = target;
       return exhaustive;

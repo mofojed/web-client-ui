@@ -129,7 +129,6 @@ export default function Dashboard({
           getStackChildCount={getStackChildCount}
           renderGhost={renderGhostFn}
           dashboardRef={dashboardRef}
-          rootNodeId={resolved.id}
         >
           <RenderNode node={resolved} />
         </DragLayer>

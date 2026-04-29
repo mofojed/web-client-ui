@@ -282,6 +282,51 @@ describe('movePanel', () => {
   });
 });
 
+describe('rootSibling target', () => {
+  it('splits the current root regardless of its id', () => {
+    const tree = row('r', [
+      stack('s1', [panel('p1')]),
+      stack('s2', [panel('p2')]),
+    ]);
+    const result = applyTransform(tree, {
+      kind: 'movePanel',
+      panelId: 'p1',
+      target: { type: 'rootSibling', side: 'bottom' },
+    });
+    expect(result.type).toBe('column');
+    if (result.type !== 'column') return;
+    expect(panelIds(result).sort()).toEqual(['p1', 'p2']);
+  });
+
+  it('handles consecutive root-sibling moves of the same panel', () => {
+    // initial: row [s1, s2]
+    // step 1: drag p1 to bottom of root → column [stack(s2), stack-p1]
+    //   (s1 collapsed away when p1 was removed; original row collapsed
+    //    to just stack(s2); then wrap with stack-p1 below)
+    // step 2: drag p1 to right of root → row [stack(s2), stack-p1]
+    //   (the column from step 1 collapses when p1 is removed, leaving
+    //    just stack(s2); rootSibling resolves to that as the new root)
+    const tree = row('r', [
+      stack('s1', [panel('p1')]),
+      stack('s2', [panel('p2')]),
+    ]);
+    const afterFirst = applyTransform(tree, {
+      kind: 'movePanel',
+      panelId: 'p1',
+      target: { type: 'rootSibling', side: 'bottom' },
+    });
+    expect(afterFirst.type).toBe('column');
+    const afterSecond = applyTransform(afterFirst, {
+      kind: 'movePanel',
+      panelId: 'p1',
+      target: { type: 'rootSibling', side: 'right' },
+    });
+    expect(afterSecond.type).toBe('row');
+    if (afterSecond.type !== 'row') return;
+    expect(panelIds(afterSecond).sort()).toEqual(['p1', 'p2']);
+  });
+});
+
 describe('applyTransforms', () => {
   it('applies a sequence in order', () => {
     const initial = stack('s', [panel('p1')]);
