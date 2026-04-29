@@ -33,6 +33,7 @@
 }
 
 .dh-layout-tabs {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -40,6 +41,17 @@
   background: var(--dh-color-tab-strip-bg, #181818);
   user-select: none;
   overflow: hidden;
+}
+
+.dh-layout-tab-insert {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--dh-color-drop-indicator-border, #4080ff);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .dh-layout-tab {
@@ -159,4 +171,40 @@
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   user-select: none;
+}
+
+.dh-layout-outer-edge {
+  position: absolute;
+  background: var(--dh-color-drop-indicator-bg, rgba(64, 128, 255, 0.25));
+  border: 2px solid var(--dh-color-drop-indicator-border, #4080ff);
+  pointer-events: none;
+  z-index: 50;
+}
+
+.dh-layout-outer-edge-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+}
+
+.dh-layout-outer-edge-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 25%;
+}
+
+.dh-layout-outer-edge-left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 25%;
+}
+
+.dh-layout-outer-edge-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 25%;
 }
