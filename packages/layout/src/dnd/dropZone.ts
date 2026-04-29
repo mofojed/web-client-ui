@@ -45,9 +45,10 @@ export function computeDropZone(rect: Rect, pointer: PointInRect): DropZone {
 }
 
 /**
- * If `pointer` lies inside `dashboardRect` and within `band` pixels of an
- * outer edge, return that side; otherwise null. Used to detect when a drag
- * should target a root-level split rather than the panel under the pointer.
+ * If `pointer` is within `band` pixels of one of `dashboardRect`'s outer
+ * edges (inside or just outside the rect), return that side; otherwise null.
+ * Used to detect when a drag should target a root-level split rather than
+ * the panel under the pointer.
  */
 export function computeOuterEdge(
   dashboardRect: Rect,
@@ -56,11 +57,18 @@ export function computeOuterEdge(
 ): Side | null {
   const right = dashboardRect.left + dashboardRect.width;
   const bottom = dashboardRect.top + dashboardRect.height;
-  const dxLeft = pointer.x - dashboardRect.left;
-  const dxRight = right - pointer.x;
-  const dyTop = pointer.y - dashboardRect.top;
-  const dyBottom = bottom - pointer.y;
-  if (dxLeft < 0 || dxRight < 0 || dyTop < 0 || dyBottom < 0) return null;
+  // pointer must be roughly within the rect on the perpendicular axis (with
+  // band tolerance) — a pointer far above the dashboard but to the right
+  // shouldn't trigger the right edge
+  const inX =
+    pointer.x >= dashboardRect.left - band && pointer.x <= right + band;
+  const inY =
+    pointer.y >= dashboardRect.top - band && pointer.y <= bottom + band;
+  if (!inX || !inY) return null;
+  const dxLeft = Math.abs(pointer.x - dashboardRect.left);
+  const dxRight = Math.abs(right - pointer.x);
+  const dyTop = Math.abs(pointer.y - dashboardRect.top);
+  const dyBottom = Math.abs(bottom - pointer.y);
   const min = Math.min(dxLeft, dxRight, dyTop, dyBottom);
   if (min > band) return null;
   if (min === dxLeft) return 'left';
