@@ -7,9 +7,17 @@ export interface PanelProps {
   isActive: boolean;
 }
 
+function panelContentClass(isActive: boolean, isFocused: boolean): string {
+  const parts = ['dh-layout-panel-content'];
+  if (!isActive) parts.push('is-hidden');
+  if (isFocused) parts.push('is-focused');
+  return parts.join(' ');
+}
+
 function PanelInner({ panel, isActive }: PanelProps): JSX.Element | null {
-  const { components, editMode, dispatch } = useLayoutContext();
+  const { components, editMode, dispatch, focusedPanelId } = useLayoutContext();
   const definition = components[panel.component];
+  const isFocused = focusedPanelId === panel.id;
 
   const setState = useCallback(
     (state: unknown) => {
@@ -21,7 +29,7 @@ function PanelInner({ panel, isActive }: PanelProps): JSX.Element | null {
   if (definition == null) {
     return (
       <div
-        className={`dh-layout-panel-content${isActive ? '' : ' is-hidden'}`}
+        className={panelContentClass(isActive, isFocused)}
         data-panel-id={panel.id}
       >
         <em>Unknown panel component: {panel.component}</em>
@@ -32,7 +40,7 @@ function PanelInner({ panel, isActive }: PanelProps): JSX.Element | null {
   const Content = definition.component;
   return (
     <div
-      className={`dh-layout-panel-content${isActive ? '' : ' is-hidden'}`}
+      className={panelContentClass(isActive, isFocused)}
       data-panel-id={panel.id}
     >
       <Content

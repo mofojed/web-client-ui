@@ -1,11 +1,19 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useContext, useMemo, useRef } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { LayoutNode, LayoutState, NodeId, Transform } from '../types';
 import { resolveLayout } from '../state/compact';
 import { findNode, isStack } from '../state/treeUtils';
 import LayoutContext from './LayoutContext';
 import RenderNode from './RenderNode';
 import mergeTransform from './mergeTransform';
+import findFocusedPanelId from './findFocusedPanelId';
 import type { PanelDefinition, PanelRegistry } from './types';
 import DragLayer from '../dnd/DragLayer';
 import './Layout.scss';
@@ -100,6 +108,42 @@ export default function Dashboard({
     [resolved, components, editMode]
   );
 
+  const [focusedPanelId, setFocusedPanelId] = useState<NodeId | null>(null);
+  useEffect(() => {
+    const el = dashboardRef.current;
+    if (el == null) return undefined;
+
+    const recompute = (): void => {
+      const focused = document.activeElement;
+      if (!(focused instanceof Element) || !el.contains(focused)) {
+        setFocusedPanelId(null);
+        return;
+      }
+      setFocusedPanelId(findFocusedPanelId(focused, el));
+    };
+
+    const handleFocusIn = (e: FocusEvent): void => {
+      const { target } = e;
+      if (target instanceof Element) {
+        setFocusedPanelId(findFocusedPanelId(target, el));
+      }
+    };
+    const handleFocusOut = (e: FocusEvent): void => {
+      const next = e.relatedTarget;
+      if (!(next instanceof Element) || !el.contains(next)) {
+        setFocusedPanelId(null);
+      }
+    };
+
+    recompute();
+    el.addEventListener('focusin', handleFocusIn);
+    el.addEventListener('focusout', handleFocusOut);
+    return () => {
+      el.removeEventListener('focusin', handleFocusIn);
+      el.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       state: layout,
@@ -107,8 +151,9 @@ export default function Dashboard({
       components,
       editMode,
       draggingPanelId: null,
+      focusedPanelId,
     }),
-    [layout, dispatch, components, editMode]
+    [layout, dispatch, components, editMode, focusedPanelId]
   );
 
   // a Dashboard rendered inside another Dashboard's panel inherits the outer

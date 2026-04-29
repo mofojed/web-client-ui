@@ -225,6 +225,7 @@ function Tab({
   );
 
   const { activePanelId } = useDragState();
+  const { focusedPanelId } = useLayoutContext();
   const {
     setNodeRef: setDraggableRef,
     listeners,
@@ -249,9 +250,12 @@ function Tab({
   const isClosable = definition?.isClosable !== false;
 
   const isBeingDragged = activePanelId === panel.id;
-  const className = `dh-layout-tab${isActive ? ' is-active' : ''}${
-    isDragging || isBeingDragged ? ' is-dragging' : ''
-  }`;
+  const isFocused = focusedPanelId === panel.id;
+  const classes = ['dh-layout-tab'];
+  if (isActive) classes.push('is-active');
+  if (isDragging || isBeingDragged) classes.push('is-dragging');
+  if (isFocused) classes.push('is-focused');
+  const className = classes.join(' ');
 
   return (
     <button
