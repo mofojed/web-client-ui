@@ -1,0 +1,24 @@
+{
+  "name": "@deephaven/layout-demo",
+  "version": "0.1.0",
+  "description": "Demo app for @deephaven/layout",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@deephaven/layout": "file:../layout",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@deephaven/eslint-config": "file:../eslint-config",
+    "@deephaven/prettier-config": "file:../prettier-config",
+    "@deephaven/stylelint-config": "file:../stylelint-config",
+    "@vitejs/plugin-react-swc": "^3.7.0",
+    "vite": "^5.4.2"
+  }
+}
