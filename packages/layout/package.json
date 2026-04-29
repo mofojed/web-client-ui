@@ -1,0 +1,45 @@
+{
+  "name": "@deephaven/layout",
+  "version": "0.1.0",
+  "description": "Deephaven React-native panel layout system",
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deephaven/web-client-ui.git",
+    "directory": "packages/layout"
+  },
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production run-s build:babel build:sass",
+    "build:babel": "babel ./src --out-dir ./dist --extensions \".ts,.tsx,.js,.jsx\" --source-maps --root-mode upward",
+    "build:sass": "sass --embed-sources --load-path=../../node_modules ./src:./dist"
+  },
+  "dependencies": {
+    "@deephaven/log": "file:../log",
+    "@deephaven/utils": "file:../utils",
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "nanoid": "^5.0.7"
+  },
+  "devDependencies": {
+    "@deephaven/test-utils": "file:../test-utils"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
+}
