@@ -41,7 +41,7 @@ function buildDropTarget(
   getStackChildCount: (id: NodeId) => number
 ): DropTarget {
   if (hover.kind === 'outerEdge') {
-    return { type: 'sibling', nodeId: hover.rootId, side: hover.side };
+    return { type: 'rootSibling', side: hover.side };
   }
   if (hover.zone !== 'center') {
     return { type: 'sibling', nodeId: hover.stackId, side: hover.zone };
@@ -75,8 +75,6 @@ export interface DragLayerProps {
   renderGhost?: (panelId: NodeId) => ReactNode;
   /** Ref to the dashboard container — used to compute outer-edge hotspots. */
   dashboardRef: RefObject<HTMLElement>;
-  /** Resolved root node id, used as the target of outer-edge splits. */
-  rootNodeId: NodeId;
 }
 
 export default function DragLayer({
@@ -86,7 +84,6 @@ export default function DragLayer({
   getStackChildCount,
   renderGhost,
   dashboardRef,
-  rootNodeId,
 }: DragLayerProps): JSX.Element {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -167,7 +164,7 @@ export default function DragLayer({
             ) {
               return prev;
             }
-            return { kind: 'outerEdge', rootId: rootNodeId, side: outer };
+            return { kind: 'outerEdge', side: outer };
           });
           return;
         }
@@ -270,7 +267,7 @@ export default function DragLayer({
         return { kind: 'stackZone', stackId, zone };
       });
     },
-    [dashboardRef, rootNodeId, sourceStackId, getStackChildCount]
+    [dashboardRef, sourceStackId, getStackChildCount]
   );
 
   const handleDragEnd = useCallback(

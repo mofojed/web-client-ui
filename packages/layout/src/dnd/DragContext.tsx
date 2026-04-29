@@ -20,7 +20,6 @@ export type DragHover =
     }
   | {
       kind: 'outerEdge';
-      rootId: NodeId;
       side: Side;
     };
 

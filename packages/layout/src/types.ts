@@ -44,11 +44,17 @@ export type LayoutNode = ContainerNode | PanelNode;
 
 /**
  * Where a panel is being moved or added to.
+ *
+ * `rootSibling` resolves the current root at apply time rather than capturing
+ * a node id at hover time. This is important for outer-edge drops, where the
+ * root id can change between dispatch and apply: removing the panel about to
+ * be moved may collapse a single-child container, which renames the root.
  */
 export type DropTarget =
   | { type: 'stack'; stackId: NodeId; index: number }
   | { type: 'sibling'; nodeId: NodeId; side: Side }
-  | { type: 'container'; containerId: NodeId; index: number };
+  | { type: 'container'; containerId: NodeId; index: number }
+  | { type: 'rootSibling'; side: Side };
 
 export type Transform =
   | { kind: 'movePanel'; panelId: NodeId; target: DropTarget }
