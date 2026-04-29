@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useContext, useMemo, useRef } from 'react';
 import type { LayoutNode, LayoutState, NodeId, Transform } from '../types';
 import { resolveLayout } from '../state/compact';
 import { findNode, isStack } from '../state/treeUtils';
@@ -111,10 +111,14 @@ export default function Dashboard({
     [layout, dispatch, components, editMode]
   );
 
-  const rootClass =
-    className != null && className !== ''
-      ? `dh-layout ${className}`
-      : 'dh-layout';
+  // a Dashboard rendered inside another Dashboard's panel inherits the outer
+  // LayoutContext; use that to draw a visual border around the nested one
+  const isNested = useContext(LayoutContext) != null;
+
+  const classes = ['dh-layout'];
+  if (isNested) classes.push('is-nested');
+  if (className != null && className !== '') classes.push(className);
+  const rootClass = classes.join(' ');
 
   return (
     <div ref={dashboardRef} className={rootClass} style={style}>

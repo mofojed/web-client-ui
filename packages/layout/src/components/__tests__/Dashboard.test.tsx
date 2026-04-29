@@ -207,6 +207,29 @@ describe('Dashboard rendering', () => {
   });
 });
 
+function HostContent(): JSX.Element {
+  const inner = createLayoutState(stack('inner', [panel('inner-1')]));
+  return <Dashboard layout={inner} components={components} editMode={false} />;
+}
+
+describe('nested dashboard', () => {
+  it('marks an inner Dashboard with the is-nested class', () => {
+    const hostRegistry: PanelRegistry = {
+      host: { component: HostContent as never },
+    };
+    const outer = createLayoutState(
+      stack('outer', [{ type: 'panel', id: 'p1', component: 'host' }])
+    );
+    const { container } = render(
+      <Dashboard layout={outer} components={hostRegistry} />
+    );
+    const dashboards = container.querySelectorAll('.dh-layout');
+    expect(dashboards).toHaveLength(2);
+    expect(dashboards[0]).not.toHaveClass('is-nested');
+    expect(dashboards[1]).toHaveClass('is-nested');
+  });
+});
+
 describe('onChange contract', () => {
   it('emits the transform that produced the change', () => {
     const handle = jest.fn<void, [LayoutState, Transform]>();
