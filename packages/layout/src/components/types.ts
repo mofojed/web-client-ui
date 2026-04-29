@@ -49,4 +49,11 @@ export interface LayoutContextValue {
    * Used in Phase 4 for visual feedback. Null in Phase 2/3.
    */
   draggingPanelId: NodeId | null;
+  /**
+   * The id of the panel within this dashboard whose content currently has
+   * focus, or null if no panel in this dashboard is focused. Determined
+   * relative to *this* dashboard's tree, so a focus inside a nested
+   * Dashboard does not mark the outer host panel as focused.
+   */
+  focusedPanelId: NodeId | null;
 }
