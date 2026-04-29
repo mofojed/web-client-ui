@@ -4,7 +4,7 @@ import type {
   MouseEvent,
   ReactNode,
 } from 'react';
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { PanelNode, StackNode } from '../types';
 import { useLayoutContext } from './LayoutContext';
@@ -44,8 +44,17 @@ export default function Stack({ node }: StackProps): JSX.Element {
     data: { stackId: node.id },
   });
 
-  const isHover =
-    activePanelId != null && hover != null && hover.stackId === node.id;
+  // Body-zone indicator only renders when the geometric 5-zone applies — i.e.
+  // hover is a stackZone for this stack and either an edge zone or a center
+  // drop without a tab-strip insertion index.
+  const bodyZone =
+    activePanelId != null &&
+    hover != null &&
+    hover.kind === 'stackZone' &&
+    hover.stackId === node.id &&
+    hover.insertIndex === undefined
+      ? hover.zone
+      : null;
 
   return (
     <div
@@ -71,7 +80,7 @@ export default function Stack({ node }: StackProps): JSX.Element {
             isActive={panel.id === activeId}
           />
         ))}
-        {isHover && hover != null && <DropIndicator zone={hover.zone} />}
+        {bodyZone != null && <DropIndicator zone={bodyZone} />}
       </div>
     </div>
   );
@@ -93,12 +102,25 @@ function StackTabs({
   onClose,
 }: StackTabsProps): JSX.Element {
   const { components } = useLayoutContext();
+  const { hover } = useDragState();
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+
+  const insertIndex =
+    hover != null &&
+    hover.kind === 'stackZone' &&
+    hover.stackId === stack.id &&
+    hover.zone === 'center' &&
+    hover.insertIndex !== undefined
+      ? hover.insertIndex
+      : null;
+
   return (
-    <div className="dh-layout-tabs" role="tablist">
-      {stack.children.map(panel => (
+    <div ref={tabsRef} className="dh-layout-tabs" role="tablist">
+      {stack.children.map((panel, i) => (
         <Tab
           key={panel.id}
           panel={panel}
+          panelIndex={i}
           isActive={panel.id === activeId}
           editMode={editMode}
           stackId={stack.id}
@@ -107,12 +129,62 @@ function StackTabs({
           onClose={onClose}
         />
       ))}
+      {insertIndex !== null && (
+        <TabInsertIndicator tabsRef={tabsRef} index={insertIndex} />
+      )}
     </div>
+  );
+}
+
+interface TabInsertIndicatorProps {
+  tabsRef: React.RefObject<HTMLDivElement>;
+  index: number;
+}
+
+function TabInsertIndicator({
+  tabsRef,
+  index,
+}: TabInsertIndicatorProps): JSX.Element | null {
+  const [left, setLeft] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const tabsEl = tabsRef.current;
+    if (tabsEl == null) {
+      setLeft(null);
+      return;
+    }
+    const tabs = Array.from(
+      tabsEl.querySelectorAll<HTMLElement>('.dh-layout-tab')
+    );
+    if (tabs.length === 0) {
+      setLeft(0);
+      return;
+    }
+    const tabsRect = tabsEl.getBoundingClientRect();
+    let x: number;
+    if (index <= 0) {
+      x = tabs[0].getBoundingClientRect().left - tabsRect.left;
+    } else if (index >= tabs.length) {
+      x = tabs[tabs.length - 1].getBoundingClientRect().right - tabsRect.left;
+    } else {
+      x = tabs[index].getBoundingClientRect().left - tabsRect.left;
+    }
+    setLeft(x);
+  }, [tabsRef, index]);
+
+  if (left == null) return null;
+  return (
+    <div
+      className="dh-layout-tab-insert"
+      style={{ left: `${left}px` }}
+      data-insert-index={index}
+    />
   );
 }
 
 interface TabProps {
   panel: PanelNode;
+  panelIndex: number;
   isActive: boolean;
   editMode: boolean;
   stackId: string;
@@ -123,6 +195,7 @@ interface TabProps {
 
 function Tab({
   panel,
+  panelIndex,
   isActive,
   editMode,
   stackId,
@@ -160,7 +233,7 @@ function Tab({
   } = useDraggable({
     id: panelDraggableId(panel.id),
     disabled: !editMode,
-    data: { panelId: panel.id, stackId },
+    data: { panelId: panel.id, stackId, index: panelIndex },
   });
 
   const tabContent: ReactNode = definition?.renderTab
@@ -175,8 +248,6 @@ function Tab({
   const title = typeof tooltip === 'string' ? tooltip : undefined;
   const isClosable = definition?.isClosable !== false;
 
-  // when this tab is the source of the active drag, dim it so users see the
-  // panel "lifted" while previewing the drop
   const isBeingDragged = activePanelId === panel.id;
   const className = `dh-layout-tab${isActive ? ' is-active' : ''}${
     isDragging || isBeingDragged ? ' is-dragging' : ''

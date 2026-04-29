@@ -45,6 +45,49 @@ export function computeDropZone(rect: Rect, pointer: PointInRect): DropZone {
 }
 
 /**
+ * If `pointer` lies inside `dashboardRect` and within `band` pixels of an
+ * outer edge, return that side; otherwise null. Used to detect when a drag
+ * should target a root-level split rather than the panel under the pointer.
+ */
+export function computeOuterEdge(
+  dashboardRect: Rect,
+  pointer: PointInRect,
+  band: number
+): Side | null {
+  const right = dashboardRect.left + dashboardRect.width;
+  const bottom = dashboardRect.top + dashboardRect.height;
+  const dxLeft = pointer.x - dashboardRect.left;
+  const dxRight = right - pointer.x;
+  const dyTop = pointer.y - dashboardRect.top;
+  const dyBottom = bottom - pointer.y;
+  if (dxLeft < 0 || dxRight < 0 || dyTop < 0 || dyBottom < 0) return null;
+  const min = Math.min(dxLeft, dxRight, dyTop, dyBottom);
+  if (min > band) return null;
+  if (min === dxLeft) return 'left';
+  if (min === dxRight) return 'right';
+  if (min === dyTop) return 'top';
+  return 'bottom';
+}
+
+/**
+ * Given the bounding rects of each tab in a stack's tab strip, return the
+ * insertion index for `pointerX` — i.e. the position before which a panel
+ * dropped at `pointerX` should land. `tabBounds.length` means "after the
+ * last tab".
+ */
+export function computeTabInsertIndex(
+  tabBounds: ReadonlyArray<{ left: number; right: number }>,
+  pointerX: number
+): number {
+  for (let i = 0; i < tabBounds.length; i += 1) {
+    const t = tabBounds[i];
+    const mid = (t.left + t.right) / 2;
+    if (pointerX < mid) return i;
+  }
+  return tabBounds.length;
+}
+
+/**
  * Returns CSS positioning for a drop indicator covering the target zone of
  * a rect. Coordinates are percentages of the parent.
  */

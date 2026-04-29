@@ -67,6 +67,7 @@ export default function Dashboard({
   className,
   style,
 }: DashboardProps): JSX.Element {
+  const dashboardRef = useRef<HTMLDivElement | null>(null);
   const layoutRef = useRef(layout);
   layoutRef.current = layout;
 
@@ -116,13 +117,15 @@ export default function Dashboard({
       : 'dh-layout';
 
   return (
-    <div className={rootClass} style={style}>
+    <div ref={dashboardRef} className={rootClass} style={style}>
       <LayoutContext.Provider value={contextValue}>
         <DragLayer
           enabled={editMode}
           dispatch={dispatch}
           getStackChildCount={getStackChildCount}
           renderGhost={renderGhostFn}
+          dashboardRef={dashboardRef}
+          rootNodeId={resolved.id}
         >
           <RenderNode node={resolved} />
         </DragLayer>
