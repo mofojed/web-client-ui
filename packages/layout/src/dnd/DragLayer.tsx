@@ -1,19 +1,12 @@
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  pointerWithin,
-  useSensor,
-  useSensors,
-  type DragCancelEvent,
-  type DragEndEvent,
-  type DragMoveEvent,
-  type DragStartEvent,
-} from '@dnd-kit/core';
 import type { ReactNode, RefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { DropTarget, NodeId, Transform } from '../types';
+import type {
+  DropTarget,
+  NodeId,
+  PanelNode,
+  PopoutGeometry,
+  Transform,
+} from '../types';
 import DragContext, {
   type DragContextValue,
   type DragHover,
@@ -24,15 +17,14 @@ import {
   computeTabInsertIndex,
   type DropZone,
 } from './dropZone';
-import {
-  isPanelDraggableId,
-  isStackDroppableId,
-  panelIdFromDraggable,
-  stackIdFromDroppable,
-} from './ids';
 import OuterEdgeIndicator from './OuterEdgeIndicator';
+import PopoutPendingIndicator from './PopoutPendingIndicator';
+import { parsePanelDragPayload } from './htmlDrag';
+import { usePopoutController } from '../popout/PopoutController';
 
-const OUTER_BAND_PX = 16;
+const OUTER_BAND_PX = 24;
+const POPOUT_DEFAULT_WIDTH = 800;
+const POPOUT_DEFAULT_HEIGHT = 600;
 
 function buildDropTarget(
   hover: DragHover,
@@ -47,9 +39,6 @@ function buildDropTarget(
     return { type: 'sibling', nodeId: hover.stackId, side: hover.zone };
   }
   let index = hover.insertIndex ?? getStackChildCount(hover.stackId);
-  // when reordering within the source stack, the reducer removes first then
-  // inserts. shift the index down by 1 if the source sat before our drop
-  // position so the panel lands where the user pointed.
   if (
     sourceStackId === hover.stackId &&
     sourcePanelIndex !== null &&
@@ -58,6 +47,16 @@ function buildDropTarget(
     index -= 1;
   }
   return { type: 'stack', stackId: hover.stackId, index };
+}
+
+/** Is the given pointer position outside the browser's viewport? */
+function isOutsideViewport(clientX: number, clientY: number): boolean {
+  return (
+    clientX < 0 ||
+    clientY < 0 ||
+    clientX > window.innerWidth ||
+    clientY > window.innerHeight
+  );
 }
 
 export interface DragLayerProps {
@@ -71,118 +70,217 @@ export interface DragLayerProps {
    * position (the panel appends at the end).
    */
   getStackChildCount: (stackId: NodeId) => number;
-  /** Render the dragged panel's tab in the drag overlay. */
-  renderGhost?: (panelId: NodeId) => ReactNode;
+  /**
+   * Lookup the full PanelNode (component, state, title) for a given id.
+   * Used at dragstart to broadcast panel data to other windows for
+   * cross-window drag.
+   */
+  getPanel: (panelId: NodeId) => PanelNode | null;
   /** Ref to the dashboard container — used to compute outer-edge hotspots. */
   dashboardRef: RefObject<HTMLElement>;
 }
 
+/**
+ * Wraps the dashboard with HTML5 native drag-and-drop event listeners.
+ * Listens at the document level (not just the dashboard) so that motion
+ * outside the dashboard — toolbar, viewport edge, beyond — can drive the
+ * popout-pending state.
+ *
+ * Decision rules:
+ *   - Pointer inside the dashboard rect → compute hover (outerEdge or
+ *     stackZone). Edge-split lives in `OUTER_BAND_PX` of the inside edge.
+ *   - Pointer outside the dashboard rect but inside the viewport → no
+ *     in-window indicator and no popout indicator. The user is hovering
+ *     over chrome/whitespace; we wait for them to commit.
+ *   - Pointer outside the viewport → popout pending; show the
+ *     full-viewport orange marching-ants frame.
+ *
+ * At dragend:
+ *   - If hover is set (i.e. the cursor was over a valid in-dashboard
+ *     target on the last dragover), dispatch movePanel.
+ *   - Else if drop landed outside the viewport, dispatch popoutPanel.
+ *   - Else: no-op (drop on dashboard chrome with no specific target).
+ */
 export default function DragLayer({
   children,
   enabled,
   dispatch,
   getStackChildCount,
-  renderGhost,
+  getPanel,
   dashboardRef,
 }: DragLayerProps): JSX.Element {
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 4 },
-    }),
-    useSensor(KeyboardSensor)
-  );
-
   const [activePanelId, setActivePanelId] = useState<NodeId | null>(null);
   const [sourceStackId, setSourceStackId] = useState<NodeId | null>(null);
   const [sourcePanelIndex, setSourcePanelIndex] = useState<number | null>(null);
   const [hover, setHover] = useState<DragHover | null>(null);
+  const [popoutPending, setPopoutPending] = useState(false);
 
-  const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  useEffect(() => {
-    if (activePanelId == null) return undefined;
-    const handleMove = (e: PointerEvent): void => {
-      pointerRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener('pointermove', handleMove);
-    return () => window.removeEventListener('pointermove', handleMove);
-  }, [activePanelId]);
+  const activePanelIdRef = useRef<NodeId | null>(null);
+  activePanelIdRef.current = activePanelId;
+  const sourceStackIdRef = useRef<NodeId | null>(null);
+  sourceStackIdRef.current = sourceStackId;
+  const sourcePanelIndexRef = useRef<number | null>(null);
+  sourcePanelIndexRef.current = sourcePanelIndex;
+  const hoverRef = useRef<DragHover | null>(null);
+  hoverRef.current = hover;
+  const popoutPendingRef = useRef(false);
+  popoutPendingRef.current = popoutPending;
 
-  useEffect(() => {
-    if (activePanelId == null) return undefined;
-    const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') {
-        setActivePanelId(null);
-        setSourceStackId(null);
-        setSourcePanelIndex(null);
-        setHover(null);
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [activePanelId]);
+  const dispatchRef = useRef(dispatch);
+  dispatchRef.current = dispatch;
+  const getStackChildCountRef = useRef(getStackChildCount);
+  getStackChildCountRef.current = getStackChildCount;
+  const getPanelRef = useRef(getPanel);
+  getPanelRef.current = getPanel;
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    const id = String(event.active.id);
-    if (!isPanelDraggableId(id)) return;
-    setActivePanelId(panelIdFromDraggable(id));
-    const sourceData = event.active.data.current as
-      | { stackId?: NodeId; index?: number }
-      | undefined;
-    setSourceStackId(sourceData?.stackId ?? null);
-    setSourcePanelIndex(
-      typeof sourceData?.index === 'number' ? sourceData.index : null
-    );
+  const { openPopout, bridge, windowId } = usePopoutController();
+  const openPopoutRef = useRef(openPopout);
+  openPopoutRef.current = openPopout;
+  const bridgeRef = useRef(bridge);
+  bridgeRef.current = bridge;
+  const windowIdRef = useRef(windowId);
+  windowIdRef.current = windowId;
+
+  const lastClientRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Cross-window drag state. When another window broadcasts crossDragStart,
+  // we record it here. On dragenter, if the cursor enters our viewport
+  // while a remote drag is registered, we adopt it as a local drag (so
+  // hover indicators update and a drop event will fire).
+  const remoteDragRef = useRef<{
+    panel: PanelNode;
+    sourceWindowId: NodeId | null;
+  } | null>(null);
+  // True after a drop in this window dispatched addPanel for a remote
+  // drag. We use this to ignore the source's eventual dragend (the
+  // crossDragComplete broadcast handles cleanup separately).
+  const dropAcceptedRef = useRef(false);
+  // True after we received crossDragComplete for our local drag, meaning
+  // another window accepted the drop. Source's dragend reads this to
+  // dispatch closePanel (or popoutScope(closePanel)) instead of movePanel.
+  const remoteAcceptedRef = useRef(false);
+
+  const resetDragState = useCallback(() => {
+    setActivePanelId(null);
+    setSourceStackId(null);
+    setSourcePanelIndex(null);
     setHover(null);
+    setPopoutPending(false);
+    remoteDragRef.current = null;
+    dropAcceptedRef.current = false;
+    remoteAcceptedRef.current = false;
   }, []);
 
-  const handleDragMove = useCallback(
-    (event: DragMoveEvent) => {
-      const pointer = pointerRef.current;
+  // dragstart fires from a tab. We identify our own drags by reading data-*
+  // attributes off the target — dataTransfer.types isn't reliable here
+  // because the tab's React onDragStart (which calls setData) runs after
+  // this native bubble-phase listener. Also broadcast the panel data over
+  // the bridge so other windows can adopt this drag if the cursor enters.
+  const handleDragStart = useCallback((event: DragEvent) => {
+    const payload = parsePanelDragPayload(event);
+    if (payload == null) return;
+    setActivePanelId(payload.panelId);
+    setSourceStackId(payload.stackId);
+    setSourcePanelIndex(payload.index);
+    setHover(null);
+    setPopoutPending(false);
+    remoteAcceptedRef.current = false;
 
-      // 1. outer edge hotspots take priority — close to the dashboard's
-      //    outer edge means a root-level split regardless of which panel is
-      //    underneath
-      const dashboardEl = dashboardRef.current;
-      if (dashboardEl != null) {
-        const dashboardRect = dashboardEl.getBoundingClientRect();
-        const outer = computeOuterEdge(
-          {
-            left: dashboardRect.left,
-            top: dashboardRect.top,
-            width: dashboardRect.width,
-            height: dashboardRect.height,
-          },
-          pointer,
-          OUTER_BAND_PX
-        );
-        if (outer != null) {
-          setHover(prev => {
-            if (
-              prev != null &&
-              prev.kind === 'outerEdge' &&
-              prev.side === outer
-            ) {
-              return prev;
-            }
-            return { kind: 'outerEdge', side: outer };
-          });
-          return;
-        }
+    const panel = getPanelRef.current(payload.panelId);
+    if (panel != null && bridgeRef.current != null) {
+      bridgeRef.current.send({
+        type: 'crossDragStart',
+        sourceWindowId: windowIdRef.current,
+        panel,
+      });
+    }
+  }, []);
+
+  const handleDragOver = useCallback(
+    (event: DragEvent) => {
+      if (activePanelIdRef.current == null) return;
+      // accept the drag so dropEffect/cursor render correctly
+      event.preventDefault();
+      const dt = event.dataTransfer;
+      if (dt != null) {
+        dt.dropEffect = 'move';
       }
 
-      if (event.over == null) {
+      const pointer = { x: event.clientX, y: event.clientY };
+      lastClientRef.current = pointer;
+
+      // outside the viewport → popout pending; clear hover.
+      if (isOutsideViewport(pointer.x, pointer.y)) {
+        setHover(null);
+        setPopoutPending(true);
+        return;
+      }
+
+      const dashboardEl = dashboardRef.current;
+      if (dashboardEl == null) {
+        setHover(null);
+        setPopoutPending(false);
+        return;
+      }
+      const dashboardRect = dashboardEl.getBoundingClientRect();
+      const insideDashboard =
+        pointer.x >= dashboardRect.left &&
+        pointer.x <= dashboardRect.left + dashboardRect.width &&
+        pointer.y >= dashboardRect.top &&
+        pointer.y <= dashboardRect.top + dashboardRect.height;
+
+      // outside dashboard but still inside the viewport → ambiguous. No
+      // in-window indicator, no popout indicator. Wait for the user to
+      // commit by either re-entering or leaving the viewport entirely.
+      if (!insideDashboard) {
+        setHover(null);
+        setPopoutPending(false);
+        return;
+      }
+
+      setPopoutPending(false);
+
+      // 1. outer-edge band → root-level split
+      const outer = computeOuterEdge(
+        {
+          left: dashboardRect.left,
+          top: dashboardRect.top,
+          width: dashboardRect.width,
+          height: dashboardRect.height,
+        },
+        pointer,
+        OUTER_BAND_PX
+      );
+      if (outer != null) {
+        setHover(prev => {
+          if (
+            prev != null &&
+            prev.kind === 'outerEdge' &&
+            prev.side === outer
+          ) {
+            return prev;
+          }
+          return { kind: 'outerEdge', side: outer };
+        });
+        return;
+      }
+
+      // 2. find the stack the pointer is over
+      const stackEl = (event.target as Element | null)?.closest(
+        '[data-stack-id]'
+      ) as HTMLElement | null;
+      if (stackEl == null) {
         setHover(null);
         return;
       }
-      const overId = String(event.over.id);
-      if (!isStackDroppableId(overId)) return;
-      const stackId = stackIdFromDroppable(overId);
+      const stackId = stackEl.getAttribute('data-stack-id');
+      if (stackId == null) {
+        setHover(null);
+        return;
+      }
 
-      // 2. tab strip → join stack at the precise insertion index. allowed
-      //    even on the source stack (intra-stack reorder), but suppressed
-      //    if the source has only the panel being dragged (no-op).
-      const stackEl = document.querySelector(`[data-stack-id="${stackId}"]`);
-      const tabsEl = stackEl?.querySelector('.dh-layout-tabs');
+      // 3. tab strip → join stack at the precise insertion index
+      const tabsEl = stackEl.querySelector('.dh-layout-tabs');
       if (tabsEl != null) {
         const tabsRect = tabsEl.getBoundingClientRect();
         if (
@@ -192,8 +290,8 @@ export default function DragLayer({
           pointer.y <= tabsRect.bottom
         ) {
           if (
-            stackId === sourceStackId &&
-            getStackChildCount(sourceStackId) <= 1
+            stackId === sourceStackIdRef.current &&
+            getStackChildCountRef.current(sourceStackIdRef.current) <= 1
           ) {
             setHover(null);
             return;
@@ -226,29 +324,24 @@ export default function DragLayer({
         }
       }
 
-      // 3. fall back to the geometric 5-zone hotspot inside the stack rect
-      const { rect } = event.over;
+      // 4. fall back to the geometric 5-zone hotspot inside the stack rect
+      const stackRect = stackEl.getBoundingClientRect();
       const zone: DropZone = computeDropZone(
         {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
+          left: stackRect.left,
+          top: stackRect.top,
+          width: stackRect.width,
+          height: stackRect.height,
         },
         pointer
       );
 
-      // for source-stack body drops: edge zones split the panel off into a
-      // new row/column (a useful operation), but center is a no-op (panel
-      // already in this stack). suppress center entirely; suppress edges
-      // too if the source stack contains only the panel being dragged
-      // (splitting from a single-panel stack would be a no-op).
-      if (stackId === sourceStackId) {
+      if (stackId === sourceStackIdRef.current) {
         if (zone === 'center') {
           setHover(null);
           return;
         }
-        if (getStackChildCount(sourceStackId) <= 1) {
+        if (getStackChildCountRef.current(sourceStackIdRef.current) <= 1) {
           setHover(null);
           return;
         }
@@ -267,70 +360,318 @@ export default function DragLayer({
         return { kind: 'stackZone', stackId, zone };
       });
     },
-    [dashboardRef, sourceStackId, getStackChildCount]
+    [dashboardRef]
   );
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const id = String(event.active.id);
-      if (isPanelDraggableId(id) && hover != null) {
-        const panelId = panelIdFromDraggable(id);
-        const target = buildDropTarget(
-          hover,
-          sourceStackId,
-          sourcePanelIndex,
-          getStackChildCount
-        );
-        dispatch({ kind: 'movePanel', panelId, target });
-      }
-      setActivePanelId(null);
-      setSourceStackId(null);
-      setSourcePanelIndex(null);
+  // dragleave on document with no relatedTarget = cursor exited the
+  // viewport. dragover stops firing in that case, so this is our signal
+  // to switch into popout-pending mode.
+  const handleDragLeave = useCallback((event: DragEvent) => {
+    if (activePanelIdRef.current == null) return;
+    if (event.relatedTarget == null) {
       setHover(null);
-    },
-    [hover, sourceStackId, sourcePanelIndex, dispatch, getStackChildCount]
-  );
+      setPopoutPending(true);
+    }
+  }, []);
 
-  const handleDragCancel = useCallback((_event: DragCancelEvent) => {
-    setActivePanelId(null);
+  // dragenter fires when the OS-level drag image enters our viewport.
+  // If a remote window broadcast a cross-window drag and we don't yet
+  // have local drag state, adopt the remote drag here so dragover and
+  // drop run normally.
+  const handleDragEnter = useCallback((event: DragEvent) => {
+    if (activePanelIdRef.current != null) return;
+    const remote = remoteDragRef.current;
+    if (remote == null) return;
+    if (remote.sourceWindowId === windowIdRef.current) return;
+    // adopt the remote drag — set activePanelId so dragover/drop run.
+    // sourceStackId is null because the panel doesn't live in our tree.
+    setActivePanelId(remote.panel.id);
     setSourceStackId(null);
     setSourcePanelIndex(null);
     setHover(null);
+    setPopoutPending(false);
+    // accept this dragenter so the drag cursor shows we accept it.
+    event.preventDefault();
   }, []);
 
+  // drop fires in the destination window when the user releases over a
+  // dragover-accepting element. For local drags this is redundant with
+  // dragend, but for cross-window drags it's the only signal that we're
+  // the destination.
+  const handleDrop = useCallback(
+    (event: DragEvent) => {
+      const remote = remoteDragRef.current;
+      // only handle cross-window drops here — local drops are handled
+      // by dragend's existing branches
+      if (remote == null) return;
+      if (remote.sourceWindowId === windowIdRef.current) return;
+      event.preventDefault();
+      dropAcceptedRef.current = true;
+
+      // Decide the target: prefer the in-dashboard hover state. If hover
+      // is null (drop landed somewhere ambiguous), append into the root
+      // as a sibling on the right so the panel still lands somewhere.
+      const target: DropTarget =
+        hoverRef.current != null
+          ? buildDropTarget(
+              hoverRef.current,
+              null,
+              null,
+              getStackChildCountRef.current
+            )
+          : { type: 'rootSibling', side: 'right' };
+
+      // dispatch addPanel into our local layout. If we're a popout window,
+      // wrap in popoutScope; the parent will apply.
+      const inner: Transform = {
+        kind: 'addPanel',
+        panel: remote.panel,
+        target,
+      };
+      if (windowIdRef.current != null) {
+        // we're a popout — broadcast a transform to the parent for our scope
+        bridgeRef.current?.send({
+          type: 'transform',
+          transform: {
+            kind: 'popoutScope',
+            popoutId: windowIdRef.current,
+            inner,
+          },
+        });
+      } else {
+        // we're the parent — dispatch directly
+        dispatchRef.current(inner);
+      }
+
+      // tell the source window the drop was accepted; source must remove
+      // its copy of the panel.
+      bridgeRef.current?.send({
+        type: 'crossDragComplete',
+        sourceWindowId: remote.sourceWindowId,
+        panelId: remote.panel.id,
+      });
+
+      resetDragState();
+    },
+    [resetDragState]
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEvent) => {
+      const panelId = activePanelIdRef.current;
+      if (panelId == null) return;
+
+      // Esc-cancel: in some browsers dragend reports screen 0,0 + dropEffect=none
+      const isCancelled =
+        event.screenX === 0 &&
+        event.screenY === 0 &&
+        event.dataTransfer?.dropEffect === 'none';
+
+      // hover takes priority and is always synchronous — if the cursor
+      // was over a valid in-window target on the last dragover, the drop
+      // is in-window regardless of any cross-window flow.
+      if (!isCancelled && hoverRef.current != null) {
+        const target = buildDropTarget(
+          hoverRef.current,
+          sourceStackIdRef.current,
+          sourcePanelIndexRef.current,
+          getStackChildCountRef.current
+        );
+        if (windowIdRef.current != null) {
+          bridgeRef.current?.send({
+            type: 'transform',
+            transform: {
+              kind: 'popoutScope',
+              popoutId: windowIdRef.current,
+              inner: { kind: 'movePanel', panelId, target },
+            },
+          });
+        } else {
+          dispatchRef.current({ kind: 'movePanel', panelId, target });
+        }
+        bridgeRef.current?.send({
+          type: 'crossDragCancel',
+          sourceWindowId: windowIdRef.current,
+          panelId,
+        });
+        resetDragState();
+        return;
+      }
+
+      // For the popout-pending / no-hover branch we may be racing a
+      // crossDragComplete message from a destination window. The
+      // BroadcastChannel delivery happens in a later microtask, after
+      // dragend's synchronous handler. Defer the decision long enough for
+      // the message to land. 50ms is comfortably within the browser's
+      // transient activation window so window.open still works if we
+      // need to spawn a popout here.
+      const deferredPanelId = panelId;
+      const deferredScreen = { x: event.screenX, y: event.screenY };
+      const deferredPopoutPending = popoutPendingRef.current;
+      const deferredCancelled = isCancelled;
+
+      window.setTimeout(() => {
+        if (remoteAcceptedRef.current) {
+          // a destination window accepted the cross-window drop — remove
+          // our copy of the panel
+          if (windowIdRef.current != null) {
+            bridgeRef.current?.send({
+              type: 'transform',
+              transform: {
+                kind: 'popoutScope',
+                popoutId: windowIdRef.current,
+                inner: { kind: 'closePanel', panelId: deferredPanelId },
+              },
+            });
+          } else {
+            dispatchRef.current({
+              kind: 'closePanel',
+              panelId: deferredPanelId,
+            });
+          }
+        } else if (!deferredCancelled && deferredPopoutPending) {
+          // No remote accepted, cursor was outside our viewport. Treat as
+          // a popout-creation gesture (parent only — popouts can't spawn
+          // their own popouts in v1).
+          if (windowIdRef.current == null) {
+            const geometry: PopoutGeometry = {
+              screenX: deferredScreen.x - POPOUT_DEFAULT_WIDTH / 2,
+              screenY: deferredScreen.y - 16,
+              width: POPOUT_DEFAULT_WIDTH,
+              height: POPOUT_DEFAULT_HEIGHT,
+            };
+            const opened = openPopoutRef.current(deferredPanelId, geometry);
+            if (!opened) {
+              dispatchRef.current({
+                kind: 'popoutPanel',
+                panelId: deferredPanelId,
+                geometry,
+              });
+            }
+          }
+        }
+
+        bridgeRef.current?.send({
+          type: 'crossDragCancel',
+          sourceWindowId: windowIdRef.current,
+          panelId: deferredPanelId,
+        });
+        resetDragState();
+      }, 50);
+    },
+    [resetDragState]
+  );
+
+  // listen at the document level so motion across the whole page (not just
+  // the dashboard) drives popout-pending state correctly.
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const dashboardEl = dashboardRef.current;
+    if (dashboardEl == null) return undefined;
+
+    // dragstart can stay on the dashboard since it always originates from a
+    // tab inside this dashboard.
+    dashboardEl.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('dragenter', handleDragEnter);
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('dragleave', handleDragLeave);
+    document.addEventListener('drop', handleDrop);
+    document.addEventListener('dragend', handleDragEnd);
+    return () => {
+      dashboardEl.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('dragenter', handleDragEnter);
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('dragleave', handleDragLeave);
+      document.removeEventListener('drop', handleDrop);
+      document.removeEventListener('dragend', handleDragEnd);
+    };
+  }, [
+    enabled,
+    dashboardRef,
+    handleDragStart,
+    handleDragEnter,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDragEnd,
+  ]);
+
+  // Subscribe to cross-window drag broadcasts. Other windows announce
+  // their drags here; we latch onto the panel data so dragenter can
+  // adopt it.
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const b = bridgeRef.current;
+    if (b == null) return undefined;
+    return b.subscribe(msg => {
+      if (msg.type === 'crossDragStart') {
+        if (msg.sourceWindowId === windowIdRef.current) return;
+        remoteDragRef.current = {
+          panel: msg.panel,
+          sourceWindowId: msg.sourceWindowId,
+        };
+      } else if (msg.type === 'crossDragComplete') {
+        // we're the source — the destination dispatched addPanel, we
+        // need to remove our copy. Set the flag; dragend handles the rest.
+        if (
+          msg.sourceWindowId === windowIdRef.current &&
+          activePanelIdRef.current === msg.panelId
+        ) {
+          remoteAcceptedRef.current = true;
+        } else if (msg.sourceWindowId !== windowIdRef.current) {
+          // a different window confirmed acceptance — clear our remote
+          // drag state in case we were tracking it
+          if (
+            remoteDragRef.current != null &&
+            remoteDragRef.current.panel.id === msg.panelId
+          ) {
+            remoteDragRef.current = null;
+          }
+        }
+      } else if (msg.type === 'crossDragCancel') {
+        if (msg.sourceWindowId === windowIdRef.current) return;
+        // remote source cancelled. If we adopted this drag, reset our
+        // local state so the next drag starts clean.
+        if (
+          remoteDragRef.current != null &&
+          remoteDragRef.current.panel.id === msg.panelId
+        ) {
+          remoteDragRef.current = null;
+        }
+        if (activePanelIdRef.current === msg.panelId) {
+          setActivePanelId(null);
+          setSourceStackId(null);
+          setSourcePanelIndex(null);
+          setHover(null);
+          setPopoutPending(false);
+        }
+      }
+    });
+  }, [enabled]);
+
+  // Esc cancels mid-drag (defence-in-depth — most browsers fire dragend
+  // with dropEffect=none on Esc, but the screen position varies).
+  useEffect(() => {
+    if (activePanelId == null) return undefined;
+    const handleKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') resetDragState();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activePanelId, resetDragState]);
+
   const contextValue = useMemo<DragContextValue>(
-    () => ({ activePanelId, sourceStackId, hover }),
-    [activePanelId, sourceStackId, hover]
+    () => ({ activePanelId, sourceStackId, hover, popoutPending }),
+    [activePanelId, sourceStackId, hover, popoutPending]
   );
 
   const outerHover = hover?.kind === 'outerEdge' ? hover : null;
 
-  if (!enabled) {
-    return (
-      <DragContext.Provider value={contextValue}>
-        {children}
-      </DragContext.Provider>
-    );
-  }
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragMove={handleDragMove}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <DragContext.Provider value={contextValue}>
-        {children}
-        {outerHover != null && <OuterEdgeIndicator side={outerHover.side} />}
-      </DragContext.Provider>
-      <DragOverlay dropAnimation={null}>
-        {activePanelId != null && renderGhost != null
-          ? renderGhost(activePanelId)
-          : null}
-      </DragOverlay>
-    </DndContext>
+    <DragContext.Provider value={contextValue}>
+      {children}
+      {outerHover != null && <OuterEdgeIndicator side={outerHover.side} />}
+      {popoutPending && <PopoutPendingIndicator />}
+    </DragContext.Provider>
   );
 }

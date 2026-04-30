@@ -30,12 +30,19 @@ export interface DragContextValue {
   sourceStackId: NodeId | null;
   /** Current hover state — what the drop will do if released now. */
   hover: DragHover | null;
+  /**
+   * True while the cursor is outside the browser viewport during a drag.
+   * The dashboard renders a distinct popout-pending indicator in this
+   * state instead of any in-window drop indicator.
+   */
+  popoutPending: boolean;
 }
 
 const DragContext = createContext<DragContextValue>({
   activePanelId: null,
   sourceStackId: null,
   hover: null,
+  popoutPending: false,
 });
 
 export default DragContext;

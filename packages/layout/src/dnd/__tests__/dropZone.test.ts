@@ -51,11 +51,13 @@ describe('computeOuterEdge', () => {
     expect(computeOuterEdge(DASH, { x: 100, y: 900 }, 16)).toBeNull();
   });
 
-  it('triggers when the pointer is just outside the dashboard within band', () => {
-    expect(computeOuterEdge(DASH, { x: -5, y: 400 }, 16)).toBe('left');
-    expect(computeOuterEdge(DASH, { x: 1005, y: 400 }, 16)).toBe('right');
-    expect(computeOuterEdge(DASH, { x: 500, y: -5 }, 16)).toBe('top');
-    expect(computeOuterEdge(DASH, { x: 500, y: 805 }, 16)).toBe('bottom');
+  it('returns null when the pointer is outside the dashboard at all', () => {
+    // outside the rect doesn't count as edge hover — popout pending takes
+    // over once the cursor leaves the dashboard
+    expect(computeOuterEdge(DASH, { x: -5, y: 400 }, 16)).toBeNull();
+    expect(computeOuterEdge(DASH, { x: 1005, y: 400 }, 16)).toBeNull();
+    expect(computeOuterEdge(DASH, { x: 500, y: -5 }, 16)).toBeNull();
+    expect(computeOuterEdge(DASH, { x: 500, y: 805 }, 16)).toBeNull();
   });
 
   it('returns null when the pointer is far from any edge', () => {

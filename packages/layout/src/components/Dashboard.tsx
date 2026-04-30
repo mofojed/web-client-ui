@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties } from 'react';
 import {
   useCallback,
   useContext,
@@ -7,15 +7,16 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { LayoutNode, LayoutState, NodeId, Transform } from '../types';
+import type { LayoutState, NodeId, PanelNode, Transform } from '../types';
 import { resolveLayout } from '../state/compact';
-import { findNode, isStack } from '../state/treeUtils';
+import { findNode, isPanel, isStack } from '../state/treeUtils';
 import LayoutContext from './LayoutContext';
 import RenderNode from './RenderNode';
 import mergeTransform from './mergeTransform';
 import findFocusedPanelId from './findFocusedPanelId';
-import type { PanelDefinition, PanelRegistry } from './types';
+import type { PanelRegistry } from './types';
 import DragLayer from '../dnd/DragLayer';
+import PopoutController from '../popout/PopoutController';
 import './Layout.scss';
 
 export interface DashboardProps {
@@ -38,33 +39,24 @@ export interface DashboardProps {
    * header and the layout is read-only.
    */
   editMode?: boolean;
+  /**
+   * Storage key the parent app persists this dashboard's state under. When
+   * set, dragging a tab outside the browser window pops the panel into a
+   * chromeless child window that re-loads the same SPA bundle and reads
+   * shared state via this key. Pass null/undefined to disable popouts.
+   */
+  layoutKey?: string | null;
+  /**
+   * Identifier for this Dashboard's window in the popout topology. `null`
+   * means this is the parent (top-level) window. A popout window passes
+   * its popoutId so cross-window drag and state-sync logic can route
+   * messages correctly. Set automatically by `PopoutPanelHost`.
+   */
+  windowId?: NodeId | null;
   /** Optional className applied to the root element. */
   className?: string;
   /** Optional inline style for the root element. */
   style?: CSSProperties;
-}
-
-function defaultTabLabel(p: { id: string; title?: string }): string {
-  return p.title ?? p.id;
-}
-
-function renderGhost(
-  resolvedRoot: LayoutNode,
-  components: PanelRegistry,
-  panelId: NodeId,
-  editMode: boolean
-): ReactNode {
-  const panel = findNode(resolvedRoot, panelId);
-  if (panel == null || panel.type !== 'panel') return null;
-  const definition: PanelDefinition | undefined = components[panel.component];
-  const label = definition?.renderTab
-    ? definition.renderTab({ panel, isActive: true, editMode })
-    : defaultTabLabel(panel);
-  return (
-    <div className="dh-layout-drag-ghost">
-      <span className="dh-layout-tab-label">{label}</span>
-    </div>
-  );
 }
 
 export default function Dashboard({
@@ -72,6 +64,8 @@ export default function Dashboard({
   components,
   onChange,
   editMode = false,
+  layoutKey,
+  windowId = null,
   className,
   style,
 }: DashboardProps): JSX.Element {
@@ -92,20 +86,23 @@ export default function Dashboard({
   }, []);
 
   const resolved = useMemo(() => resolveLayout(layout), [layout]);
+  const resolvedRoot = resolved.root;
 
   const getStackChildCount = useCallback(
     (stackId: NodeId): number => {
-      const found = findNode(resolved, stackId);
+      const found = findNode(resolvedRoot, stackId);
       if (found != null && isStack(found)) return found.children.length;
       return 0;
     },
-    [resolved]
+    [resolvedRoot]
   );
 
-  const renderGhostFn = useCallback(
-    (panelId: NodeId): ReactNode =>
-      renderGhost(resolved, components, panelId, editMode),
-    [resolved, components, editMode]
+  const getPanel = useCallback(
+    (panelId: NodeId): PanelNode | null => {
+      const found = findNode(resolvedRoot, panelId);
+      return found != null && isPanel(found) ? found : null;
+    },
+    [resolvedRoot]
   );
 
   const [focusedPanelId, setFocusedPanelId] = useState<NodeId | null>(null);
@@ -168,15 +165,23 @@ export default function Dashboard({
   return (
     <div ref={dashboardRef} className={rootClass} style={style}>
       <LayoutContext.Provider value={contextValue}>
-        <DragLayer
-          enabled={editMode}
+        <PopoutController
+          layoutKey={layoutKey}
+          state={layout}
+          popouts={resolved.popouts}
           dispatch={dispatch}
-          getStackChildCount={getStackChildCount}
-          renderGhost={renderGhostFn}
-          dashboardRef={dashboardRef}
+          windowId={windowId}
         >
-          <RenderNode node={resolved} />
-        </DragLayer>
+          <DragLayer
+            enabled={editMode}
+            dispatch={dispatch}
+            getStackChildCount={getStackChildCount}
+            getPanel={getPanel}
+            dashboardRef={dashboardRef}
+          >
+            <RenderNode node={resolvedRoot} />
+          </DragLayer>
+        </PopoutController>
       </LayoutContext.Provider>
     </div>
   );

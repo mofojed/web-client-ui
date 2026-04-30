@@ -214,16 +214,58 @@ $dh-ant-thickness: 2px;
   @include dh-marching-ants-border;
 }
 
-.dh-layout-drag-ghost {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  background: var(--dh-color-tab-strip-bg, #181818);
-  color: var(--dh-color-text, #ddd);
-  border-radius: 3px;
+// Frame rendered while the user is dragging outside the browser viewport,
+// signalling that release pops the panel into a new window. Distinct
+// orange ants distinguish it from in-window drop indicators (blue).
+.dh-layout-popout-pending {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
+  z-index: 9999;
+  @include dh-marching-ants-border(
+    var(--dh-color-popout-indicator-border, #ff9040),
+    var(--dh-color-popout-indicator-contrast, #181818)
+  );
+}
+
+// Root element for a popped-out child window. Fills the entire viewport so
+// the panel content occupies the whole window.
+.dh-layout-popout-host {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+
+  > * {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+.dh-layout-popout-error {
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+  color: var(--dh-color-text, #ddd);
+  background: var(--dh-color-bg, #121212);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.dh-layout-popout-pending-label {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  background: var(--dh-color-popout-indicator-border, #ff9040);
+  color: var(--dh-color-popout-indicator-contrast, #181818);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  user-select: none;
 }
 
 @keyframes dh-marching-ants {

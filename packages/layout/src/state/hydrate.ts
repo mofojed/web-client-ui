@@ -3,7 +3,9 @@ import type {
   HydrateOptions,
   LayoutNode,
   LayoutState,
+  NodeId,
   PanelNode,
+  PopoutEntry,
   SerializedLayoutState,
   Transform,
 } from '../types';
@@ -38,6 +40,19 @@ function transformPanelsInTransforms(
   });
 }
 
+function mapPopouts(
+  popouts: Record<NodeId, PopoutEntry> | undefined,
+  transform: (panel: PanelNode) => PanelNode
+): Record<NodeId, PopoutEntry> | undefined {
+  if (popouts == null) return popouts;
+  return Object.fromEntries(
+    Object.entries(popouts).map(([id, entry]) => [
+      id,
+      { ...entry, layout: transformPanels(entry.layout, transform) },
+    ])
+  );
+}
+
 /**
  * Convert a runtime state into a serializable form. Optionally lets the
  * caller transform each panel's `state` before serialization (e.g. to strip
@@ -52,6 +67,7 @@ export function dehydrate(
     return {
       initial: state.initial,
       transforms: state.transforms,
+      popouts: state.popouts,
     };
   }
   const mapPanel = (p: PanelNode): PanelNode => ({
@@ -61,6 +77,7 @@ export function dehydrate(
   return {
     initial: transformPanels(state.initial, mapPanel),
     transforms: transformPanelsInTransforms(state.transforms, mapPanel),
+    popouts: mapPopouts(state.popouts, mapPanel),
   };
 }
 
@@ -73,7 +90,7 @@ export function hydrate(
   options?: HydrateOptions
 ): LayoutState {
   const fn = options?.hydratePanelState;
-  let { initial, transforms } = serialized;
+  let { initial, transforms, popouts } = serialized;
   if (fn) {
     const mapPanel = (p: PanelNode): PanelNode => ({
       ...p,
@@ -81,9 +98,11 @@ export function hydrate(
     });
     initial = transformPanels(initial, mapPanel);
     transforms = transformPanelsInTransforms(transforms, mapPanel);
+    popouts = mapPopouts(popouts, mapPanel);
   }
   return {
     initial: normalize(initial),
     transforms,
+    popouts,
   };
 }

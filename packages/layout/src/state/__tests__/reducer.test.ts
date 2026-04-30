@@ -356,3 +356,140 @@ describe('applyTransforms', () => {
     expect(result.children.every(c => c.type === 'stack')).toBe(true);
   });
 });
+
+describe('popout transforms', () => {
+  const geom = { screenX: 100, screenY: 200, width: 800, height: 600 };
+
+  function popoutPanelIds(
+    result: { popouts: Record<string, { layout: LayoutNode }> },
+    popoutId: string
+  ): string[] {
+    const layout = result.popouts[popoutId]?.layout;
+    return layout != null ? [...iterPanels(layout)].map(p => p.id) : [];
+  }
+
+  it('popoutPanel removes the panel from the tree and adds a single-panel layout to popouts', () => {
+    const initial = row('r', [
+      stack('s1', [panel('p1')]),
+      stack('s2', [panel('p2')]),
+    ]);
+    const result = applyTransforms(
+      initial,
+      [{ kind: 'popoutPanel', panelId: 'p1', geometry: geom }],
+      {}
+    );
+    expect(panelIds(result.root)).toEqual(['p2']);
+    expect(popoutPanelIds(result, 'p1')).toEqual(['p1']);
+    expect(result.popouts.p1?.geometry).toEqual(geom);
+  });
+
+  it('popoutPanel is a no-op for an unknown panel id', () => {
+    const initial = stack('s', [panel('p1')]);
+    const result = applyTransforms(
+      initial,
+      [{ kind: 'popoutPanel', panelId: 'nope', geometry: geom }],
+      {}
+    );
+    expect(panelIds(result.root)).toEqual(['p1']);
+    expect(result.popouts).toEqual({});
+  });
+
+  it('closePopoutPanel drops the entry without restoring the panel', () => {
+    const initial = row('r', [
+      stack('s1', [panel('p1')]),
+      stack('s2', [panel('p2')]),
+    ]);
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        { kind: 'closePopoutPanel', panelId: 'p1' },
+      ],
+      {}
+    );
+    expect(panelIds(result.root)).toEqual(['p2']);
+    expect(result.popouts).toEqual({});
+  });
+
+  it('updatePopoutGeometry updates the entry geometry', () => {
+    const initial = stack('s', [panel('p1'), panel('p2')]);
+    const next = { screenX: 500, screenY: 500, width: 400, height: 300 };
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        { kind: 'updatePopoutGeometry', panelId: 'p1', geometry: next },
+      ],
+      {}
+    );
+    expect(result.popouts.p1?.geometry).toEqual(next);
+  });
+
+  it('updatePanelState mirrors into the popout layout when the panel is popped out', () => {
+    const initial = stack('s', [panel('p1'), panel('p2')]);
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        { kind: 'updatePanelState', panelId: 'p1', state: { foo: 1 } },
+      ],
+      {}
+    );
+    const popped = findNode(result.popouts.p1!.layout, 'p1');
+    expect(popped?.type).toBe('panel');
+    if (popped?.type !== 'panel') return;
+    expect(popped.state).toEqual({ foo: 1 });
+  });
+
+  it('closePanel on a popped-out panel drops both tree and popout entry', () => {
+    const initial = stack('s', [panel('p1'), panel('p2')]);
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        { kind: 'closePanel', panelId: 'p1' },
+      ],
+      {}
+    );
+    expect(panelIds(result.root)).toEqual(['p2']);
+    expect(result.popouts).toEqual({});
+  });
+
+  it('popoutScope applies an inner transform to the popout layout', () => {
+    const initial = stack('s', [panel('p1'), panel('p2')]);
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        {
+          kind: 'popoutScope',
+          popoutId: 'p1',
+          inner: {
+            kind: 'addPanel',
+            panel: panel('p3'),
+            target: { type: 'rootSibling', side: 'right' },
+          },
+        },
+      ],
+      {}
+    );
+    expect(popoutPanelIds(result, 'p1').sort()).toEqual(['p1', 'p3']);
+  });
+
+  it('popoutScope drops the popout entry when its layout becomes empty', () => {
+    const initial = stack('s', [panel('p1'), panel('p2')]);
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'popoutPanel', panelId: 'p1', geometry: geom },
+        {
+          kind: 'popoutScope',
+          popoutId: 'p1',
+          inner: { kind: 'closePanel', panelId: 'p1' },
+        },
+      ],
+      {}
+    );
+    expect(result.popouts).toEqual({});
+  });
+});
