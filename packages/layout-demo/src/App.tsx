@@ -4,10 +4,12 @@ import {
   compact,
   createLayoutState,
   resolveLayout,
-  useLayoutState,
+  usePersistedLayoutState,
   type LayoutNode,
 } from '@deephaven/layout';
 import COMPONENTS from './panels';
+
+const STORAGE_KEY = 'deephaven.layout-demo.state';
 
 const INITIAL_LAYOUT: LayoutNode = {
   type: 'row',
@@ -74,7 +76,10 @@ const INITIAL_LAYOUT: LayoutNode = {
 
 export default function App(): JSX.Element {
   const initial = useMemo(() => createLayoutState(INITIAL_LAYOUT), []);
-  const { state, dispatch, setState } = useLayoutState(initial);
+  const { state, dispatch, setState, reset } = usePersistedLayoutState(
+    initial,
+    { key: STORAGE_KEY }
+  );
   const [editMode, setEditMode] = useState(true);
   const [showState, setShowState] = useState(false);
 
@@ -99,7 +104,7 @@ export default function App(): JSX.Element {
         >
           compact ({transformsCount} transforms)
         </button>
-        <button type="button" onClick={() => setState(initial)}>
+        <button type="button" onClick={reset}>
           reset
         </button>
         <button

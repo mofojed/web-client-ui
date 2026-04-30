@@ -45,3 +45,8 @@ export {
   useLayoutState,
   type UseLayoutStateResult,
 } from './hooks/useLayoutState';
+export {
+  usePersistedLayoutState,
+  type UsePersistedLayoutStateOptions,
+  type UsePersistedLayoutStateResult,
+} from './hooks/usePersistedLayoutState';
