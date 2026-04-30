@@ -1,17 +1,17 @@
 import type {
   CSSProperties,
+  DragEvent as ReactDragEvent,
   KeyboardEvent,
   MouseEvent,
   ReactNode,
 } from 'react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { PanelNode, StackNode } from '../types';
 import { useLayoutContext } from './LayoutContext';
 import Panel from './Panel';
 import type { PanelDefinition } from './types';
 import { useDragState } from '../dnd/DragContext';
-import { panelDraggableId, stackDroppableId } from '../dnd/ids';
+import { startPanelDrag } from '../dnd/htmlDrag';
 import DropIndicator from '../dnd/DropIndicator';
 
 export interface StackProps {
@@ -38,12 +38,6 @@ export default function Stack({ node }: StackProps): JSX.Element {
     [dispatch]
   );
 
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: stackDroppableId(node.id),
-    disabled: !editMode,
-    data: { stackId: node.id },
-  });
-
   // Body-zone indicator only renders when the geometric 5-zone applies — i.e.
   // hover is a stackZone for this stack and either an edge zone or a center
   // drop without a tab-strip insertion index.
@@ -58,7 +52,6 @@ export default function Stack({ node }: StackProps): JSX.Element {
 
   return (
     <div
-      ref={setDroppableRef}
       className="dh-layout-stack"
       data-stack-id={node.id}
       style={flexStyle(node.size)}
@@ -226,16 +219,28 @@ function Tab({
 
   const { activePanelId } = useDragState();
   const { focusedPanelId } = useLayoutContext();
-  const {
-    setNodeRef: setDraggableRef,
-    listeners,
-    attributes,
-    isDragging,
-  } = useDraggable({
-    id: panelDraggableId(panel.id),
-    disabled: !editMode,
-    data: { panelId: panel.id, stackId, index: panelIndex },
-  });
+  const tabRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleDragStart = useCallback(
+    (e: ReactDragEvent<HTMLButtonElement>) => {
+      if (!editMode) return;
+      // Use the tab itself as the drag image — the OS-rendered ghost will
+      // visually match the tab and follow the cursor across the window
+      // boundary (necessary for the pop-out flow).
+      const tabEl = tabRef.current;
+      const rect = tabEl?.getBoundingClientRect();
+      const offset = rect
+        ? { x: e.clientX - rect.left, y: e.clientY - rect.top }
+        : { x: 16, y: 16 };
+      startPanelDrag(
+        e.nativeEvent,
+        { panelId: panel.id, stackId, index: panelIndex },
+        tabEl ?? undefined,
+        offset
+      );
+    },
+    [editMode, panel.id, stackId, panelIndex]
+  );
 
   const tabContent: ReactNode = definition?.renderTab
     ? definition.renderTab({ panel, isActive, editMode })
@@ -253,22 +258,21 @@ function Tab({
   const isFocused = focusedPanelId === panel.id;
   const classes = ['dh-layout-tab'];
   if (isActive) classes.push('is-active');
-  if (isDragging || isBeingDragged) classes.push('is-dragging');
+  if (isBeingDragged) classes.push('is-dragging');
   if (isFocused) classes.push('is-focused');
   const className = classes.join(' ');
 
   return (
     <button
-      ref={setDraggableRef}
+      ref={tabRef}
       type="button"
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...attributes}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...listeners}
       role="tab"
       aria-selected={isActive}
       className={className}
       data-panel-id={panel.id}
+      data-panel-index={panelIndex}
+      draggable={editMode}
+      onDragStart={handleDragStart}
       onClick={handleActivate}
       title={title}
     >

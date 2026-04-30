@@ -4,6 +4,8 @@ import type {
   LayoutNode,
   NodeId,
   PanelNode,
+  PopoutEntry,
+  PopoutGeometry,
   StackNode,
   Transform,
 } from '../types';
@@ -13,10 +15,24 @@ import {
   isContainer,
   isPanel,
   isStack,
+  iterPanels,
   removeNode,
   replaceNode,
 } from './treeUtils';
-import { normalize } from './normalize';
+import {
+  normalize,
+  wrapPanelInStack as wrapPanelInStackForLayout,
+} from './normalize';
+
+/**
+ * The fully resolved state produced by folding transforms over the initial
+ * baseline. `root` is the layout tree; `popouts` is the set of panels that
+ * have been torn out into their own browser windows.
+ */
+export interface ResolvedState {
+  root: LayoutNode;
+  popouts: Record<NodeId, PopoutEntry>;
+}
 
 function clamp(n: number, lo: number, hi: number): number {
   if (n < lo) return lo;
@@ -229,49 +245,220 @@ function movePanel(
   return insertAtTarget(removed, node, target);
 }
 
-export function applyTransform(
-  root: LayoutNode,
+function popoutPanel(
+  state: ResolvedState,
+  panelId: NodeId,
+  geometry: PopoutGeometry
+): ResolvedState {
+  const node = findNode(state.root, panelId);
+  if (node == null || !isPanel(node)) return state;
+  const removed = removeNode(state.root, panelId) ?? state.root;
+  return {
+    root: removed,
+    popouts: {
+      ...state.popouts,
+      [panelId]: {
+        layout: wrapPanelInStackForLayout(node),
+        geometry,
+      },
+    },
+  };
+}
+
+function closePopoutPanel(
+  state: ResolvedState,
+  panelId: NodeId
+): ResolvedState {
+  if (state.popouts[panelId] == null) return state;
+  const next = { ...state.popouts };
+  delete next[panelId];
+  return { root: state.root, popouts: next };
+}
+
+function updatePopoutGeometry(
+  state: ResolvedState,
+  panelId: NodeId,
+  geometry: PopoutGeometry
+): ResolvedState {
+  const existing = state.popouts[panelId];
+  if (existing == null) return state;
+  return {
+    root: state.root,
+    popouts: { ...state.popouts, [panelId]: { ...existing, geometry } },
+  };
+}
+
+function updatePanelStateInPopouts(
+  popouts: Record<NodeId, PopoutEntry>,
+  panelId: NodeId,
+  panelState: unknown
+): Record<NodeId, PopoutEntry> {
+  let changed: Record<NodeId, PopoutEntry> | null = null;
+  Object.entries(popouts).forEach(([id, entry]) => {
+    const found = findNode(entry.layout, panelId);
+    if (found == null || !isPanel(found)) return;
+    const newLayout = replaceNode(entry.layout, panelId, n =>
+      isPanel(n) ? { ...n, state: panelState } : n
+    );
+    if (newLayout === entry.layout) return;
+    changed = changed ?? { ...popouts };
+    changed[id] = { ...entry, layout: newLayout };
+  });
+  return changed ?? popouts;
+}
+
+function applyToPopout(
+  state: ResolvedState,
+  popoutId: NodeId,
+  inner: Transform
+): ResolvedState {
+  const entry = state.popouts[popoutId];
+  if (entry == null) return state;
+
+  // Closing the last panel of a popout drops the whole popout entry. We
+  // detect this *before* running the inner reducer because closePanel's
+  // own fallback (removeNode returning null → keep root) would otherwise
+  // make this case a no-op.
+  if (inner.kind === 'closePanel') {
+    const panels = [...iterPanels(entry.layout)];
+    if (panels.length <= 1 && panels.some(p => p.id === inner.panelId)) {
+      const next = { ...state.popouts };
+      delete next[popoutId];
+      return { root: state.root, popouts: next };
+    }
+  }
+
+  const subResult = applyTransformInternal(
+    { root: entry.layout, popouts: {} },
+    inner
+  );
+  // If the inner transform somehow drained all panels, drop the popout.
+  const remainingPanels = [...iterPanels(subResult.root)];
+  if (remainingPanels.length === 0) {
+    const next = { ...state.popouts };
+    delete next[popoutId];
+    return { root: state.root, popouts: next };
+  }
+  return {
+    root: state.root,
+    popouts: {
+      ...state.popouts,
+      [popoutId]: { ...entry, layout: subResult.root },
+    },
+  };
+}
+
+function isResolvedState(x: unknown): x is ResolvedState {
+  return x !== null && typeof x === 'object' && 'root' in x && 'popouts' in x;
+}
+
+function applyTransformInternal(
+  state: ResolvedState,
   transform: Transform
-): LayoutNode {
-  let next: LayoutNode;
+): ResolvedState {
+  let nextRoot = state.root;
+  let nextPopouts = state.popouts;
   switch (transform.kind) {
     case 'movePanel':
-      next = movePanel(root, transform.panelId, transform.target);
+      nextRoot = movePanel(state.root, transform.panelId, transform.target);
       break;
     case 'addPanel':
-      next = insertAtTarget(root, transform.panel, transform.target);
+      nextRoot = insertAtTarget(state.root, transform.panel, transform.target);
       break;
     case 'closePanel':
-      next = closePanel(root, transform.panelId);
+      nextRoot = closePanel(state.root, transform.panelId);
+      if (state.popouts[transform.panelId] != null) {
+        nextPopouts = { ...state.popouts };
+        delete nextPopouts[transform.panelId];
+      }
       break;
     case 'reorderTab':
-      next = reorderTab(
-        root,
+      nextRoot = reorderTab(
+        state.root,
         transform.stackId,
         transform.panelId,
         transform.index
       );
       break;
     case 'setActive':
-      next = setActive(root, transform.stackId, transform.panelId);
+      nextRoot = setActive(state.root, transform.stackId, transform.panelId);
       break;
     case 'setSizes':
-      next = setSizes(root, transform.containerId, transform.sizes);
+      nextRoot = setSizes(state.root, transform.containerId, transform.sizes);
       break;
     case 'updatePanelState':
-      next = updatePanelState(root, transform.panelId, transform.state);
+      nextRoot = updatePanelState(
+        state.root,
+        transform.panelId,
+        transform.state
+      );
+      nextPopouts = updatePanelStateInPopouts(
+        state.popouts,
+        transform.panelId,
+        transform.state
+      );
       break;
+    case 'popoutPanel': {
+      const popped = popoutPanel(state, transform.panelId, transform.geometry);
+      return { root: normalize(popped.root), popouts: popped.popouts };
+    }
+    case 'closePopoutPanel':
+      return closePopoutPanel(state, transform.panelId);
+    case 'updatePopoutGeometry':
+      return updatePopoutGeometry(state, transform.panelId, transform.geometry);
+    case 'popoutScope':
+      return applyToPopout(state, transform.popoutId, transform.inner);
     default: {
       const exhaustive: never = transform;
       return exhaustive;
     }
   }
-  return normalize(next);
+  return { root: normalize(nextRoot), popouts: nextPopouts };
+}
+
+/**
+ * Apply a single transform to either a tree (legacy form) or a resolved state.
+ * The two overloads keep the original tree-only API stable for callers that
+ * don't care about popouts, while letting popout-aware code thread the full
+ * `{ root, popouts }` shape through.
+ */
+export function applyTransform(
+  root: LayoutNode,
+  transform: Transform
+): LayoutNode;
+export function applyTransform(
+  state: ResolvedState,
+  transform: Transform
+): ResolvedState;
+export function applyTransform(
+  arg: LayoutNode | ResolvedState,
+  transform: Transform
+): LayoutNode | ResolvedState {
+  if (isResolvedState(arg)) {
+    return applyTransformInternal(arg, transform);
+  }
+  const result = applyTransformInternal({ root: arg, popouts: {} }, transform);
+  return result.root;
 }
 
 export function applyTransforms(
   initial: LayoutNode,
   transforms: Transform[]
-): LayoutNode {
-  return transforms.reduce(applyTransform, normalize(initial));
+): LayoutNode;
+export function applyTransforms(
+  initial: LayoutNode,
+  transforms: Transform[],
+  initialPopouts: Record<NodeId, PopoutEntry>
+): ResolvedState;
+export function applyTransforms(
+  initial: LayoutNode,
+  transforms: Transform[],
+  initialPopouts?: Record<NodeId, PopoutEntry>
+): LayoutNode | ResolvedState {
+  const seed: ResolvedState = {
+    root: normalize(initial),
+    popouts: initialPopouts ?? {},
+  };
+  const resolved = transforms.reduce(applyTransformInternal, seed);
+  return initialPopouts === undefined ? resolved.root : resolved;
 }

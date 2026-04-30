@@ -264,6 +264,6 @@ describe('onChange contract', () => {
       initial: layout.initial,
       transforms: [transform],
     };
-    expect(resolveLayout(next)).toEqual(expected);
+    expect(resolveLayout(next).root).toEqual(expected);
   });
 });

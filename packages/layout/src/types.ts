@@ -56,6 +56,29 @@ export type DropTarget =
   | { type: 'container'; containerId: NodeId; index: number }
   | { type: 'rootSibling'; side: Side };
 
+/** Position/size of a popped-out child window, in screen coordinates. */
+export interface PopoutGeometry {
+  screenX: number;
+  screenY: number;
+  width: number;
+  height: number;
+  /**
+   * Window Management API screen label, when available. Best-effort hint used
+   * to re-place a window on the same monitor it was last seen on.
+   */
+  screenLabel?: string;
+}
+
+/**
+ * A popped-out window — the layout it hosts (initially a single-panel
+ * stack; can grow if the user drags additional panels in cross-window)
+ * plus the geometry of the child window itself.
+ */
+export interface PopoutEntry {
+  layout: LayoutNode;
+  geometry: PopoutGeometry;
+}
+
 export type Transform =
   | { kind: 'movePanel'; panelId: NodeId; target: DropTarget }
   | { kind: 'addPanel'; panel: PanelNode; target: DropTarget }
@@ -67,11 +90,30 @@ export type Transform =
       containerId: NodeId;
       sizes: Record<NodeId, number>;
     }
-  | { kind: 'updatePanelState'; panelId: NodeId; state: unknown };
+  | { kind: 'updatePanelState'; panelId: NodeId; state: unknown }
+  | { kind: 'popoutPanel'; panelId: NodeId; geometry: PopoutGeometry }
+  | { kind: 'closePopoutPanel'; panelId: NodeId }
+  | { kind: 'updatePopoutGeometry'; panelId: NodeId; geometry: PopoutGeometry }
+  /**
+   * Apply `inner` to a specific popout's layout sub-tree. Used both
+   * locally (popout's own Dashboard dispatches a movePanel that becomes
+   * `popoutScope({ popoutId, inner: movePanel(...) })`) and across windows
+   * (popout broadcasts to parent, parent applies the scoped transform).
+   *
+   * If the inner transform reduces the popout to zero panels, the popout
+   * entry is dropped automatically.
+   */
+  | { kind: 'popoutScope'; popoutId: NodeId; inner: Transform };
 
 export interface LayoutState {
   initial: LayoutNode;
   transforms: Transform[];
+  /**
+   * Panels that have been torn out into their own browser windows. Keyed by
+   * panel id. Optional so older serialized states (without popouts) hydrate
+   * cleanly.
+   */
+  popouts?: Record<NodeId, PopoutEntry>;
 }
 
 export interface DehydrateOptions {

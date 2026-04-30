@@ -3,6 +3,7 @@ import {
   Dashboard,
   compact,
   createLayoutState,
+  openPopoutWindow,
   resolveLayout,
   usePersistedLayoutState,
   type LayoutNode,
@@ -85,6 +86,18 @@ export default function App(): JSX.Element {
 
   const transformsCount = state.transforms.length;
   const resolved = useMemo(() => resolveLayout(state), [state]);
+  const resolvedRoot = resolved.root;
+  const popoutCount = Object.keys(resolved.popouts).length;
+
+  const reopenAllPopouts = (): void => {
+    Object.entries(resolved.popouts).forEach(([panelId, entry]) => {
+      openPopoutWindow({
+        panelId,
+        layoutKey: STORAGE_KEY,
+        geometry: entry.geometry,
+      });
+    });
+  };
 
   return (
     <div className="demo-shell">
@@ -126,8 +139,13 @@ export default function App(): JSX.Element {
         </button>
         <div className="demo-toolbar-spacer" />
         <span className="demo-toolbar-info">
-          root: {resolved.type}, {transformsCount} pending
+          root: {resolvedRoot.type}, {transformsCount} pending
         </span>
+        {popoutCount > 0 && (
+          <button type="button" onClick={reopenAllPopouts}>
+            reopen {popoutCount} popout{popoutCount === 1 ? '' : 's'}
+          </button>
+        )}
         <button type="button" onClick={() => setShowState(v => !v)}>
           {showState ? 'hide state' : 'show state'}
         </button>
@@ -138,6 +156,7 @@ export default function App(): JSX.Element {
           components={COMPONENTS}
           onChange={next => setState(next)}
           editMode={editMode}
+          layoutKey={STORAGE_KEY}
         />
       </div>
       {showState && (
