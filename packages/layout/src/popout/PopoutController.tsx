@@ -22,6 +22,15 @@ import { openPopoutWindow } from './openPopoutWindow';
 
 const log = Log.module('@deephaven/layout/PopoutController');
 
+/** Interval at which the parent broadcasts a heartbeat to popouts. */
+const HEARTBEAT_INTERVAL_MS = 1000;
+/**
+ * Delay before the parent runs its first popout reconciliation pass.
+ * Long enough for live popouts to respond to discoverPopouts and announce
+ * themselves so we skip re-opening (and thus reloading) them.
+ */
+const FIRST_RECONCILE_DELAY_MS = 250;
+
 export interface PopoutControllerValue {
   /** Storage key shared with all child windows. Null if popouts are disabled. */
   layoutKey: string | null;
@@ -108,6 +117,13 @@ export default function PopoutController({
   layoutKeyRef.current = layoutKey;
 
   const childWindowsRef = useRef<Map<NodeId, Window>>(new Map());
+  /**
+   * Popouts that have announced themselves alive over the bridge. We don't
+   * have Window handles for these (e.g. they survived a parent refresh),
+   * but knowing they exist is enough to avoid re-opening their windows
+   * and triggering a navigate-and-tear-down cycle.
+   */
+  const alivePopoutsRef = useRef<Set<NodeId>>(new Set());
 
   // (parent only) listen for child → parent messages
   useEffect(() => {
@@ -133,11 +149,14 @@ export default function PopoutController({
           },
         });
       } else if (msg.type === 'closePopout') {
+        alivePopoutsRef.current.delete(msg.panelId);
         dispatchRef.current({ kind: 'closePopoutPanel', panelId: msg.panelId });
       } else if (msg.type === 'transform') {
         // a popout asked the parent to apply a transform on its behalf.
         // The popout has already wrapped any tree changes in popoutScope.
         dispatchRef.current(msg.transform);
+      } else if (msg.type === 'popoutAlive') {
+        alivePopoutsRef.current.add(msg.panelId);
       }
     });
   }, [isParent]);
@@ -154,6 +173,28 @@ export default function PopoutController({
       log.warn('Failed to broadcast state to popouts:', e);
     }
   }, [isParent, state]);
+
+  // (parent only) on mount, ask any already-running popouts to identify
+  // themselves. This is the key to surviving a parent refresh: the next
+  // reconciliation pass skips opening windows for popouts already alive.
+  useEffect(() => {
+    if (!enabled || !isParent) return;
+    const bridge = bridgeRef.current;
+    if (bridge == null) return;
+    bridge.send({ type: 'discoverPopouts' });
+  }, [enabled, isParent]);
+
+  // (parent only) heartbeat so popouts can distinguish a brief refresh of
+  // the parent from a real close.
+  useEffect(() => {
+    if (!enabled || !isParent) return undefined;
+    const bridge = bridgeRef.current;
+    if (bridge == null) return undefined;
+    const handle = window.setInterval(() => {
+      bridge.send({ type: 'heartbeat' });
+    }, HEARTBEAT_INTERVAL_MS);
+    return () => window.clearInterval(handle);
+  }, [enabled, isParent]);
 
   /**
    * Synchronous popout opener for the dragend code path. Calling
@@ -177,34 +218,58 @@ export default function PopoutController({
 
   // (parent only) reconcile open windows with popouts entries. A popout
   // can't manage child windows of its own.
+  const isFirstReconcileRef = useRef(true);
   useEffect(() => {
-    if (!enabled || !isParent) return;
-    const open = childWindowsRef.current;
-    const seen = new Set<NodeId>();
+    if (!enabled || !isParent) return undefined;
 
-    Object.entries(popouts).forEach(([panelId, entry]) => {
-      seen.add(panelId);
-      const existing = open.get(panelId);
-      if (existing != null && !existing.closed) return;
-      const child = openPopoutWindow({
-        panelId,
-        layoutKey: layoutKey as string,
-        geometry: entry.geometry,
+    function reconcile(): void {
+      const open = childWindowsRef.current;
+      const seen = new Set<NodeId>();
+
+      Object.entries(popouts).forEach(([panelId, entry]) => {
+        seen.add(panelId);
+        const existing = open.get(panelId);
+        if (existing != null && !existing.closed) return;
+        // Skip if a popout window already announced itself alive (e.g. a
+        // pre-refresh popout that is still open). Targeting an existing
+        // same-named window with window.open() would navigate it and
+        // trigger its beforeunload, deleting the popout entry.
+        if (alivePopoutsRef.current.has(panelId)) return;
+        const child = openPopoutWindow({
+          panelId,
+          layoutKey: layoutKey as string,
+          geometry: entry.geometry,
+        });
+        if (child != null) open.set(panelId, child);
       });
-      if (child != null) open.set(panelId, child);
-    });
 
-    Array.from(open.entries()).forEach(([panelId, child]) => {
-      if (seen.has(panelId)) return;
-      if (!child.closed) {
-        try {
-          child.close();
-        } catch {
-          /* ignore */
+      Array.from(open.entries()).forEach(([panelId, child]) => {
+        if (seen.has(panelId)) return;
+        if (!child.closed) {
+          try {
+            child.close();
+          } catch {
+            /* ignore */
+          }
         }
-      }
-      open.delete(panelId);
-    });
+        open.delete(panelId);
+      });
+
+      // Drop alive entries for panels no longer in popouts.
+      alivePopoutsRef.current.forEach(id => {
+        if (!seen.has(id)) alivePopoutsRef.current.delete(id);
+      });
+    }
+
+    // First pass after mount runs deferred so popouts have a chance to
+    // respond to discoverPopouts before we decide to (re)open windows.
+    if (isFirstReconcileRef.current) {
+      isFirstReconcileRef.current = false;
+      const timer = window.setTimeout(reconcile, FIRST_RECONCILE_DELAY_MS);
+      return () => window.clearTimeout(timer);
+    }
+    reconcile();
+    return undefined;
   }, [popouts, enabled, isParent, layoutKey]);
 
   // (parent only) poll for child windows the user closed manually so we

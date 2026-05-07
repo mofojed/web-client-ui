@@ -44,7 +44,24 @@ export type PopoutMessage =
       panelId: NodeId;
     }
   /** A drag was cancelled or never landed. Source can discard pending state. */
-  | { type: 'crossDragCancel'; sourceWindowId: NodeId | null; panelId: NodeId };
+  | { type: 'crossDragCancel'; sourceWindowId: NodeId | null; panelId: NodeId }
+  /**
+   * Parent → popouts liveness ping. Popouts treat extended silence as the
+   * parent having closed and self-close after a grace period; this lets a
+   * brief refresh of the parent stay invisible to the popouts.
+   */
+  | { type: 'heartbeat' }
+  /**
+   * Parent → popouts: "any popout out there, identify yourself." Sent on
+   * parent mount so a freshly refreshed parent can avoid re-opening
+   * popouts that are still alive from before its refresh.
+   */
+  | { type: 'discoverPopouts' }
+  /**
+   * Popout → parent: this popout window is alive. Sent on mount and in
+   * response to discoverPopouts.
+   */
+  | { type: 'popoutAlive'; panelId: NodeId };
 
 export type PopoutMessageHandler = (msg: PopoutMessage) => void;
 

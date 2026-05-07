@@ -18,6 +18,14 @@ import { POPOUT_PARAM, POPOUT_LAYOUT_KEY_PARAM } from './popoutQuery';
 const log = Log.module('@deephaven/layout/PopoutPanelHost');
 
 const GEOMETRY_POLL_MS = 250;
+/**
+ * If we don't hear from the parent for this long, assume it's gone (closed
+ * for real, not just refreshing) and close ourselves. Picked generously so
+ * a slow parent refresh — bootstrap chain, plugins, JS API — fits inside
+ * the silence window.
+ */
+const PARENT_SILENCE_TIMEOUT_MS = 5000;
+const PARENT_LIVENESS_POLL_MS = 1000;
 
 export interface PopoutPanelHostProps {
   /**
@@ -140,6 +148,13 @@ export default function PopoutPanelHost({
     bridgeRef.current = new PopoutBridge(layoutKey);
   }
 
+  /**
+   * Wall-clock time of the most recent parent-originated message. Initial
+   * value is `now()` so we don't immediately time out before the parent
+   * has had a chance to send its first heartbeat.
+   */
+  const lastParentContactRef = useRef<number>(Date.now());
+
   // local view of this popout's layout — kept in sync with the parent via
   // the bridge. Initial value comes from parent's storage.
   const [popoutLayout, setPopoutLayout] = useState<LayoutNode | null>(() => {
@@ -154,7 +169,26 @@ export default function PopoutPanelHost({
   useEffect(() => {
     const bridge = bridgeRef.current;
     if (bridge == null || popoutId == null) return undefined;
+
+    // Announce ourselves so a freshly-mounted parent (e.g. just refreshed)
+    // knows we're already open and can skip re-opening our window.
+    bridge.send({ type: 'popoutAlive', panelId: popoutId });
+
     return bridge.subscribe((msg: PopoutMessage) => {
+      // Only parent-originated messages count as liveness contact —
+      // sibling popouts also chatter on this channel and shouldn't
+      // mask a dead parent.
+      if (
+        msg.type === 'state' ||
+        msg.type === 'heartbeat' ||
+        msg.type === 'discoverPopouts'
+      ) {
+        lastParentContactRef.current = Date.now();
+      }
+      if (msg.type === 'discoverPopouts') {
+        bridge.send({ type: 'popoutAlive', panelId: popoutId });
+        return;
+      }
       if (msg.type === 'state') {
         try {
           const hydrated = hydrate(msg.state, hydrateOptions);
@@ -171,6 +205,23 @@ export default function PopoutPanelHost({
       }
     });
   }, [popoutId, hydrateOptions]);
+
+  // Close ourselves if the parent stops broadcasting. Distinguishes a
+  // refresh (brief gap, new parent picks up heartbeat) from a real close
+  // (no new heartbeat ever arrives).
+  useEffect(() => {
+    if (popoutId == null) return undefined;
+    const handle = window.setInterval(() => {
+      if (
+        Date.now() - lastParentContactRef.current >
+        PARENT_SILENCE_TIMEOUT_MS
+      ) {
+        log.debug('Parent silent — closing popout window.');
+        window.close();
+      }
+    }, PARENT_LIVENESS_POLL_MS);
+    return () => window.clearInterval(handle);
+  }, [popoutId]);
 
   // poll our own window position; broadcast changes so parent persists
   // them. We can't listen for "move" events directly.
