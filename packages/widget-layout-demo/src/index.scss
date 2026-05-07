@@ -156,8 +156,8 @@ body {
   font-size: 12px;
 }
 
+.widget-panel-outer,
 .widget-panel-content,
-.widget-panel-loading,
 .widget-panel-message {
   width: 100%;
   height: 100%;
@@ -165,19 +165,57 @@ body {
   overflow: hidden;
 }
 
-.widget-panel-loading,
 .widget-panel-message {
+  padding: 16px;
+  text-align: center;
+  color: #888;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.widget-panel-message {
-  padding: 16px;
-  text-align: center;
-  color: #888;
-}
-
 .widget-panel-error {
   color: #ff6464;
+}
+
+// Animated glowing white border shown while the widget is still loading.
+// A masked conic-gradient pseudo-element produces a soft bright spot that
+// travels around the panel's perimeter; the @property declaration lets the
+// gradient's angle interpolate so the spot rotates instead of jumping.
+@property --dh-widget-loading-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.widget-panel-outer.is-loading {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 4px;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--dh-widget-loading-angle, 0deg),
+      rgba(255, 255, 255, 0%) 0deg,
+      rgba(255, 255, 255, 0%) 220deg,
+      rgba(255, 255, 255, 90%) 300deg,
+      rgba(255, 255, 255, 0%) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 60%));
+    animation: dh-widget-loading-spin 3s linear infinite;
+  }
+}
+
+@keyframes dh-widget-loading-spin {
+  to {
+    --dh-widget-loading-angle: 360deg;
+  }
 }
