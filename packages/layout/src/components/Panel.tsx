@@ -14,16 +14,23 @@ function panelContentClass(isActive: boolean, isFocused: boolean): string {
   return parts.join(' ');
 }
 
-function PanelInner({ panel, isActive }: PanelProps): JSX.Element | null {
-  const { components, editMode, dispatch, focusedPanelId } = useLayoutContext();
+function PanelInner({ panel, isActive }: PanelProps): JSX.Element {
+  const { components, getPanelHost, focusedPanelId } = useLayoutContext();
   const definition = components[panel.component];
   const isFocused = focusedPanelId === panel.id;
 
-  const setState = useCallback(
-    (state: unknown) => {
-      dispatch({ kind: 'updatePanelState', panelId: panel.id, state });
+  const attachHost = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (el == null) return;
+      const host = getPanelHost(panel.id);
+      // Idempotent: appendChild on an already-attached node is a move.
+      // Using parentNode check avoids a redundant DOM write when the host
+      // is already in the right slot.
+      if (host.parentNode !== el) {
+        el.appendChild(host);
+      }
     },
-    [dispatch, panel.id]
+    [getPanelHost, panel.id]
   );
 
   if (definition == null) {
@@ -37,19 +44,16 @@ function PanelInner({ panel, isActive }: PanelProps): JSX.Element | null {
     );
   }
 
-  const Content = definition.component;
+  // Slot only — actual content is portaled in by PanelContentMount, which
+  // lives at a stable position in the Dashboard's React tree. The persistent
+  // host element appended here is what carries the panel's mounted content
+  // across stack/row/column rearrangements without remounting.
   return (
     <div
+      ref={attachHost}
       className={panelContentClass(isActive, isFocused)}
       data-panel-id={panel.id}
-    >
-      <Content
-        panel={panel}
-        isActive={isActive}
-        editMode={editMode}
-        setState={setState}
-      />
-    </div>
+    />
   );
 }
 

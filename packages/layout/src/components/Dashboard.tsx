@@ -7,17 +7,62 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { LayoutState, NodeId, PanelNode, Transform } from '../types';
+import type {
+  ContainerNode,
+  LayoutNode,
+  LayoutState,
+  NodeId,
+  PanelNode,
+  Transform,
+} from '../types';
 import { resolveLayout } from '../state/compact';
-import { findNode, isPanel, isStack } from '../state/treeUtils';
+import {
+  findNode,
+  isContainer,
+  isPanel,
+  isStack,
+} from '../state/treeUtils';
 import LayoutContext from './LayoutContext';
 import RenderNode from './RenderNode';
+import PanelContentMount from './PanelContentMount';
 import mergeTransform from './mergeTransform';
 import findFocusedPanelId from './findFocusedPanelId';
 import type { PanelRegistry } from './types';
 import DragLayer from '../dnd/DragLayer';
 import PopoutController from '../popout/PopoutController';
 import './Layout.scss';
+
+interface VisiblePanel {
+  panel: PanelNode;
+  isActive: boolean;
+}
+
+/**
+ * Walk the resolved tree and return one entry per visible panel, with the
+ * `isActive` flag derived from each enclosing stack's `activeId`. Loose
+ * panels (panels not inside a stack) are always active.
+ */
+function collectVisiblePanels(root: LayoutNode): VisiblePanel[] {
+  const out: VisiblePanel[] = [];
+  function walk(node: LayoutNode): void {
+    if (isPanel(node)) {
+      out.push({ panel: node, isActive: true });
+      return;
+    }
+    if (isStack(node)) {
+      const activeId = node.activeId ?? node.children[0]?.id;
+      node.children.forEach(p => {
+        out.push({ panel: p, isActive: p.id === activeId });
+      });
+      return;
+    }
+    if (isContainer(node)) {
+      (node as ContainerNode).children.forEach(walk);
+    }
+  }
+  walk(root);
+  return out;
+}
 
 export interface DashboardProps {
   /**
@@ -88,6 +133,47 @@ export default function Dashboard({
   const resolved = useMemo(() => resolveLayout(layout), [layout]);
   const resolvedRoot = resolved.root;
 
+  // Persistent host DOM nodes per panel — one created on first request, kept
+  // for the panel's lifetime, and moved between slots via the slot ref. This
+  // is what makes cross-stack rearrangement seamless: the host's DOM identity
+  // is preserved, and the React subtree portaled into it never unmounts.
+  const panelHostsRef = useRef<Map<NodeId, HTMLDivElement>>(new Map());
+  const getPanelHost = useCallback((panelId: NodeId): HTMLDivElement => {
+    let el = panelHostsRef.current.get(panelId);
+    if (el == null) {
+      el = document.createElement('div');
+      el.className = 'dh-layout-panel-content-host';
+      panelHostsRef.current.set(panelId, el);
+    }
+    return el;
+  }, []);
+
+  const visiblePanels = useMemo(
+    () => collectVisiblePanels(resolvedRoot),
+    [resolvedRoot]
+  );
+
+  // Drop hosts for panels that left the visible tree (closed, popped out,
+  // moved into a nested dashboard, etc.) so they don't accumulate.
+  useEffect(() => {
+    const live = new Set(visiblePanels.map(v => v.panel.id));
+    panelHostsRef.current.forEach((el, id) => {
+      if (!live.has(id)) {
+        el.remove();
+        panelHostsRef.current.delete(id);
+      }
+    });
+  }, [visiblePanels]);
+
+  // On unmount, drop all hosts.
+  useEffect(
+    () => () => {
+      panelHostsRef.current.forEach(el => el.remove());
+      panelHostsRef.current.clear();
+    },
+    []
+  );
+
   const getStackChildCount = useCallback(
     (stackId: NodeId): number => {
       const found = findNode(resolvedRoot, stackId);
@@ -149,8 +235,9 @@ export default function Dashboard({
       editMode,
       draggingPanelId: null,
       focusedPanelId,
+      getPanelHost,
     }),
-    [layout, dispatch, components, editMode, focusedPanelId]
+    [layout, dispatch, components, editMode, focusedPanelId, getPanelHost]
   );
 
   // a Dashboard rendered inside another Dashboard's panel inherits the outer
@@ -179,6 +266,14 @@ export default function Dashboard({
             getPanel={getPanel}
             dashboardRef={dashboardRef}
           >
+            {visiblePanels.map(({ panel, isActive }) => (
+              <PanelContentMount
+                key={panel.id}
+                panel={panel}
+                isActive={isActive}
+                host={getPanelHost(panel.id)}
+              />
+            ))}
             <RenderNode node={resolvedRoot} />
           </DragLayer>
         </PopoutController>

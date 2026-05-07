@@ -56,4 +56,10 @@ export interface LayoutContextValue {
    * Dashboard does not mark the outer host panel as focused.
    */
   focusedPanelId: NodeId | null;
+  /**
+   * Returns a persistent DOM element used as the host for a panel's
+   * content. Panel slots append this host as a child via their ref so the
+   * portaled React content stays mounted across rearrangements.
+   */
+  getPanelHost: (panelId: NodeId) => HTMLDivElement;
 }

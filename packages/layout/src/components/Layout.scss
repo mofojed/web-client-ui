@@ -116,6 +116,14 @@
   }
 }
 
+// Persistent host element appended to each panel slot. Carries the panel's
+// rendered content via React portal; its DOM identity is preserved across
+// stack/row/column rearrangements so the content never remounts.
+.dh-layout-panel-content-host {
+  width: 100%;
+  height: 100%;
+}
+
 .dh-layout-splitter {
   flex: 0 0 auto;
   background: transparent;
