@@ -20,7 +20,17 @@ function isWidgetPanelState(value: unknown): value is WidgetPanelState {
 }
 
 export function WidgetPanel({ panel }: PanelContentProps): JSX.Element {
-  const descriptor = isWidgetPanelState(panel.state) ? panel.state : null;
+  // panel.state's *reference* changes every time the layout state is
+  // re-broadcast (popout geometry polling, sibling rearrangement, etc.).
+  // Memoize by-value so `useObjectFetch(descriptor)` doesn't re-subscribe
+  // and tear the plugin down on every broadcast.
+  const state = isWidgetPanelState(panel.state) ? panel.state : null;
+  const type = state?.type ?? null;
+  const name = state?.name ?? null;
+  const descriptor = useMemo<WidgetPanelState | null>(
+    () => (type != null && name != null ? { type, name } : null),
+    [type, name]
+  );
 
   if (descriptor == null) {
     return (
