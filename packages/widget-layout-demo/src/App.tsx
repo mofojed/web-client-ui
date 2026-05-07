@@ -6,17 +6,12 @@ import {
   compact,
   createLayoutState,
   usePersistedLayoutState,
-  type PanelRegistry,
 } from '@deephaven/layout';
 import type { dh } from '@deephaven/jsapi-types';
 import { WidgetMenu } from './WidgetMenu';
-import { WidgetPanel } from './WidgetPanel';
+import COMPONENTS from './panels';
 
 const STORAGE_KEY = 'deephaven.widget-layout-demo.state';
-
-const COMPONENTS: PanelRegistry = {
-  widget: { component: WidgetPanel },
-};
 
 const INITIAL_LAYOUT = {
   type: 'stack' as const,

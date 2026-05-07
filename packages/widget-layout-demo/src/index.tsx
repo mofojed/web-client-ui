@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 import '@deephaven/components/scss/BaseStyleSheet.scss'; // Do NOT move any lower. Must be imported before any other styles.
 import { LoadingOverlay, preloadTheme } from '@deephaven/components';
 import { ApiBootstrap } from '@deephaven/jsapi-bootstrap';
+import { parsePopoutParams } from '@deephaven/layout';
 import { logInit } from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import './index.scss';
@@ -14,8 +15,12 @@ logInit(
 
 preloadTheme();
 
+const isPopout = parsePopoutParams(window.location.search) != null;
+
 // eslint-disable-next-line react-refresh/only-export-components
-const App = React.lazy(() => import('./App'));
+const App = React.lazy(() =>
+  isPopout ? import('./PopoutApp') : import('./App')
+);
 
 // eslint-disable-next-line react-refresh/only-export-components
 const AppBootstrap = React.lazy(async () => {
