@@ -1,0 +1,42 @@
+{
+  "name": "@deephaven/widget-layout-demo",
+  "version": "0.1.0",
+  "description": "Demo app that hosts Deephaven WidgetPlugins inside @deephaven/layout",
+  "private": true,
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deephaven/web-client-ui.git",
+    "directory": "packages/widget-layout-demo"
+  },
+  "homepage": ".",
+  "scripts": {
+    "start": "vite",
+    "build": "NODE_OPTIONS='--max-old-space-size=6144' vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@deephaven/app-utils": "file:../app-utils",
+    "@deephaven/components": "file:../components",
+    "@deephaven/dashboard-core-plugins": "file:../dashboard-core-plugins",
+    "@deephaven/jsapi-bootstrap": "file:../jsapi-bootstrap",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.40.4",
+    "@deephaven/layout": "file:../layout",
+    "@deephaven/log": "file:../log",
+    "@deephaven/plugin": "file:../plugin",
+    "@deephaven/utils": "file:../utils",
+    "@fontsource/fira-mono": "5.0.13",
+    "@fontsource/fira-sans": "5.0.20",
+    "nanoid": "5.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-redux": "^7.2.7"
+  },
+  "devDependencies": {
+    "@deephaven/eslint-config": "file:../eslint-config",
+    "@deephaven/prettier-config": "file:../prettier-config",
+    "@deephaven/stylelint-config": "file:../stylelint-config"
+  }
+}

@@ -25,6 +25,7 @@
     { "path": "./packages/code-studio" },
     { "path": "./packages/embed-widget" },
     { "path": "./packages/jsapi-nodejs" },
-    { "path": "./packages/layout-demo" }
+    { "path": "./packages/layout-demo" },
+    { "path": "./packages/widget-layout-demo" }
   ]
 }
