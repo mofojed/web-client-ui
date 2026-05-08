@@ -37,6 +37,8 @@ import {
   type PanelHydrateFunction,
   type PanelProps,
   type DehydratedPanelProps,
+  type DashboardWrapperComponent,
+  type DeregisterWrapperFunction,
 } from './DashboardPlugin';
 import DashboardPanelWrapper from './DashboardPanelWrapper';
 import { PanelIdContext } from './usePanelId';
@@ -107,6 +109,19 @@ export function DashboardLayout({
   );
   const [layoutChildren, setLayoutChildren] = useState(
     layout.getReactChildren()
+  );
+  const [wrappers, setWrappers] = useState<
+    readonly DashboardWrapperComponent[]
+  >([]);
+
+  const registerWrapper = useCallback(
+    (Component: DashboardWrapperComponent): DeregisterWrapperFunction => {
+      setWrappers(prev => [...prev, Component]);
+      return () => {
+        setWrappers(prev => prev.filter(w => w !== Component));
+      };
+    },
+    []
   );
 
   const hydrateMap = useMemo(() => new Map<string, PanelHydrateFunction>(), []);
@@ -381,8 +396,15 @@ export function DashboardLayout({
 
   return (
     <>
-      {isDashboardEmpty && emptyDashboard}
-      {layoutChildren}
+      {wrappers.reduceRight<React.ReactNode>(
+        (acc, Wrapper) => (
+          <Wrapper>{acc}</Wrapper>
+        ),
+        <>
+          {isDashboardEmpty && emptyDashboard}
+          {layoutChildren}
+        </>
+      )}
       {React.Children.map(children, child =>
         child != null ? (
           // Have fallback be an empty array so that we don't show the error message over entire app
@@ -393,6 +415,7 @@ export function DashboardLayout({
               layout,
               panelManager,
               registerComponent,
+              registerWrapper,
             })}
           </ErrorBoundary>
         ) : null

@@ -106,6 +106,12 @@ export interface DashboardPanelDefinition {
 
 export type DeregisterComponentFunction = () => void;
 
+export type DashboardWrapperComponent = ComponentType<
+  React.PropsWithChildren<unknown>
+>;
+
+export type DeregisterWrapperFunction = () => void;
+
 export type PanelHydrateFunction = (
   props: DehydratedPanelProps,
   dashboardId: string
@@ -129,6 +135,14 @@ export type DashboardPluginComponentProps = {
     hydrate?: PanelHydrateFunction,
     dehydrate?: PanelDehydrateFunction
   ) => DeregisterComponentFunction;
+  /**
+   * Register a React component to wrap the dashboard's panel area. Wrappers are
+   * composed in registration order, with later registrations rendered as
+   * descendants of earlier ones. Returns a function to deregister the wrapper.
+   */
+  registerWrapper: (
+    Component: DashboardWrapperComponent
+  ) => DeregisterWrapperFunction;
 };
 
 /**
@@ -143,7 +157,8 @@ export function isDashboardPluginProps(
     typeof props.id === 'string' &&
     props.layout instanceof GoldenLayout &&
     props.panelManager instanceof PanelManager &&
-    typeof props.registerComponent === 'function'
+    typeof props.registerComponent === 'function' &&
+    typeof props.registerWrapper === 'function'
   );
 }
 

@@ -1,13 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import clamp from 'lodash.clamp';
-import {
-  useAppSelector,
-  useDashboardId,
-  useDhId,
-  useLayoutManager,
-  usePanelId,
-} from '@deephaven/dashboard';
-import { type RootState } from '@deephaven/redux';
+import { useDhId, usePanelId } from '@deephaven/dashboard';
 import {
   type IrisGridProps,
   type IrisGridModel,
@@ -17,15 +10,7 @@ import { type ModelIndex } from '@deephaven/grid';
 import { type RowDataMap } from '@deephaven/jsapi-utils';
 import { type dh } from '@deephaven/jsapi-types';
 import { assertNotNull } from '@deephaven/utils';
-import {
-  emitLinkPointSelected,
-  emitLinkSourceDataSelected,
-  emitRegisterLinkTarget,
-} from './linker/LinkerEvent';
-import {
-  getColumnSelectionValidatorForDashboard,
-  getLinksForDashboard,
-} from './redux';
+import { useLinker } from './linker/LinkerContext';
 
 export function useGridLinker(
   model: IrisGridModel | null,
@@ -38,52 +23,46 @@ export function useGridLinker(
   | 'onColumnSelected'
   | 'onDataSelected'
 > {
-  const { eventHub } = useLayoutManager();
-  const dashboardId = useDashboardId();
   const dhId = useDhId();
   const panelId = usePanelId();
+  const linker = useLinker();
 
-  const getLinks = useCallback(
-    (s: RootState) => getLinksForDashboard(s, dashboardId),
-    [dashboardId]
+  const {
+    getLinkSourceColumns,
+    isSelectingColumn,
+    validateColumnSelection,
+    onColumnSelected: linkerOnColumnSelected,
+    onDataSelected: linkerOnDataSelected,
+    registerLinkTarget,
+  } = linker;
+
+  const alwaysFetchColumns = useMemo(
+    () => [...getLinkSourceColumns(dhId)],
+    [getLinkSourceColumns, dhId]
   );
-
-  const links = useAppSelector(getLinks);
-  const linkColumns = useMemo(() => {
-    const columnSet = new Set<string>();
-    links.forEach(link => {
-      if (link.start.panelId === dhId) {
-        columnSet.add(link.start.columnName);
-      }
-    });
-    return [...columnSet];
-  }, [links, dhId]);
-
-  const getColumnSelectionValidator = useCallback(
-    (s: RootState) => getColumnSelectionValidatorForDashboard(s, dashboardId),
-    [dashboardId]
-  );
-  const columnSelectionValidator = useAppSelector(getColumnSelectionValidator);
 
   const isColumnSelectionValid = useCallback(
     (column: dh.Column | null) => {
-      if (columnSelectionValidator && column && dhId != null) {
-        return columnSelectionValidator(dhId, column, { type: 'tableLink' });
+      if (column == null) {
+        return false;
       }
-      return false;
+      return validateColumnSelection(dhId, column);
     },
-    [columnSelectionValidator, dhId]
+    [validateColumnSelection, dhId]
   );
-  const isSelectingColumn = columnSelectionValidator != null;
 
   const onDataSelected = useCallback(
-    (row: ModelIndex, dataMap: RowDataMap) => {
-      if (dhId == null) {
-        return;
-      }
-      emitLinkSourceDataSelected(eventHub, dhId, dataMap);
+    (_row: ModelIndex, dataMap: RowDataMap) => {
+      linkerOnDataSelected(dhId, dataMap);
     },
-    [eventHub, dhId]
+    [linkerOnDataSelected, dhId]
+  );
+
+  const onColumnSelected = useCallback(
+    (column: dh.Column) => {
+      linkerOnColumnSelected(dhId, column);
+    },
+    [linkerOnColumnSelected, dhId]
   );
 
   const getCoordinates = useCallback(
@@ -126,24 +105,12 @@ export function useGridLinker(
     [model, irisGrid]
   );
 
-  const onColumnSelected = useCallback(
-    (column: dh.Column) => {
-      if (dhId == null) {
-        return;
-      }
-      emitLinkPointSelected(eventHub, dhId, column, {
-        type: 'tableLink',
-      });
-    },
-    [eventHub, dhId]
-  );
-
   useEffect(
     function registerTarget() {
       if (!irisGrid || panelId == null || dhId == null) {
         return;
       }
-      emitRegisterLinkTarget(eventHub, dhId, {
+      registerLinkTarget(dhId, panelId, {
         getCoordinates,
         setFilterValues: irisGrid.setFilterMap,
         unsetFilterValue: () => {
@@ -152,14 +119,14 @@ export function useGridLinker(
         panelId,
       });
       return () => {
-        emitRegisterLinkTarget(eventHub, dhId, null);
+        registerLinkTarget(dhId, panelId, null);
       };
     },
-    [eventHub, dhId, getCoordinates, irisGrid, panelId]
+    [registerLinkTarget, dhId, panelId, getCoordinates, irisGrid]
   );
 
   return {
-    alwaysFetchColumns: linkColumns,
+    alwaysFetchColumns,
     columnSelectionValidator: isColumnSelectionValid,
     isSelectingColumn,
     onColumnSelected,
