@@ -222,7 +222,7 @@ $dh-ant-thickness: 2px;
   position: absolute;
   pointer-events: none;
   z-index: 10;
-  background-color: var(--dh-color-drop-indicator-bg, rgba(64, 128, 255, 0.18));
+  background-color: var(--dh-color-drop-indicator-bg, rgba(64, 128, 255, 18%));
   @include dh-marching-ants-border;
 }
 
@@ -277,7 +277,7 @@ $dh-ant-thickness: 2px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 40%);
 }
 
 @keyframes dh-marching-ants {
@@ -301,7 +301,7 @@ $dh-ant-thickness: 2px;
   position: absolute;
   pointer-events: none;
   z-index: 50;
-  background-color: var(--dh-color-drop-indicator-bg, rgba(64, 128, 255, 0.18));
+  background-color: var(--dh-color-drop-indicator-bg, rgba(64, 128, 255, 18%));
   @include dh-marching-ants-border;
 }
 

@@ -14,6 +14,47 @@ body {
   color: #ddd;
 }
 
+%demo-pane {
+  padding: 16px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.demo-counter {
+  @extend %demo-pane;
+
+  button {
+    margin-top: 12px;
+    padding: 6px 12px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+}
+
+.demo-color {
+  @extend %demo-pane;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 50%);
+}
+
+.demo-text {
+  @extend %demo-pane;
+
+  line-height: 1.5;
+}
+
+.demo-nested {
+  @extend %demo-pane;
+}
+
 .demo-shell {
   display: flex;
   flex-direction: column;
@@ -65,38 +106,6 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   position: relative;
-}
-
-.demo-counter,
-.demo-color,
-.demo-text,
-.demo-nested {
-  padding: 16px;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: auto;
-}
-
-.demo-counter button {
-  margin-top: 12px;
-  padding: 6px 12px;
-  border: 1px solid #444;
-  background: #2a2a2a;
-  color: #ddd;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.demo-color {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-}
-
-.demo-text {
-  line-height: 1.5;
 }
 
 .demo-state-pane {

@@ -16,12 +16,7 @@ import type {
   Transform,
 } from '../types';
 import { resolveLayout } from '../state/compact';
-import {
-  findNode,
-  isContainer,
-  isPanel,
-  isStack,
-} from '../state/treeUtils';
+import { findNode, isContainer, isPanel, isStack } from '../state/treeUtils';
 import LayoutContext from './LayoutContext';
 import RenderNode from './RenderNode';
 import PanelContentMount from './PanelContentMount';

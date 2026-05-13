@@ -6,7 +6,10 @@ export interface WidgetMenuProps {
   onSelect: (widget: dh.ide.VariableDefinition) => void;
 }
 
-export function WidgetMenu({ widgets, onSelect }: WidgetMenuProps): JSX.Element {
+export function WidgetMenu({
+  widgets,
+  onSelect,
+}: WidgetMenuProps): JSX.Element {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement | null>(null);

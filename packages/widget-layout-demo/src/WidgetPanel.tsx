@@ -64,9 +64,7 @@ function WidgetPanelContent({
     () =>
       [...plugins.values()]
         .filter(isWidgetPlugin)
-        .find(p =>
-          [p.supportedTypes].flat().some(t => t === descriptor.type)
-        ),
+        .find(p => [p.supportedTypes].flat().some(t => t === descriptor.type)),
     [plugins, descriptor.type]
   );
 
