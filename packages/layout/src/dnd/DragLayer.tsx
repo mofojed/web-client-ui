@@ -159,6 +159,11 @@ export default function DragLayer({
   // another window accepted the drop. Source's dragend reads this to
   // dispatch closePanel (or popoutScope(closePanel)) instead of movePanel.
   const remoteAcceptedRef = useRef(false);
+  // Sticky flag set when the user presses Esc mid-drag. Subsequent
+  // dragover/dragleave/dragend events check this so the drag visually
+  // stops responding and no transform is dispatched, even though the
+  // native drag continues until the user releases the mouse.
+  const cancelledRef = useRef(false);
 
   const resetDragState = useCallback(() => {
     setActivePanelId(null);
@@ -169,6 +174,7 @@ export default function DragLayer({
     remoteDragRef.current = null;
     dropAcceptedRef.current = false;
     remoteAcceptedRef.current = false;
+    cancelledRef.current = false;
   }, []);
 
   // dragstart fires from a tab. We identify our own drags by reading data-*
@@ -185,6 +191,7 @@ export default function DragLayer({
     setHover(null);
     setPopoutPending(false);
     remoteAcceptedRef.current = false;
+    cancelledRef.current = false;
 
     const panel = getPanelRef.current(payload.panelId);
     if (panel != null && bridgeRef.current != null) {
@@ -199,6 +206,14 @@ export default function DragLayer({
   const handleDragOver = useCallback(
     (event: DragEvent) => {
       if (activePanelIdRef.current == null) return;
+      // After Esc, refuse the drop so the OS shows a "not allowed" cursor
+      // and stop updating any indicators. The native drag continues until
+      // the user releases the mouse; dragend then short-circuits cleanly.
+      if (cancelledRef.current) {
+        setHover(null);
+        setPopoutPending(false);
+        return;
+      }
       // accept the drag so dropEffect/cursor render correctly
       event.preventDefault();
       const dt = event.dataTransfer;
@@ -368,6 +383,7 @@ export default function DragLayer({
   // to switch into popout-pending mode.
   const handleDragLeave = useCallback((event: DragEvent) => {
     if (activePanelIdRef.current == null) return;
+    if (cancelledRef.current) return;
     if (event.relatedTarget == null) {
       setHover(null);
       setPopoutPending(true);
@@ -461,11 +477,23 @@ export default function DragLayer({
       const panelId = activePanelIdRef.current;
       if (panelId == null) return;
 
-      // Esc-cancel: in some browsers dragend reports screen 0,0 + dropEffect=none
+      // Esc-cancel: either our own keydown handler caught it, or some
+      // browsers report dragend at screen 0,0 with dropEffect=none.
       const isCancelled =
-        event.screenX === 0 &&
-        event.screenY === 0 &&
-        event.dataTransfer?.dropEffect === 'none';
+        cancelledRef.current ||
+        (event.screenX === 0 &&
+          event.screenY === 0 &&
+          event.dataTransfer?.dropEffect === 'none');
+
+      if (cancelledRef.current) {
+        bridgeRef.current?.send({
+          type: 'crossDragCancel',
+          sourceWindowId: windowIdRef.current,
+          panelId,
+        });
+        resetDragState();
+        return;
+      }
 
       // hover takes priority and is always synchronous — if the cursor
       // was over a valid in-window target on the last dragover, the drop
@@ -649,16 +677,29 @@ export default function DragLayer({
     });
   }, [enabled]);
 
-  // Esc cancels mid-drag (defence-in-depth — most browsers fire dragend
-  // with dropEffect=none on Esc, but the screen position varies).
+  // Esc cancels mid-drag. We can't synchronously reset state here because
+  // the native drag is still live: another dragover would immediately
+  // re-arm hover/popoutPending. Instead, flip a sticky `cancelledRef` so
+  // every subsequent drag event short-circuits, and clear the indicators
+  // now. The actual reset runs from dragend when the user releases.
   useEffect(() => {
     if (activePanelId == null) return undefined;
     const handleKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') resetDragState();
+      if (e.key !== 'Escape') return;
+      if (cancelledRef.current) return;
+      e.preventDefault();
+      cancelledRef.current = true;
+      setHover(null);
+      setPopoutPending(false);
+      bridgeRef.current?.send({
+        type: 'crossDragCancel',
+        sourceWindowId: windowIdRef.current,
+        panelId: activePanelId,
+      });
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [activePanelId, resetDragState]);
+  }, [activePanelId]);
 
   const contextValue = useMemo<DragContextValue>(
     () => ({ activePanelId, sourceStackId, hover, popoutPending }),
