@@ -167,6 +167,30 @@
   }
 }
 
+// Preview line rendered while a splitter is being dragged. Lives inside the
+// splitter (which is `position: relative`) and uses translate to slide to the
+// would-be position. The actual layout doesn't update until pointer release.
+.dh-layout-splitter-preview {
+  position: absolute;
+  pointer-events: none;
+  background: var(--dh-color-splitter-hover, #4080ff);
+  z-index: 1;
+}
+
+.dh-layout-splitter-row .dh-layout-splitter-preview {
+  top: 0;
+  bottom: 0;
+  left: 1px;
+  width: 2px;
+}
+
+.dh-layout-splitter-column .dh-layout-splitter-preview {
+  left: 0;
+  right: 0;
+  top: 1px;
+  height: 2px;
+}
+
 .dh-layout-tab.is-dragging {
   opacity: 0.5;
 }

@@ -1,5 +1,5 @@
-import type { PointerEvent as ReactPointerEvent } from 'react';
-import { useCallback, useRef } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ContainerNode, NodeId } from '../types';
 import { useLayoutContext } from './LayoutContext';
 import { computeSplitterSizes, type SplitterDragState } from './splitterMath';
@@ -40,6 +40,11 @@ function readChildSizes(
   return { parentSize, fractions, pixels };
 }
 
+interface ActiveDrag {
+  state: SplitterDragState;
+  pointerId: number;
+}
+
 export default function Splitter({
   parent,
   prevId,
@@ -47,7 +52,29 @@ export default function Splitter({
   axis,
 }: SplitterProps): JSX.Element {
   const { dispatch } = useLayoutContext();
-  const dragRef = useRef<SplitterDragState | null>(null);
+  const targetRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<ActiveDrag | null>(null);
+  // Pixel offset of the preview line from the splitter's at-rest position.
+  // null while no drag is active; the line renders as soon as drag starts.
+  const [previewOffset, setPreviewOffset] = useState<number | null>(null);
+
+  const releaseCapture = useCallback((pointerId: number | undefined): void => {
+    const target = targetRef.current;
+    if (target == null || pointerId == null) return;
+    if (typeof target.releasePointerCapture !== 'function') return;
+    try {
+      target.releasePointerCapture(pointerId);
+    } catch {
+      /* ignore — pointer may already be released */
+    }
+  }, []);
+
+  const cancelDrag = useCallback((): void => {
+    const drag = dragRef.current;
+    dragRef.current = null;
+    setPreviewOffset(null);
+    if (drag != null) releaseCapture(drag.pointerId);
+  }, [releaseCapture]);
 
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -58,16 +85,20 @@ export default function Splitter({
       const prevNode = parent.children.find(c => c.id === prevId);
       const nextNode = parent.children.find(c => c.id === nextId);
       dragRef.current = {
-        startCoord: axis === 'row' ? e.clientX : e.clientY,
-        parentSize,
-        prevPixel: pixels[prevId] ?? 0,
-        nextPixel: pixels[nextId] ?? 0,
-        initialFractions: fractions,
-        prevId,
-        nextId,
-        prevMinSize: prevNode?.minSize ?? DEFAULT_MIN_SIZE,
-        nextMinSize: nextNode?.minSize ?? DEFAULT_MIN_SIZE,
+        state: {
+          startCoord: axis === 'row' ? e.clientX : e.clientY,
+          parentSize,
+          prevPixel: pixels[prevId] ?? 0,
+          nextPixel: pixels[nextId] ?? 0,
+          initialFractions: fractions,
+          prevId,
+          nextId,
+          prevMinSize: prevNode?.minSize ?? DEFAULT_MIN_SIZE,
+          nextMinSize: nextNode?.minSize ?? DEFAULT_MIN_SIZE,
+        },
+        pointerId: e.pointerId,
       };
+      setPreviewOffset(0);
       if (typeof target.setPointerCapture === 'function') {
         target.setPointerCapture(e.pointerId);
       }
@@ -81,33 +112,57 @@ export default function Splitter({
       const drag = dragRef.current;
       if (drag == null) return;
       const coord = axis === 'row' ? e.clientX : e.clientY;
-      const { fractions } = computeSplitterSizes(drag, coord);
-      dispatch({
-        kind: 'setSizes',
-        containerId: parent.id,
-        sizes: fractions,
-      });
+      const { prevPixel } = computeSplitterSizes(drag.state, coord);
+      setPreviewOffset(prevPixel - drag.state.prevPixel);
     },
-    [axis, dispatch, parent.id]
+    [axis]
   );
 
   const handlePointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      dragRef.current = null;
-      const target = e.currentTarget;
-      if (typeof target.releasePointerCapture === 'function') {
-        try {
-          target.releasePointerCapture(e.pointerId);
-        } catch {
-          /* ignore */
-        }
+      const drag = dragRef.current;
+      if (drag != null) {
+        const coord = axis === 'row' ? e.clientX : e.clientY;
+        const { fractions } = computeSplitterSizes(drag.state, coord);
+        dispatch({
+          kind: 'setSizes',
+          containerId: parent.id,
+          sizes: fractions,
+        });
       }
+      cancelDrag();
     },
-    []
+    [axis, dispatch, parent.id, cancelDrag]
   );
+
+  // Esc cancels the drag without committing. The keydown listener is only
+  // armed while a drag is active; otherwise idle splitters wouldn't observe
+  // unrelated Esc presses.
+  useEffect(() => {
+    if (previewOffset == null) return undefined;
+    const handler = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelDrag();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [previewOffset, cancelDrag]);
+
+  const previewStyle: CSSProperties | undefined =
+    previewOffset == null
+      ? undefined
+      : {
+          transform:
+            axis === 'row'
+              ? `translateX(${previewOffset}px)`
+              : `translateY(${previewOffset}px)`,
+        };
 
   return (
     <div
+      ref={targetRef}
       className={`dh-layout-splitter dh-layout-splitter-${axis}`}
       data-layout-splitter=""
       role="separator"
@@ -115,7 +170,11 @@ export default function Splitter({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-    />
+      onPointerCancel={cancelDrag}
+    >
+      {previewOffset != null && (
+        <div className="dh-layout-splitter-preview" style={previewStyle} />
+      )}
+    </div>
   );
 }
