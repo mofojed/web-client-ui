@@ -477,15 +477,19 @@ export default function DragLayer({
       const panelId = activePanelIdRef.current;
       if (panelId == null) return;
 
-      // Esc-cancel: either our own keydown handler caught it, or some
-      // browsers report dragend at screen 0,0 with dropEffect=none.
+      // Detect cancellation. During native HTML5 drag, most browsers do
+      // not deliver keydown to JS — Esc is handled at the OS/browser
+      // level and surfaces only as a dragend with dataTransfer.dropEffect
+      // === 'none'. Treat any dropEffect=none as cancellation UNLESS
+      // popoutPending is set (release outside the viewport is the user's
+      // explicit popout gesture, which also has dropEffect=none because
+      // no dragover ever accepted the drop).
+      const dropEffect = event.dataTransfer?.dropEffect;
+      const isDropAccepted = dropEffect != null && dropEffect !== 'none';
       const isCancelled =
-        cancelledRef.current ||
-        (event.screenX === 0 &&
-          event.screenY === 0 &&
-          event.dataTransfer?.dropEffect === 'none');
+        cancelledRef.current || (!isDropAccepted && !popoutPendingRef.current);
 
-      if (cancelledRef.current) {
+      if (isCancelled) {
         bridgeRef.current?.send({
           type: 'crossDragCancel',
           sourceWindowId: windowIdRef.current,
@@ -498,7 +502,7 @@ export default function DragLayer({
       // hover takes priority and is always synchronous — if the cursor
       // was over a valid in-window target on the last dragover, the drop
       // is in-window regardless of any cross-window flow.
-      if (!isCancelled && hoverRef.current != null) {
+      if (hoverRef.current != null) {
         const target = buildDropTarget(
           hoverRef.current,
           sourceStackIdRef.current,
@@ -536,7 +540,6 @@ export default function DragLayer({
       const deferredPanelId = panelId;
       const deferredScreen = { x: event.screenX, y: event.screenY };
       const deferredPopoutPending = popoutPendingRef.current;
-      const deferredCancelled = isCancelled;
 
       window.setTimeout(() => {
         if (remoteAcceptedRef.current) {
@@ -557,7 +560,7 @@ export default function DragLayer({
               panelId: deferredPanelId,
             });
           }
-        } else if (!deferredCancelled && deferredPopoutPending) {
+        } else if (deferredPopoutPending) {
           // No remote accepted, cursor was outside our viewport. Treat as
           // a popout-creation gesture (parent only — popouts can't spawn
           // their own popouts in v1).
