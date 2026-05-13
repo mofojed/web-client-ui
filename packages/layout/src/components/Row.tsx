@@ -1,7 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react';
-import type { RowNode } from '../types';
+import type { ReactNode } from 'react';
+import type { LayoutNode, RowNode } from '../types';
 import RenderNode from './RenderNode';
 import Splitter from './Splitter';
+
+const SPLITTER_TRACK = '4px';
 
 export interface RowProps {
   node: RowNode;
@@ -29,14 +31,18 @@ export default function Row({ node }: RowProps): JSX.Element {
     <div
       className="dh-layout-row"
       data-row-id={node.id}
-      style={flexStyle(node.size)}
+      style={{ gridTemplateColumns: gridTracks(node.children) }}
     >
       {items}
     </div>
   );
 }
 
-function flexStyle(size: number | undefined): CSSProperties | undefined {
-  if (size === undefined) return undefined;
-  return { flex: `${size} 1 0` };
+function gridTracks(children: LayoutNode[]): string {
+  const parts: string[] = [];
+  children.forEach((c, i) => {
+    if (i > 0) parts.push(SPLITTER_TRACK);
+    parts.push(`${c.size ?? 1}fr`);
+  });
+  return parts.join(' ');
 }

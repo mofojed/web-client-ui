@@ -1,7 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react';
-import type { ColumnNode } from '../types';
+import type { ReactNode } from 'react';
+import type { ColumnNode, LayoutNode } from '../types';
 import RenderNode from './RenderNode';
 import Splitter from './Splitter';
+
+const SPLITTER_TRACK = '4px';
 
 export interface ColumnProps {
   node: ColumnNode;
@@ -29,14 +31,18 @@ export default function Column({ node }: ColumnProps): JSX.Element {
     <div
       className="dh-layout-column"
       data-column-id={node.id}
-      style={flexStyle(node.size)}
+      style={{ gridTemplateRows: gridTracks(node.children) }}
     >
       {items}
     </div>
   );
 }
 
-function flexStyle(size: number | undefined): CSSProperties | undefined {
-  if (size === undefined) return undefined;
-  return { flex: `${size} 1 0` };
+function gridTracks(children: LayoutNode[]): string {
+  const parts: string[] = [];
+  children.forEach((c, i) => {
+    if (i > 0) parts.push(SPLITTER_TRACK);
+    parts.push(`${c.size ?? 1}fr`);
+  });
+  return parts.join(' ');
 }

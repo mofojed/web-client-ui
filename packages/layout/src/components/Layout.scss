@@ -1,6 +1,8 @@
 .dh-layout {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -11,30 +13,35 @@
   box-sizing: border-box;
 }
 
+// Row/Column lay their children out via CSS Grid. The number and size of
+// tracks is driven by the children's `size` props and is set inline by the
+// Row/Column components (see Row.tsx/Column.tsx). Splitters occupy fixed
+// pixel tracks between sibling fr tracks.
 .dh-layout-row {
-  display: flex;
-  flex-direction: row;
-  flex: 1 1 0;
+  display: grid;
+  grid-template-rows: 1fr;
   min-width: 0;
   min-height: 0;
 }
 
 .dh-layout-column {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: 1fr;
   min-width: 0;
   min-height: 0;
 }
 
 .dh-layout-stack {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
+  display: grid;
+  grid-template-rows: 1fr;
   min-width: 0;
   min-height: 0;
   background: var(--dh-color-bg, #1f1f1f);
   box-sizing: border-box;
+
+  &.has-tabs {
+    grid-template-rows: auto 1fr;
+  }
 }
 
 .dh-layout-tabs {
@@ -42,7 +49,6 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  flex: 0 0 auto;
   background: var(--dh-color-tab-strip-bg, #181818);
   user-select: none;
   overflow: hidden;
@@ -101,7 +107,6 @@
 
 .dh-layout-stack-content {
   position: relative;
-  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
@@ -124,8 +129,9 @@
   height: 100%;
 }
 
+// Splitters sit in a fixed-width grid track defined by the parent Row/Column;
+// they stretch to fill that track via the grid's default stretch alignment.
 .dh-layout-splitter {
-  flex: 0 0 auto;
   background: transparent;
   position: relative;
   z-index: 1;
@@ -146,7 +152,6 @@
 }
 
 .dh-layout-splitter-row {
-  width: 4px;
   cursor: col-resize;
 
   &::before {
@@ -155,7 +160,6 @@
 }
 
 .dh-layout-splitter-column {
-  height: 4px;
   cursor: row-resize;
 
   &::before {
@@ -241,11 +245,11 @@ $dh-ant-thickness: 2px;
 .dh-layout-popout-host {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
 
   > * {
-    flex: 1 1 auto;
     min-height: 0;
     min-width: 0;
   }

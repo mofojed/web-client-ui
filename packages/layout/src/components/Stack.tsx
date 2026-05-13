@@ -1,5 +1,4 @@
 import type {
-  CSSProperties,
   DragEvent as ReactDragEvent,
   KeyboardEvent,
   MouseEvent,
@@ -52,9 +51,8 @@ export default function Stack({ node }: StackProps): JSX.Element {
 
   return (
     <div
-      className="dh-layout-stack"
+      className={`dh-layout-stack${showHeader ? ' has-tabs' : ''}`}
       data-stack-id={node.id}
-      style={flexStyle(node.size)}
     >
       {showHeader && (
         <StackTabs
@@ -293,7 +291,3 @@ function Tab({
   );
 }
 
-function flexStyle(size: number | undefined): CSSProperties | undefined {
-  if (size === undefined) return undefined;
-  return { flex: `${size} 1 0` };
-}
