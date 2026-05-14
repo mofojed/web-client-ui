@@ -224,10 +224,13 @@ export default function DragLayer({
       const pointer = { x: event.clientX, y: event.clientY };
       lastClientRef.current = pointer;
 
-      // outside the viewport → popout pending; clear hover.
+      // outside the viewport → popout pending IF the user is holding the
+      // popout modifier (Shift). Without the modifier, releasing outside
+      // is treated as cancellation. This frees up dropEffect=none to
+      // unambiguously mean "cancel" when the user just lets go on chrome.
       if (isOutsideViewport(pointer.x, pointer.y)) {
         setHover(null);
-        setPopoutPending(true);
+        setPopoutPending(event.shiftKey);
         return;
       }
 
@@ -386,7 +389,10 @@ export default function DragLayer({
     if (cancelledRef.current) return;
     if (event.relatedTarget == null) {
       setHover(null);
-      setPopoutPending(true);
+      // Popout intent only arms when Shift is held as the cursor leaves
+      // the viewport. Without Shift, leaving the viewport is treated as
+      // chrome-drop territory; releasing there cancels the drag.
+      setPopoutPending(event.shiftKey);
     }
   }, []);
 
@@ -480,14 +486,17 @@ export default function DragLayer({
       // Detect cancellation. During native HTML5 drag, most browsers do
       // not deliver keydown to JS — Esc is handled at the OS/browser
       // level and surfaces only as a dragend with dataTransfer.dropEffect
-      // === 'none'. Treat any dropEffect=none as cancellation UNLESS
-      // popoutPending is set (release outside the viewport is the user's
-      // explicit popout gesture, which also has dropEffect=none because
-      // no dragover ever accepted the drop).
+      // === 'none'. Treat any dropEffect=none as cancellation UNLESS the
+      // user has armed a popout (popoutPending was set on dragleave with
+      // Shift held, AND Shift is still held at release). Anything else
+      // — release on chrome, Esc cancel, drag outside without Shift — is
+      // a cancel.
       const dropEffect = event.dataTransfer?.dropEffect;
       const isDropAccepted = dropEffect != null && dropEffect !== 'none';
+      const isPopout =
+        !isDropAccepted && popoutPendingRef.current && event.shiftKey;
       const isCancelled =
-        cancelledRef.current || (!isDropAccepted && !popoutPendingRef.current);
+        cancelledRef.current || (!isDropAccepted && !isPopout);
 
       if (isCancelled) {
         bridgeRef.current?.send({
