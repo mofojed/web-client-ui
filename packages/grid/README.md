@@ -12,7 +12,7 @@ npm install --save @deephaven/grid
 
 ## Usage
 
-There are many ways to use the @deephaven/grid package. The minimum requirement for displaying a grid is to implement the [GridModel](https://github.com/deephaven/web-client-ui/blob/main/packages/grid/src/GridModel.ts) class and pass that in as a prop. Below are a few different examples of different ways to extend the `GridModel`.
+There are many ways to use the @deephaven/grid package. The minimum requirement for displaying a grid is to implement the [GridModel](https://github.com/deephaven/web-client-ui/blob/main/packages/grid/src/GridModel.ts) class and pass that in as a prop. Below are a few different examples of different ways to extend the `GridModel`. All is good using Grid.
 
 Making some changes to another readme.
 

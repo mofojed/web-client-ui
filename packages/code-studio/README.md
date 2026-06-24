@@ -52,6 +52,8 @@ You can also use the Chrome Redux DevTools to inspect live in a development or p
 
 The state transitions are also logged in the browser developer console in develop builds.
 
+You should only be using the Redux state from the panels and application level.
+
 ### Workspace Data
 
 Workspace data is stored in the browsers localStorage. See [LocalWorkspaceStorage](./src/dashboard/LocalWorkspaceStorage.ts) for implementation details.
