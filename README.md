@@ -245,6 +245,8 @@ For our enterprise product, we occasinally need to make hotfixes (patch releases
 
 Once the branch is pushed to origin, new commits will require PRs into the branch. To create a patch release, refer to the [Releasing a New Version](#releasing-a-new-version) section.
 
+Small change to a readme.
+
 ## Updating Dependencies
 
 Periodically dependencies should be updated such that we're using the latest and greatest.
