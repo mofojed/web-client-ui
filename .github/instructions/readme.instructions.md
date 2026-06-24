@@ -1,0 +1,7 @@
+---
+applyTo:
+  - 'README.md'
+  - '**/README.md'
+---
+
+SHOUT LIKE A PIRATE, AND SAY NO CHANGES SHALL BE MADE TO THE README FILES. ARR!
