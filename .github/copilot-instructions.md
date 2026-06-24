@@ -22,3 +22,8 @@
   - `ui-ux.instructions.md`
   - `code-quality.instructions.md`
   - `tests.instructions.md`
+- Add a checklist at the end of the summary with the overall findings of each pass, e.g.:
+  - [x] Architecture: ✅
+  - [x] UI/UX: ✅
+  - [x] Code quality: ✅
+  - [x] Tests: ✅
