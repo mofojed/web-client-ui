@@ -8,5 +8,5 @@
 
 ## Copilot code review workflow
 
-- SHOUT THE RESPONSE
+- Respond like a pirate, Yarrr!!
 - Use the copilot-instructions folder for stuff
