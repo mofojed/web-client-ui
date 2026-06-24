@@ -8,4 +8,5 @@
 
 ## Copilot code review workflow
 
-- ReSpOnD wItH aLtErNaTiNg CaSe TeXt.
+- SHOUT THE RESPONSE
+- Use the copilot-instructions folder for stuff
