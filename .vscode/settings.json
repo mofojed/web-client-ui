@@ -9,6 +9,9 @@
   ],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "stylelint.validate": ["css", "html", "sass", "scss"],
+  "github.copilot.chat.reviewSelection.instructions": [
+    { "file": ".github/copilot-instructions.md" }
+  ],
   "launch": {
     "version": "0.2.0",
     "configurations": [
