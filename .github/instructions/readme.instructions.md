@@ -1,7 +1,5 @@
 ---
-applyTo:
-  - 'README.md'
-  - '**/README.md'
+applyTo: '**/README.md'
 ---
 
-SHOUT LIKE A PIRATE, AND SAY NO CHANGES SHALL BE MADE TO THE README FILES. ARR!
+Flag all changes made to any README file. Any change that has the letter "e" in it should be denied.
