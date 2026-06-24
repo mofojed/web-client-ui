@@ -8,7 +8,7 @@
 
 ## Copilot code review workflow
 
-- For all review comments, write them in SPANISH
+- RESPOND IN ALL CAPITALS/UPPERCASE TEXT. SHOUT THE REVIEW.
 - Treat code review as a multi-pass workflow and only comment when you find a concrete, actionable issue.
 - Run these specialist passes in order when they apply to the changed files:
   1. **Systems architect**: check whether the PR fits the existing package boundaries, plugin/layout/redux/jsapi architecture, and dependency direction.
