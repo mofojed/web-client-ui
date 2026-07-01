@@ -20,6 +20,7 @@
   "dependencies": {
     "@deephaven/app-utils": "file:../app-utils",
     "@deephaven/components": "file:../components",
+    "@deephaven/dashboard": "file:../dashboard",
     "@deephaven/dashboard-core-plugins": "file:../dashboard-core-plugins",
     "@deephaven/icons": "file:../icons",
     "@deephaven/jsapi-bootstrap": "file:../jsapi-bootstrap",

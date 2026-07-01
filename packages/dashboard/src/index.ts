@@ -26,6 +26,7 @@ export { default as PanelManager } from './PanelManager';
 export { default as TabEvent } from './TabEvent';
 export * from './useDashboardId';
 export * from './useDhId';
+export { FiberProvider, useFiber } from './useFiber';
 export * from './usePanelId';
 export * from './usePersistentState';
 export * from './PersistentStateContext';

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ErrorBoundary } from '@deephaven/components';
+import { FiberProvider } from '@deephaven/dashboard';
 import { useObjectFetch } from '@deephaven/jsapi-bootstrap';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { PanelContentProps } from '@deephaven/layout';
@@ -126,7 +127,13 @@ function WidgetPanelContent({
   const isLoading = load.status === 'loading';
   return (
     <div className={`widget-panel-outer${isLoading ? ' is-loading' : ''}`}>
-      {!isLoading && <Component fetch={cachedFetch} metadata={descriptor} />}
+      {!isLoading && (
+        // Widget plugins (e.g. deephaven.ui) call `useDhId`/`usePersistentState`,
+        // which rely on `useFiber` and must be rendered within a FiberProvider.
+        <FiberProvider>
+          <Component fetch={cachedFetch} metadata={descriptor} />
+        </FiberProvider>
+      )}
     </div>
   );
 }
