@@ -5,6 +5,14 @@ import { useObjectFetch } from '@deephaven/jsapi-bootstrap';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { PanelContentProps } from '@deephaven/layout';
 import type { dh } from '@deephaven/jsapi-types';
+import { GoldenLayoutWidgetHost } from './GoldenLayoutWidgetHost';
+
+/**
+ * Widget types that are hard-wired to golden-layout (their plugin opens panels
+ * via `useLayoutManager()`) and therefore must be hosted inside an embedded
+ * golden-layout dashboard rather than rendered directly on the new layout.
+ */
+const GOLDEN_LAYOUT_WIDGET_TYPES = new Set(['deephaven.ui.Element']);
 
 export interface WidgetPanelState {
   type: string;
@@ -43,7 +51,13 @@ export function WidgetPanel({ panel }: PanelContentProps): JSX.Element {
 
   return (
     <ErrorBoundary>
-      <WidgetPanelContent descriptor={descriptor} />
+      {GOLDEN_LAYOUT_WIDGET_TYPES.has(descriptor.type) ? (
+        <div className="widget-panel-outer">
+          <GoldenLayoutWidgetHost descriptor={descriptor} />
+        </div>
+      ) : (
+        <WidgetPanelContent descriptor={descriptor} />
+      )}
     </ErrorBoundary>
   );
 }

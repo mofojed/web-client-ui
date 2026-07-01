@@ -42,15 +42,25 @@ const logMetadata: Record<string, unknown> = {
   uiVersion: import.meta.env.npm_package_version,
 };
 
-// We deliberately omit `WidgetLoaderPluginConfig` — it is wired into the
-// golden-layout event hub and we render widgets directly via the plugin map.
+// deephaven.ui widgets are hard-wired to golden-layout, so we host them in an
+// embedded golden-layout dashboard (see GoldenLayoutWidgetHost). That requires
+// `WidgetLoaderPlugin` to translate a `PanelEvent.OPEN` into the right panel.
 async function getCorePlugins() {
   const dashboardCorePlugins = await import(
     '@deephaven/dashboard-core-plugins'
   );
-  const { GridPluginConfig, PandasPluginConfig, ChartPluginConfig } =
-    dashboardCorePlugins;
-  return [GridPluginConfig, PandasPluginConfig, ChartPluginConfig];
+  const {
+    GridPluginConfig,
+    PandasPluginConfig,
+    ChartPluginConfig,
+    WidgetLoaderPluginConfig,
+  } = dashboardCorePlugins;
+  return [
+    GridPluginConfig,
+    PandasPluginConfig,
+    ChartPluginConfig,
+    WidgetLoaderPluginConfig,
+  ];
 }
 
 const rootElement = document.getElementById('root');
