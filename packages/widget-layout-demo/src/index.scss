@@ -96,17 +96,20 @@ body {
   }
 }
 
+.widget-list-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: var(--dh-color-text-disabled);
+}
+
 .widget-list-name {
   flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.widget-list-type {
-  flex: 0 0 auto;
-  font-size: 11px;
-  color: var(--dh-color-text-disabled);
 }
 
 .widget-list-empty {

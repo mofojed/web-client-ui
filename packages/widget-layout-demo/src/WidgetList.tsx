@@ -1,4 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  getIconForPlugin,
+  isWidgetPlugin,
+  usePlugins,
+} from '@deephaven/plugin';
 import type { dh } from '@deephaven/jsapi-types';
 
 export interface WidgetListProps {
@@ -15,6 +20,17 @@ export function WidgetList({
   onSelect,
 }: WidgetListProps): JSX.Element {
   const [search, setSearch] = useState('');
+  const plugins = usePlugins();
+
+  const getIconForType = useCallback(
+    (type: string | undefined) => {
+      const plugin = [...plugins.values()]
+        .filter(isWidgetPlugin)
+        .find(p => [p.supportedTypes].flat().some(t => t === type));
+      return plugin != null ? getIconForPlugin(plugin) : null;
+    },
+    [plugins]
+  );
 
   const filtered = useMemo(() => {
     const lower = search.toLowerCase();
@@ -48,9 +64,12 @@ export function WidgetList({
                 type="button"
                 className="widget-list-item"
                 onClick={() => onSelect(w)}
+                title={w.name}
               >
+                <span className="widget-list-icon" aria-hidden>
+                  {getIconForType(w.type)}
+                </span>
                 <span className="widget-list-name">{w.name}</span>
-                <span className="widget-list-type">{w.type}</span>
               </button>
             </li>
           ))}
