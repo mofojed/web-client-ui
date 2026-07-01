@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { useConnection } from '@deephaven/app-utils';
+import { Sidebar, type SidebarItem } from '@deephaven/components';
+import { vsListUnordered, vsDebugAlt } from '@deephaven/icons';
 import {
   Dashboard,
   compact,
@@ -8,8 +10,14 @@ import {
   usePersistedLayoutState,
 } from '@deephaven/layout';
 import type { dh } from '@deephaven/jsapi-types';
-import { WidgetMenu } from './WidgetMenu';
+import { WidgetList } from './WidgetList';
+import { DebugTools } from './DebugTools';
 import COMPONENTS from './panels';
+
+const SIDEBAR_ITEMS: SidebarItem[] = [
+  { key: 'widgets', icon: vsListUnordered, title: 'Widgets' },
+  { key: 'debug', icon: vsDebugAlt, title: 'Debug tools' },
+];
 
 const STORAGE_KEY = 'deephaven.widget-layout-demo.state';
 
@@ -54,6 +62,7 @@ function App(): JSX.Element {
     { key: STORAGE_KEY }
   );
   const [editMode, setEditMode] = useState(true);
+  const [selectedTool, setSelectedTool] = useState<string | null>('widgets');
 
   const handleAddWidget = useCallback(
     (widget: dh.ide.VariableDefinition) => {
@@ -75,29 +84,44 @@ function App(): JSX.Element {
 
   const transformsCount = state.transforms.length;
 
+  const renderSidebarContent = useCallback(
+    (key: string) => {
+      switch (key) {
+        case 'widgets':
+          return <WidgetList widgets={widgets} onSelect={handleAddWidget} />;
+        case 'debug':
+          return (
+            <DebugTools
+              editMode={editMode}
+              onToggleEditMode={() => setEditMode(v => !v)}
+              transformsCount={transformsCount}
+              onCompact={() => setState(compact(state))}
+              onReset={reset}
+            />
+          );
+        default:
+          return null;
+      }
+    },
+    [
+      widgets,
+      handleAddWidget,
+      editMode,
+      transformsCount,
+      setState,
+      state,
+      reset,
+    ]
+  );
+
   return (
     <div className="demo-shell">
-      <div className="demo-toolbar">
-        <strong>@deephaven/layout — widgets</strong>
-        <WidgetMenu widgets={widgets} onSelect={handleAddWidget} />
-        <button
-          type="button"
-          className={editMode ? 'is-active' : undefined}
-          onClick={() => setEditMode(v => !v)}
-        >
-          {editMode ? 'edit mode: on' : 'edit mode: off'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setState(compact(state))}
-          disabled={transformsCount === 0}
-        >
-          compact ({transformsCount})
-        </button>
-        <button type="button" onClick={reset}>
-          reset
-        </button>
-      </div>
+      <Sidebar
+        items={SIDEBAR_ITEMS}
+        selectedKey={selectedTool}
+        onSelect={setSelectedTool}
+        renderContent={renderSidebarContent}
+      />
       <div className="demo-layout">
         <Dashboard
           layout={state}

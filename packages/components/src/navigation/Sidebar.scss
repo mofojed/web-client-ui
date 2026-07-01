@@ -1,0 +1,66 @@
+@import '../../scss/custom.scss';
+
+$sidebar-rail-width: 48px;
+$sidebar-rail-item-size: 40px;
+$sidebar-panel-width: 280px;
+$sidebar-active-indicator-width: 2px;
+
+.dh-sidebar {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  min-height: 0;
+}
+
+.dh-sidebar-rail {
+  display: flex;
+  flex: 0 0 $sidebar-rail-width;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  background: var(--dh-color-surface-bg);
+  border-right: 1px solid var(--dh-color-border);
+}
+
+.dh-sidebar-rail-item {
+  position: relative;
+  width: $sidebar-rail-item-size;
+  height: $sidebar-rail-item-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dh-color-text);
+  font-size: 20px;
+
+  &:hover {
+    color: var(--dh-color-text-hover);
+  }
+
+  &.is-active {
+    color: var(--dh-color-text-hover);
+
+    // Accent bar on the left edge, matching VSCode's activity bar.
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: $sidebar-active-indicator-width;
+      height: $sidebar-rail-item-size - 12px;
+      background: var(--dh-color-accent-bg);
+      border-radius: 0 2px 2px 0;
+    }
+  }
+}
+
+.dh-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 $sidebar-panel-width;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--dh-color-content-bg);
+  border-right: 1px solid var(--dh-color-border);
+}

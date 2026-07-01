@@ -21,6 +21,7 @@
     "@deephaven/app-utils": "file:../app-utils",
     "@deephaven/components": "file:../components",
     "@deephaven/dashboard-core-plugins": "file:../dashboard-core-plugins",
+    "@deephaven/icons": "file:../icons",
     "@deephaven/jsapi-bootstrap": "file:../jsapi-bootstrap",
     "@deephaven/jsapi-types": "^1.0.0-dev0.40.4",
     "@deephaven/layout": "file:../layout",

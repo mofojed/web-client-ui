@@ -18,51 +18,10 @@ body {
   position: absolute;
   inset: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-}
-
-.demo-toolbar {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #1e1e1e;
-  border-bottom: 1px solid #333;
-  font-size: 13px;
-  z-index: 1;
-
-  > strong {
-    margin-right: 4px;
-  }
-
-  button {
-    padding: 4px 10px;
-    border-radius: 3px;
-    border: 1px solid #444;
-    background: #2a2a2a;
-    color: #ddd;
-    font: inherit;
-    cursor: pointer;
-
-    &:hover {
-      background: #333;
-    }
-
-    &.is-active {
-      background: #4080ff;
-      border-color: #4080ff;
-      color: #fff;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-  }
 }
 
 .demo-layout {
@@ -71,41 +30,41 @@ body {
   position: relative;
 }
 
-.widget-menu {
-  position: relative;
-}
-
-.widget-menu-popover {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  width: 280px;
-  max-height: 360px;
+// Shared styling for sidebar panel content (Widgets + Debug tools).
+.widget-list,
+.debug-tools {
   display: flex;
   flex-direction: column;
-  background: #1e1e1e;
-  border: 1px solid #444;
-  border-radius: 4px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 60%);
-  z-index: 10;
+  min-height: 0;
+  height: 100%;
 }
 
-.widget-menu-search {
-  margin: 8px;
+.widget-list-header,
+.debug-tools-header {
+  padding: 12px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dh-color-text);
+}
+
+.widget-list-search {
+  margin: 0 8px 8px;
   padding: 6px 8px;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: var(--dh-color-input-bg, var(--dh-color-bg));
+  border: 1px solid var(--dh-color-input-border, var(--dh-color-border));
   border-radius: 3px;
-  color: #ddd;
+  color: var(--dh-color-text);
   font: inherit;
 
   &:focus {
     outline: none;
-    border-color: #4080ff;
+    border-color: var(--dh-color-border-focus);
   }
 }
 
-.widget-menu-list {
+.widget-list-items {
   list-style: none;
   margin: 0;
   padding: 0 0 4px;
@@ -117,7 +76,7 @@ body {
   }
 }
 
-.widget-menu-item {
+.widget-list-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -125,35 +84,67 @@ body {
   width: 100%;
   padding: 6px 12px;
   border: none;
-  border-radius: 0;
   background: transparent;
-  color: #ddd;
+  color: var(--dh-color-text);
   text-align: left;
   cursor: pointer;
   font: inherit;
 
   &:hover {
-    background: #2a2a2a;
+    background: var(--dh-color-surface-bg);
+    color: var(--dh-color-text-hover);
   }
 }
 
-.widget-menu-name {
+.widget-list-name {
   flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.widget-menu-type {
+.widget-list-type {
   flex: 0 0 auto;
   font-size: 11px;
-  color: #888;
+  color: var(--dh-color-text-disabled);
 }
 
-.widget-menu-empty {
+.widget-list-empty {
   padding: 12px;
-  color: #888;
+  color: var(--dh-color-text-disabled);
   font-size: 12px;
+}
+
+.debug-tools {
+  gap: 8px;
+  padding: 0 8px 8px;
+
+  button {
+    padding: 6px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--dh-color-border);
+    background: var(--dh-color-surface-bg);
+    color: var(--dh-color-text);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+      color: var(--dh-color-text-hover);
+      border-color: var(--dh-color-hover-border);
+    }
+
+    &.is-active {
+      background: var(--dh-color-accent-bg);
+      border-color: var(--dh-color-accent-bg);
+      color: var(--dh-color-accent-contrast);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
 }
 
 .widget-panel-outer,
