@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 import clamp from 'lodash.clamp';
 import {
+  DashboardIdContext,
   useAppSelector,
-  useDashboardId,
   useDhId,
-  useLayoutManager,
+  useEventHub,
   usePanelId,
 } from '@deephaven/dashboard';
 import { type RootState } from '@deephaven/redux';
@@ -26,6 +26,9 @@ import {
   getColumnSelectionValidatorForDashboard,
   getLinksForDashboard,
 } from './redux';
+import { type Link } from './linker/LinkerUtils';
+
+const EMPTY_LINKS: Link[] = [];
 
 export function useGridLinker(
   model: IrisGridModel | null,
@@ -38,13 +41,14 @@ export function useGridLinker(
   | 'onColumnSelected'
   | 'onDataSelected'
 > {
-  const { eventHub } = useLayoutManager();
-  const dashboardId = useDashboardId();
+  const eventHub = useEventHub();
+  const dashboardId = useContext(DashboardIdContext);
   const dhId = useDhId();
   const panelId = usePanelId();
 
   const getLinks = useCallback(
-    (s: RootState) => getLinksForDashboard(s, dashboardId),
+    (s: RootState) =>
+      dashboardId == null ? EMPTY_LINKS : getLinksForDashboard(s, dashboardId),
     [dashboardId]
   );
 
@@ -60,7 +64,10 @@ export function useGridLinker(
   }, [links, dhId]);
 
   const getColumnSelectionValidator = useCallback(
-    (s: RootState) => getColumnSelectionValidatorForDashboard(s, dashboardId),
+    (s: RootState) =>
+      dashboardId == null
+        ? undefined
+        : getColumnSelectionValidatorForDashboard(s, dashboardId),
     [dashboardId]
   );
   const columnSelectionValidator = useAppSelector(getColumnSelectionValidator);
@@ -78,7 +85,7 @@ export function useGridLinker(
 
   const onDataSelected = useCallback(
     (row: ModelIndex, dataMap: RowDataMap) => {
-      if (dhId == null) {
+      if (eventHub == null || dhId == null) {
         return;
       }
       emitLinkSourceDataSelected(eventHub, dhId, dataMap);
@@ -128,7 +135,7 @@ export function useGridLinker(
 
   const onColumnSelected = useCallback(
     (column: dh.Column) => {
-      if (dhId == null) {
+      if (eventHub == null || dhId == null) {
         return;
       }
       emitLinkPointSelected(eventHub, dhId, column, {
@@ -140,7 +147,7 @@ export function useGridLinker(
 
   useEffect(
     function registerTarget() {
-      if (!irisGrid || panelId == null || dhId == null) {
+      if (eventHub == null || !irisGrid || panelId == null || dhId == null) {
         return;
       }
       emitRegisterLinkTarget(eventHub, dhId, {

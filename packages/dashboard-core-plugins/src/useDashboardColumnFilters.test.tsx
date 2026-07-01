@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { createMockStore, type RootState } from '@deephaven/redux';
 import { TestUtils } from '@deephaven/test-utils';
 import GoldenLayout, { EventHub, type Config } from '@deephaven/golden-layout';
+import { DashboardIdContext } from '@deephaven/dashboard';
 import { type dh } from '@deephaven/jsapi-types';
 import { useDashboardColumnFilters } from './useDashboardColumnFilters';
 import {
@@ -16,10 +17,11 @@ const mockGoldenLayout = {
   eventHub: new EventHub(new GoldenLayout({} as Config, undefined)),
 };
 
+const TEST_DASHBOARD_ID = 'testDashboardId';
+
 jest.mock('@deephaven/dashboard', () => ({
   ...(jest.requireActual('@deephaven/dashboard') as Record<string, unknown>),
-  useLayoutManager: jest.fn(() => mockGoldenLayout),
-  useDashboardId: jest.fn(() => 'testDashboardId'),
+  useEventHub: jest.fn(() => mockGoldenLayout.eventHub),
   useDhId: jest.fn(() => 'testDhId'),
 }));
 
@@ -88,15 +90,25 @@ function createStoreWithFilters(filters: FilterChangeEvent[] = []) {
   return store;
 }
 
+function createWrapper(store: ReturnType<typeof createMockStore>) {
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <Provider store={store}>
+        <DashboardIdContext.Provider value={TEST_DASHBOARD_ID}>
+          {children}
+        </DashboardIdContext.Provider>
+      </Provider>
+    );
+  };
+}
+
 describe('useDashboardColumnFilters', () => {
   test('Gets filters matching name and type', () => {
     const store = createStoreWithFilters([FOO_STRING_FILTER, BAR_INT_FILTER]);
     const { result } = renderHook(
       () => useDashboardColumnFilters(MOCK_COLUMNS),
       {
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: createWrapper(store),
       }
     );
 
@@ -112,9 +124,7 @@ describe('useDashboardColumnFilters', () => {
     const { result } = renderHook(
       () => useDashboardColumnFilters(MOCK_COLUMNS),
       {
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: createWrapper(store),
       }
     );
 
@@ -130,9 +140,7 @@ describe('useDashboardColumnFilters', () => {
     const { result } = renderHook(
       () => useDashboardColumnFilters(MOCK_COLUMNS),
       {
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: createWrapper(store),
       }
     );
 
@@ -148,9 +156,7 @@ describe('useDashboardColumnFilters', () => {
     const { result } = renderHook(
       () => useDashboardColumnFilters(MOCK_COLUMNS),
       {
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: createWrapper(store),
       }
     );
 
@@ -175,9 +181,7 @@ describe('useDashboardColumnFilters', () => {
       ({ columns, table }) => useDashboardColumnFilters(columns, table),
       {
         initialProps: { columns: MOCK_COLUMNS, table: mockTable },
-        wrapper: ({ children }) => (
-          <Provider store={store}>{children}</Provider>
-        ),
+        wrapper: createWrapper(store),
       }
     );
 

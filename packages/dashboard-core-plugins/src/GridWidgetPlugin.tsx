@@ -19,7 +19,7 @@ import { useSelector } from 'react-redux';
 import { getSettings, type RootState } from '@deephaven/redux';
 import { LoadingOverlay } from '@deephaven/components';
 import {
-  useLayoutManager,
+  useEventHub,
   useListener,
   usePersistentState,
 } from '@deephaven/dashboard';
@@ -59,7 +59,7 @@ export function GridWidgetPlugin({
 }: WidgetComponentProps<DhType.Table> &
   Partial<GridWidgetPluginMiddlewareProps>): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
-  const { eventHub } = useLayoutManager();
+  const eventHub = useEventHub();
 
   const fetchResult = useIrisGridModel(fetch, transformModel);
   const model =

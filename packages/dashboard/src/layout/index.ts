@@ -2,6 +2,7 @@ export { default as LayoutManagerContext } from './LayoutManagerContext';
 export { default as LayoutUtils, type PanelId } from './LayoutUtils';
 export { default as GLPropTypes } from './GLPropTypes';
 export { default as useDashboardPanel } from './useDashboardPanel';
+export { default as useEventHub } from './useEventHub';
 export { default as useLayoutManager } from './useLayoutManager';
 export { default as useListener } from './useListener';
 export { default as usePanelRegistration } from './usePanelRegistration';

@@ -1,19 +1,22 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 import type { dh } from '@deephaven/jsapi-types';
 import { IrisGridUtils, type InputFilter } from '@deephaven/iris-grid';
 import {
-  useLayoutManager,
-  useDashboardId,
+  DashboardIdContext,
   useAppSelector,
   useDhId,
+  useEventHub,
 } from '@deephaven/dashboard';
 import { type RootState } from '@deephaven/redux';
 import { getInputFiltersForDashboard } from './redux';
 import {
   type FilterColumnSourceId,
+  type FilterChangeEvent,
   emitFilterColumnsChanged,
   emitFilterTableChanged,
 } from './FilterEvents';
+
+const EMPTY_INPUT_FILTERS: FilterChangeEvent[] = [];
 
 /**
  * Subscribes to the dashboard column filters (a.k.a. InputFilter) for the current panel or widget, and
@@ -30,13 +33,13 @@ export function useDashboardColumnFilters(
   columns: readonly { name: string; type: string }[] | null,
   table?: dh.Table
 ): InputFilter[] {
-  const { eventHub } = useLayoutManager();
-  const dashboardId = useDashboardId();
+  const eventHub = useEventHub();
+  const dashboardId = useContext(DashboardIdContext);
   const panelId = useDhId() as FilterColumnSourceId | null;
 
   useEffect(
     function columnsChanged() {
-      if (panelId == null || columns == null) {
+      if (eventHub == null || panelId == null || columns == null) {
         return;
       }
       emitFilterColumnsChanged(eventHub, panelId, columns);
@@ -46,7 +49,7 @@ export function useDashboardColumnFilters(
 
   useEffect(
     function tableChanged() {
-      if (table == null || panelId == null) {
+      if (eventHub == null || table == null || panelId == null) {
         return;
       }
       emitFilterTableChanged(eventHub, panelId, table);
@@ -58,7 +61,7 @@ export function useDashboardColumnFilters(
   // and we are using null to indicate unmount, not change
   useEffect(
     function cleanupOnUnmount() {
-      if (panelId == null) {
+      if (eventHub == null || panelId == null) {
         return;
       }
       return () => {
@@ -70,7 +73,10 @@ export function useDashboardColumnFilters(
   );
 
   const getInputFilters = useCallback(
-    (s: RootState) => getInputFiltersForDashboard(s, dashboardId),
+    (s: RootState) =>
+      dashboardId == null
+        ? EMPTY_INPUT_FILTERS
+        : getInputFiltersForDashboard(s, dashboardId),
     [dashboardId]
   );
 
