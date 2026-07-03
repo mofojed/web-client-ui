@@ -2,14 +2,17 @@
 
 $sidebar-rail-width: 48px;
 $sidebar-rail-item-size: 40px;
-$sidebar-panel-width: 280px;
 $sidebar-active-indicator-width: 2px;
 
 .dh-sidebar {
+  position: relative;
   display: flex;
   flex-direction: row;
   height: 100%;
   min-height: 0;
+  // Establish a stacking context above the adjacent content so the resize
+  // preview line remains visible when dragging the panel wider.
+  z-index: 1;
 }
 
 .dh-sidebar-rail {
@@ -56,11 +59,69 @@ $sidebar-active-indicator-width: 2px;
 }
 
 .dh-sidebar-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
-  flex: 0 0 $sidebar-panel-width;
+  flex: 0 0 auto;
   min-height: 0;
-  overflow: hidden;
   background: var(--dh-color-content-bg);
   border-right: 1px solid var(--dh-color-border);
+}
+
+.dh-sidebar-panel-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+$sidebar-resizer-hit-width: 8px;
+$sidebar-resizer-line-width: 2px;
+
+// Sits over the panel's trailing edge. Transparent hit area; the visible line
+// only appears on hover/active. Dragging shows a preview line and the panel
+// width isn't committed until pointer release.
+.dh-sidebar-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: $sidebar-resizer-hit-width;
+  transform: translateX(50%);
+  z-index: 1;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: $sidebar-resizer-line-width;
+    transform: translateX(-50%);
+    background: transparent;
+    transition: background 120ms ease;
+  }
+
+  &:hover::before,
+  &:active::before {
+    background: var(--dh-color-splitter-hover, #4080ff);
+  }
+}
+
+// Preview line shown while dragging. Lives inside the resizer (which is
+// positioned) and slides via translate to the would-be edge.
+.dh-sidebar-resizer-preview {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: $sidebar-resizer-line-width;
+  margin-left: -($sidebar-resizer-line-width * 0.5);
+  pointer-events: none;
+  background: var(--dh-color-splitter-hover, #4080ff);
+  z-index: 1;
 }
