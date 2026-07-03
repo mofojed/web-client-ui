@@ -31,7 +31,45 @@
       ],
       "settings": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        // Auto-approve terminal commands run by chat while inside the dev container.
+        // These merge with any `chat.tools.terminal.autoApprove` entries from your
+        // user/workspace settings (e.g. git add / git commit).
+        "chat.tools.terminal.autoApprove": {
+          // Package management & monorepo scripts
+          "npm": true,
+          "npx": true,
+          "node": true,
+          "nx": true,
+          "lerna": true,
+          // Test runners (unit + e2e)
+          "jest": true,
+          "playwright": true,
+          // Read-only inspection
+          "ls": true,
+          "cat": true,
+          "cd": true,
+          "pwd": true,
+          "echo": true,
+          "find": true,
+          "grep": true,
+          "which": true,
+          "tree": true,
+          "head": true,
+          "tail": true,
+          "wc": true,
+          // File manipulation within the container
+          "mkdir": true,
+          "touch": true,
+          "cp": true,
+          "mv": true,
+          "rm": true,
+          "sed": true
+        },
+        // Auto-approve non-terminal chat tools (e.g. Chrome DevTools & Playwright
+        // MCP tools) inside the container. NOTE: this experimental setting approves
+        // ALL chat tools, including file edits, not only the MCP browser tools.
+        "chat.tools.autoApprove": true
       }
     }
   }
