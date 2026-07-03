@@ -72,6 +72,7 @@ export default defineConfig(({ mode }) => {
     base: env.BASE_URL,
     envPrefix: ['VITE_', 'npm_'], // Needed to use $npm_package_version
     server: {
+      host: true, // Listen on all addresses (0.0.0.0) so the server is reachable through dev container port forwarding
       port,
       open: true,
       proxy,
