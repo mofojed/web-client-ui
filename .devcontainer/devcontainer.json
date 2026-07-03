@@ -3,6 +3,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
+  "remoteUser": "root",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },
@@ -20,7 +21,7 @@
   "containerEnv": {
     "VITE_PROXY_URL": "http://deephaven-server:10000"
   },
-  "postCreateCommand": "npm ci",
+  "postCreateCommand": "sudo chown -R node:node /workspace 2>/dev/null; npm ci",
   "customizations": {
     "vscode": {
       "extensions": [
