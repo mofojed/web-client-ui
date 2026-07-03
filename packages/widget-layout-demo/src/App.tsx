@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { useConnection } from '@deephaven/app-utils';
 import { Sidebar, type SidebarItem } from '@deephaven/components';
-import { vsListUnordered, vsDebugAlt } from '@deephaven/icons';
+import { vsListUnordered, vsDebugAlt, vsSettingsGear } from '@deephaven/icons';
 import {
   Dashboard,
   compact,
@@ -12,10 +12,12 @@ import {
 import type { dh } from '@deephaven/jsapi-types';
 import { WidgetList } from './WidgetList';
 import { DebugTools } from './DebugTools';
+import { Settings } from './Settings';
 import COMPONENTS from './panels';
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { key: 'widgets', icon: vsListUnordered, title: 'Widgets' },
+  { key: 'settings', icon: vsSettingsGear, title: 'Settings' },
   { key: 'debug', icon: vsDebugAlt, title: 'Debug tools' },
 ];
 
@@ -99,6 +101,8 @@ function App(): JSX.Element {
               onReset={reset}
             />
           );
+        case 'settings':
+          return <Settings />;
         default:
           return null;
       }

@@ -10,8 +10,8 @@ body,
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', sans-serif;
-  background: #121212;
-  color: #ddd;
+  background: var(--dh-color-bg, #121212);
+  color: var(--dh-color-text, #ddd);
 }
 
 .demo-shell {
@@ -40,13 +40,48 @@ body {
 }
 
 .widget-list-header,
-.debug-tools-header {
+.debug-tools-header,
+.settings-tools-header {
   padding: 12px 12px 8px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--dh-color-text);
+}
+
+.settings-tools {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 8px;
+
+  .settings-field-label {
+    font-size: 12px;
+    color: var(--dh-color-text);
+  }
+}
+
+.settings-theme-select {
+  padding: 6px 8px;
+  background: var(--dh-color-input-bg, var(--dh-color-bg));
+  border: 1px solid var(--dh-color-input-border, var(--dh-color-border));
+  border-radius: 3px;
+  color: var(--dh-color-text);
+  font: inherit;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--dh-color-border-focus);
+  }
 }
 
 .widget-list-search {
