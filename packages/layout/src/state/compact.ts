@@ -14,12 +14,14 @@ export function compact(state: LayoutState): LayoutState {
   const resolved = applyTransforms(
     state.initial,
     state.transforms,
-    state.popouts ?? {}
+    state.popouts ?? {},
+    state.maximizedId ?? null
   );
   return {
     initial: resolved.root,
     transforms: [],
     popouts: resolved.popouts,
+    maximizedId: resolved.maximizedId,
   };
 }
 
@@ -28,5 +30,10 @@ export function compact(state: LayoutState): LayoutState {
  * initial tree. Returns both the resolved tree and the current popouts map.
  */
 export function resolveLayout(state: LayoutState): ResolvedState {
-  return applyTransforms(state.initial, state.transforms, state.popouts ?? {});
+  return applyTransforms(
+    state.initial,
+    state.transforms,
+    state.popouts ?? {},
+    state.maximizedId ?? null
+  );
 }

@@ -32,6 +32,8 @@ import {
 export interface ResolvedState {
   root: LayoutNode;
   popouts: Record<NodeId, PopoutEntry>;
+  /** The panel currently maximized to fill the dashboard, or null. */
+  maximizedId: NodeId | null;
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -262,6 +264,9 @@ function popoutPanel(
         geometry,
       },
     },
+    // A popped-out panel leaves this dashboard's tree, so it can no longer
+    // be the maximized panel.
+    maximizedId: state.maximizedId === panelId ? null : state.maximizedId,
   };
 }
 
@@ -272,7 +277,7 @@ function closePopoutPanel(
   if (state.popouts[panelId] == null) return state;
   const next = { ...state.popouts };
   delete next[panelId];
-  return { root: state.root, popouts: next };
+  return { root: state.root, popouts: next, maximizedId: state.maximizedId };
 }
 
 function updatePopoutGeometry(
@@ -285,6 +290,7 @@ function updatePopoutGeometry(
   return {
     root: state.root,
     popouts: { ...state.popouts, [panelId]: { ...existing, geometry } },
+    maximizedId: state.maximizedId,
   };
 }
 
@@ -324,12 +330,16 @@ function applyToPopout(
     if (panels.length <= 1 && panels.some(p => p.id === inner.panelId)) {
       const next = { ...state.popouts };
       delete next[popoutId];
-      return { root: state.root, popouts: next };
+      return {
+        root: state.root,
+        popouts: next,
+        maximizedId: state.maximizedId,
+      };
     }
   }
 
   const subResult = applyTransformInternal(
-    { root: entry.layout, popouts: {} },
+    { root: entry.layout, popouts: {}, maximizedId: null },
     inner
   );
   // If the inner transform somehow drained all panels, drop the popout.
@@ -337,7 +347,7 @@ function applyToPopout(
   if (remainingPanels.length === 0) {
     const next = { ...state.popouts };
     delete next[popoutId];
-    return { root: state.root, popouts: next };
+    return { root: state.root, popouts: next, maximizedId: state.maximizedId };
   }
   return {
     root: state.root,
@@ -345,6 +355,7 @@ function applyToPopout(
       ...state.popouts,
       [popoutId]: { ...entry, layout: subResult.root },
     },
+    maximizedId: state.maximizedId,
   };
 }
 
@@ -358,6 +369,7 @@ function applyTransformInternal(
 ): ResolvedState {
   let nextRoot = state.root;
   let nextPopouts = state.popouts;
+  let nextMaximized = state.maximizedId;
   switch (transform.kind) {
     case 'movePanel':
       nextRoot = movePanel(state.root, transform.panelId, transform.target);
@@ -371,6 +383,19 @@ function applyTransformInternal(
         nextPopouts = { ...state.popouts };
         delete nextPopouts[transform.panelId];
       }
+      // A closed panel can no longer be the maximized one.
+      if (state.maximizedId === transform.panelId) {
+        nextMaximized = null;
+      }
+      break;
+    case 'setMaximized':
+      // Only maximize a panel that actually exists in this tree; clearing
+      // (null) always applies.
+      nextMaximized =
+        transform.panelId != null &&
+        findNode(state.root, transform.panelId) == null
+          ? state.maximizedId
+          : transform.panelId;
       break;
     case 'reorderTab':
       nextRoot = reorderTab(
@@ -400,7 +425,11 @@ function applyTransformInternal(
       break;
     case 'popoutPanel': {
       const popped = popoutPanel(state, transform.panelId, transform.geometry);
-      return { root: normalize(popped.root), popouts: popped.popouts };
+      return {
+        root: normalize(popped.root),
+        popouts: popped.popouts,
+        maximizedId: popped.maximizedId,
+      };
     }
     case 'closePopoutPanel':
       return closePopoutPanel(state, transform.panelId);
@@ -413,7 +442,11 @@ function applyTransformInternal(
       return exhaustive;
     }
   }
-  return { root: normalize(nextRoot), popouts: nextPopouts };
+  return {
+    root: normalize(nextRoot),
+    popouts: nextPopouts,
+    maximizedId: nextMaximized,
+  };
 }
 
 /**
@@ -437,7 +470,10 @@ export function applyTransform(
   if (isResolvedState(arg)) {
     return applyTransformInternal(arg, transform);
   }
-  const result = applyTransformInternal({ root: arg, popouts: {} }, transform);
+  const result = applyTransformInternal(
+    { root: arg, popouts: {}, maximizedId: null },
+    transform
+  );
   return result.root;
 }
 
@@ -448,16 +484,19 @@ export function applyTransforms(
 export function applyTransforms(
   initial: LayoutNode,
   transforms: Transform[],
-  initialPopouts: Record<NodeId, PopoutEntry>
+  initialPopouts: Record<NodeId, PopoutEntry>,
+  initialMaximizedId?: NodeId | null
 ): ResolvedState;
 export function applyTransforms(
   initial: LayoutNode,
   transforms: Transform[],
-  initialPopouts?: Record<NodeId, PopoutEntry>
+  initialPopouts?: Record<NodeId, PopoutEntry>,
+  initialMaximizedId?: NodeId | null
 ): LayoutNode | ResolvedState {
   const seed: ResolvedState = {
     root: normalize(initial),
     popouts: initialPopouts ?? {},
+    maximizedId: initialMaximizedId ?? null,
   };
   const resolved = transforms.reduce(applyTransformInternal, seed);
   return initialPopouts === undefined ? resolved.root : resolved;

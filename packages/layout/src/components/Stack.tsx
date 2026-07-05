@@ -198,6 +198,11 @@ function Tab({
     () => onActivate(panel.id),
     [onActivate, panel.id]
   );
+  const { focusedPanelId, toggleMaximize } = useLayoutContext();
+  const handleDoubleClick = useCallback(
+    () => toggleMaximize(panel.id),
+    [toggleMaximize, panel.id]
+  );
   const handleCloseClick = useCallback(
     (e: MouseEvent) => {
       e.stopPropagation();
@@ -216,7 +221,6 @@ function Tab({
   );
 
   const { activePanelId } = useDragState();
-  const { focusedPanelId } = useLayoutContext();
   const tabRef = useRef<HTMLButtonElement | null>(null);
 
   const handleDragStart = useCallback(
@@ -272,6 +276,7 @@ function Tab({
       draggable={editMode}
       onDragStart={handleDragStart}
       onClick={handleActivate}
+      onDoubleClick={handleDoubleClick}
       title={title}
     >
       <span className="dh-layout-tab-label">{tabContent}</span>

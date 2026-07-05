@@ -27,7 +27,69 @@ body {
 .demo-layout {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-layout-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
   position: relative;
+}
+
+.controls-tools {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.controls-tools-header {
+  padding: 12px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--dh-color-text);
+}
+
+.controls-tools-hint {
+  margin: 0;
+  padding: 8px 12px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--dh-color-gray-500, #888);
+}
+
+// Nested dashboard panel: the inner Dashboard fills the panel; an optional
+// hint is shown while it is empty.
+.nested-dashboard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.nested-dashboard-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px;
+  text-align: center;
+  color: var(--dh-color-gray-500, #888);
+  pointer-events: none;
+}
+
+.nested-dashboard-hint p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 // Shared styling for sidebar panel content (Widgets + Debug tools).
@@ -153,11 +215,15 @@ body {
   font-size: 12px;
 }
 
-.debug-tools {
+.debug-tools,
+.controls-tools {
   gap: 8px;
   padding: 0 8px 8px;
 
   button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 6px 10px;
     border-radius: 3px;
     border: 1px solid var(--dh-color-border);

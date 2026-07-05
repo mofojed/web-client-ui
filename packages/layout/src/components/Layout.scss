@@ -129,6 +129,72 @@
   height: 100%;
 }
 
+// Full-dashboard overlay a maximized panel's host is moved into. Covers the
+// whole dashboard (tabs, splitters and all) so only the maximized panel shows.
+// Restore is via the breadcrumb, not by clicking behind the overlay.
+.dh-layout-maximized {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  background: var(--dh-color-content-bg, #1f1f1f);
+}
+
+// Breadcrumb bar showing the maximized path across nested dashboards.
+.dh-layout-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  min-height: 28px;
+  background: var(--dh-color-golden-layout-tab-header-bg, #181818);
+  color: var(--dh-color-gray-500, #888);
+  font: inherit;
+  user-select: none;
+}
+
+.dh-layout-breadcrumb-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dh-layout-breadcrumb-separator {
+  color: var(--dh-color-gray-500, #888);
+  padding: 0 2px;
+}
+
+.dh-layout-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--dh-color-gray-500, #888);
+  font: inherit;
+  border-radius: 2px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--dh-color-text, #ddd);
+    background: var(--dh-color-close-hover-bg, #555);
+  }
+
+  &.is-current {
+    color: var(--dh-color-text, #fff);
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+.dh-layout-breadcrumb-home-icon {
+  display: block;
+}
+
 // Splitters sit in a fixed-width grid track defined by the parent Row/Column;
 // they stretch to fill that track via the grid's default stretch alignment.
 .dh-layout-splitter {

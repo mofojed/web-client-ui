@@ -1,22 +1,32 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 import { useConnection } from '@deephaven/app-utils';
 import { Sidebar, type SidebarItem } from '@deephaven/components';
-import { vsListUnordered, vsDebugAlt, vsSettingsGear } from '@deephaven/icons';
+import {
+  vsExtensions,
+  vsDebugAlt,
+  vsSettingsGear,
+  vsMultipleWindows,
+} from '@deephaven/icons';
 import {
   Dashboard,
+  MaximizeBreadcrumb,
+  MaximizeProvider,
   compact,
   createLayoutState,
+  useMaximizeChain,
   usePersistedLayoutState,
 } from '@deephaven/layout';
 import type { dh } from '@deephaven/jsapi-types';
 import { WidgetList } from './WidgetList';
 import { DebugTools } from './DebugTools';
 import { Settings } from './Settings';
+import { Controls } from './Controls';
 import COMPONENTS from './panels';
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-  { key: 'widgets', icon: vsListUnordered, title: 'Widgets' },
+  { key: 'widgets', icon: vsExtensions, title: 'Widgets' },
+  { key: 'controls', icon: vsMultipleWindows, title: 'Controls' },
   { key: 'settings', icon: vsSettingsGear, title: 'Settings' },
   { key: 'debug', icon: vsDebugAlt, title: 'Debug tools' },
 ];
@@ -29,7 +39,7 @@ const INITIAL_LAYOUT = {
   children: [],
 };
 
-function App(): JSX.Element {
+function AppContent(): JSX.Element {
   const connection = useConnection();
   const [widgets, setWidgets] = useState<dh.ide.VariableDefinition[]>([]);
 
@@ -59,30 +69,40 @@ function App(): JSX.Element {
   );
 
   const initial = useMemo(() => createLayoutState(INITIAL_LAYOUT), []);
-  const { state, dispatch, setState, reset } = usePersistedLayoutState(
-    initial,
-    { key: STORAGE_KEY }
-  );
+  const { state, setState, reset } = usePersistedLayoutState(initial, {
+    key: STORAGE_KEY,
+  });
   const [editMode, setEditMode] = useState(true);
   const [selectedTool, setSelectedTool] = useState<string | null>('widgets');
+
+  // Adds route to whichever dashboard is currently maximized (or the top
+  // level when nothing is maximized).
+  const { addToActiveDashboard } = useMaximizeChain();
 
   const handleAddWidget = useCallback(
     (widget: dh.ide.VariableDefinition) => {
       if (widget.name == null || widget.name === '') return;
-      dispatch({
-        kind: 'addPanel',
-        panel: {
-          type: 'panel',
-          id: `${widget.type}-${widget.name}-${nanoid(6)}`,
-          component: 'widget',
-          title: widget.name,
-          state: { type: widget.type, name: widget.name },
-        },
-        target: { type: 'rootSibling', side: 'right' },
+      addToActiveDashboard({
+        type: 'panel',
+        id: `${widget.type}-${widget.name}-${nanoid(6)}`,
+        component: 'widget',
+        title: widget.name,
+        state: { type: widget.type, name: widget.name },
       });
     },
-    [dispatch]
+    [addToActiveDashboard]
   );
+
+  const dashboardCountRef = useRef(0);
+  const handleNewDashboard = useCallback(() => {
+    dashboardCountRef.current += 1;
+    addToActiveDashboard({
+      type: 'panel',
+      id: `dashboard-${nanoid(6)}`,
+      component: 'dashboard',
+      title: `Dashboard ${dashboardCountRef.current}`,
+    });
+  }, [addToActiveDashboard]);
 
   const transformsCount = state.transforms.length;
 
@@ -91,6 +111,8 @@ function App(): JSX.Element {
       switch (key) {
         case 'widgets':
           return <WidgetList widgets={widgets} onSelect={handleAddWidget} />;
+        case 'controls':
+          return <Controls onNewDashboard={handleNewDashboard} />;
         case 'debug':
           return (
             <DebugTools
@@ -110,6 +132,7 @@ function App(): JSX.Element {
     [
       widgets,
       handleAddWidget,
+      handleNewDashboard,
       editMode,
       transformsCount,
       setState,
@@ -127,15 +150,26 @@ function App(): JSX.Element {
         renderContent={renderSidebarContent}
       />
       <div className="demo-layout">
-        <Dashboard
-          layout={state}
-          components={COMPONENTS}
-          onChange={next => setState(next)}
-          editMode={editMode}
-          layoutKey={STORAGE_KEY}
-        />
+        <MaximizeBreadcrumb />
+        <div className="demo-layout-body">
+          <Dashboard
+            layout={state}
+            components={COMPONENTS}
+            onChange={next => setState(next)}
+            editMode={editMode}
+            layoutKey={STORAGE_KEY}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+function App(): JSX.Element {
+  return (
+    <MaximizeProvider>
+      <AppContent />
+    </MaximizeProvider>
   );
 }
 

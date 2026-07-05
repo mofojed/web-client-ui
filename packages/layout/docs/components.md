@@ -116,9 +116,41 @@ consecutive same-container `setSizes` so the transform list stays bounded.
 ## `LayoutContext` (internal)
 
 Never exported. Carries `state`, `dispatch`, `components`, `editMode`,
-`focusedPanelId`, and `getPanelHost` to descendants. Add new cross-cutting
+`focusedPanelId`, `getPanelHost`, and the maximize state (`maximizedId`,
+`toggleMaximize`, `branchActive`, `depth`) to descendants. Add new cross-cutting
 rendering state here rather than threading props, and document the addition in
 [architecture.md](architecture.md).
+
+## Maximize and the zoom breadcrumb
+
+Double-clicking a tab dispatches `setMaximized` (see
+[state-and-transforms.md](state-and-transforms.md#maximize)). When a dashboard
+has a `maximizedId`, it renders a full-size `.dh-layout-maximized` overlay and
+**moves the maximized panel's persistent host into it** — the same
+portal-host trick used for normal slots, so the content never remounts on
+maximize/restore. `Panel` skips re-attaching a host while its panel is
+maximized so the overlay owns it. The overlay covers the whole dashboard
+(tabs, splitters and all); restore is via the breadcrumb.
+
+Because nested dashboards each track their own `maximizedId`, the breadcrumb is
+assembled at runtime rather than from a single state blob:
+
+- `MaximizeProvider` holds a registry of participating dashboards. Wrap it
+  around the outermost `Dashboard` **and** any breadcrumb UI. Nested dashboards
+  find it through React context (it crosses the content portals). Maximize
+  _rendering_ works without the provider — it only gates the breadcrumb and the
+  "add to the maximized dashboard" routing.
+- `PanelBranchContext` is provided around each panel's content with
+  `{ activeBranch, depth }`. A dashboard is on the active branch when its host
+  panel is the maximized panel of an already-active parent, so only the visible
+  maximized chain contributes crumbs.
+- `useMaximizeChain()` returns `{ segments, zoomTo, addToActiveDashboard }`.
+  `zoomTo(index)` clears every maximized dashboard deeper than `index` (`-1` =
+  Home clears all); `addToActiveDashboard` dispatches an `addPanel` on the
+  active-branch leaf dashboard.
+- `MaximizeBreadcrumb` is a lightweight, dependency-free bar
+  (`Home > … > …`) that reads the chain; it renders nothing when nothing is
+  maximized.
 
 ## Styling
 

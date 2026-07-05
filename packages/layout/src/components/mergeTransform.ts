@@ -2,10 +2,10 @@ import type { Transform } from '../types';
 
 /**
  * Append `next` to `transforms`, coalescing consecutive `setSizes` calls for
- * the same container. Splitter drags dispatch one transform per pointermove;
- * without coalescing the transforms list grows unboundedly. Coalescing is
- * safe because `setSizes` is idempotent — applying the latest is equivalent
- * to applying all the intermediate ones in sequence.
+ * the same container, and consecutive `setMaximized` toggles. Splitter drags
+ * dispatch one transform per pointermove; without coalescing the transforms
+ * list grows unboundedly. Coalescing is safe because `setSizes` is idempotent
+ * and `setMaximized` only cares about the latest value.
  */
 export default function mergeTransform(
   transforms: Transform[],
@@ -24,6 +24,15 @@ export default function mergeTransform(
       sizes: { ...last.sizes, ...next.sizes },
     };
     return [...transforms.slice(0, -1), merged];
+  }
+  // Consecutive maximize toggles collapse to the latest — only the final
+  // maximized panel matters, so intermediate toggles are pure noise.
+  if (
+    last !== undefined &&
+    last.kind === 'setMaximized' &&
+    next.kind === 'setMaximized'
+  ) {
+    return [...transforms.slice(0, -1), next];
   }
   return [...transforms, next];
 }

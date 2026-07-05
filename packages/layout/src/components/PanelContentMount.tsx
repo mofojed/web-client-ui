@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { PanelNode } from '../types';
 import { useLayoutContext } from './LayoutContext';
+import { PanelBranchContext, type PanelBranch } from './MaximizeContext';
 
 export interface PanelContentMountProps {
   panel: PanelNode;
@@ -25,7 +26,8 @@ export default function PanelContentMount({
   isActive,
   host,
 }: PanelContentMountProps): JSX.Element | null {
-  const { components, editMode, dispatch } = useLayoutContext();
+  const { components, editMode, dispatch, maximizedId, branchActive, depth } =
+    useLayoutContext();
   const definition = components[panel.component];
 
   const setState = useCallback(
@@ -35,16 +37,29 @@ export default function PanelContentMount({
     [dispatch, panel.id]
   );
 
+  // A dashboard rendered inside this panel's content is on the active
+  // maximized branch only when this panel is the maximized one of an
+  // already-active dashboard.
+  const childBranch = useMemo<PanelBranch>(
+    () => ({
+      activeBranch: branchActive && panel.id === maximizedId,
+      depth: depth + 1,
+    }),
+    [branchActive, panel.id, maximizedId, depth]
+  );
+
   if (definition == null) return null;
 
   const Content = definition.component;
   return createPortal(
-    <Content
-      panel={panel}
-      isActive={isActive}
-      editMode={editMode}
-      setState={setState}
-    />,
+    <PanelBranchContext.Provider value={childBranch}>
+      <Content
+        panel={panel}
+        isActive={isActive}
+        editMode={editMode}
+        setState={setState}
+      />
+    </PanelBranchContext.Provider>,
     host
   );
 }

@@ -15,13 +15,18 @@ function panelContentClass(isActive: boolean, isFocused: boolean): string {
 }
 
 function PanelInner({ panel, isActive }: PanelProps): JSX.Element {
-  const { components, getPanelHost, focusedPanelId } = useLayoutContext();
+  const { components, getPanelHost, focusedPanelId, maximizedId } =
+    useLayoutContext();
   const definition = components[panel.component];
   const isFocused = focusedPanelId === panel.id;
+  const isMaximized = maximizedId === panel.id;
 
   const attachHost = useCallback(
     (el: HTMLDivElement | null) => {
       if (el == null) return;
+      // While maximized, the panel's host lives in the dashboard's maximize
+      // overlay; don't pull it back into this slot.
+      if (isMaximized) return;
       const host = getPanelHost(panel.id);
       // Idempotent: appendChild on an already-attached node is a move.
       // Using parentNode check avoids a redundant DOM write when the host
@@ -30,7 +35,7 @@ function PanelInner({ panel, isActive }: PanelProps): JSX.Element {
         el.appendChild(host);
       }
     },
-    [getPanelHost, panel.id]
+    [getPanelHost, panel.id, isMaximized]
   );
 
   if (definition == null) {

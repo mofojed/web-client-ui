@@ -92,16 +92,17 @@ Full type reference lives in [src/types.ts](src/types.ts).
 Everything importable from `@deephaven/layout` is re-exported in
 [src/index.ts](src/index.ts). The high-value entry points:
 
-| Export                                                                         | Purpose                                          |
-| ------------------------------------------------------------------------------ | ------------------------------------------------ |
-| `Dashboard`                                                                    | The one component consumers render.              |
-| `createLayoutState`                                                            | Normalize a tree into an initial `LayoutState`.  |
-| `useLayoutState` / `usePersistedLayoutState`                                   | Own the controlled state loop.                   |
-| `applyTransform` / `applyTransforms` / `compact` / `resolveLayout`             | Pure state folding.                              |
-| `dehydrate` / `hydrate`                                                        | Serialize / restore, with per-panel-state hooks. |
-| `normalize`, `makeId`                                                          | Canonicalize a tree, mint ids.                   |
-| `findNode`, `findParent`, `iterPanels`, `isPanel`/`isStack`/`isContainer`      | Tree helpers.                                    |
-| `PopoutPanelHost`, `PopoutController`, `openPopoutWindow`, `parsePopoutParams` | Cross-window popouts.                            |
+| Export                                                                         | Purpose                                             |
+| ------------------------------------------------------------------------------ | --------------------------------------------------- |
+| `Dashboard`                                                                    | The one component consumers render.                 |
+| `createLayoutState`                                                            | Normalize a tree into an initial `LayoutState`.     |
+| `useLayoutState` / `usePersistedLayoutState`                                   | Own the controlled state loop.                      |
+| `applyTransform` / `applyTransforms` / `compact` / `resolveLayout`             | Pure state folding.                                 |
+| `dehydrate` / `hydrate`                                                        | Serialize / restore, with per-panel-state hooks.    |
+| `normalize`, `makeId`                                                          | Canonicalize a tree, mint ids.                      |
+| `findNode`, `findParent`, `iterPanels`, `isPanel`/`isStack`/`isContainer`      | Tree helpers.                                       |
+| `PopoutPanelHost`, `PopoutController`, `openPopoutWindow`, `parsePopoutParams` | Cross-window popouts.                               |
+| `MaximizeProvider`, `MaximizeBreadcrumb`, `useMaximizeChain`                   | Maximize-a-panel + cross-dashboard zoom breadcrumb. |
 
 ## Documentation
 

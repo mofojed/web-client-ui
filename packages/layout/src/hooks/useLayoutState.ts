@@ -18,6 +18,7 @@ function reducer(prev: ReducerState, action: Action): ReducerState {
     state: {
       initial: prev.state.initial,
       transforms: [...prev.state.transforms, action.transform],
+      maximizedId: prev.state.maximizedId,
     },
   };
 }

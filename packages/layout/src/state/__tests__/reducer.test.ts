@@ -357,6 +357,89 @@ describe('applyTransforms', () => {
   });
 });
 
+describe('setMaximized', () => {
+  const initial = row('r', [
+    stack('s1', [panel('p1')]),
+    stack('s2', [panel('p2')]),
+  ]);
+
+  it('records the maximized panel in the resolved state', () => {
+    const result = applyTransforms(
+      initial,
+      [{ kind: 'setMaximized', panelId: 'p1' }],
+      {}
+    );
+    expect(result.maximizedId).toBe('p1');
+  });
+
+  it('clears the maximized panel when passed null', () => {
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'setMaximized', panelId: 'p1' },
+        { kind: 'setMaximized', panelId: null },
+      ],
+      {}
+    );
+    expect(result.maximizedId).toBeNull();
+  });
+
+  it('ignores maximizing a panel that is not in the tree', () => {
+    const result = applyTransforms(
+      initial,
+      [{ kind: 'setMaximized', panelId: 'nope' }],
+      {}
+    );
+    expect(result.maximizedId).toBeNull();
+  });
+
+  it('clears the maximized panel when it is closed', () => {
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'setMaximized', panelId: 'p1' },
+        { kind: 'closePanel', panelId: 'p1' },
+      ],
+      {}
+    );
+    expect(result.maximizedId).toBeNull();
+    expect(panelIds(result.root)).toEqual(['p2']);
+  });
+
+  it('keeps the maximized panel when a different panel is closed', () => {
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'setMaximized', panelId: 'p1' },
+        { kind: 'closePanel', panelId: 'p2' },
+      ],
+      {}
+    );
+    expect(result.maximizedId).toBe('p1');
+  });
+
+  it('clears the maximized panel when it is popped out', () => {
+    const result = applyTransforms(
+      initial,
+      [
+        { kind: 'setMaximized', panelId: 'p1' },
+        {
+          kind: 'popoutPanel',
+          panelId: 'p1',
+          geometry: { screenX: 0, screenY: 0, width: 100, height: 100 },
+        },
+      ],
+      {}
+    );
+    expect(result.maximizedId).toBeNull();
+  });
+
+  it('seeds the maximized panel from the initialMaximizedId argument', () => {
+    const result = applyTransforms(initial, [], {}, 'p2');
+    expect(result.maximizedId).toBe('p2');
+  });
+});
+
 describe('popout transforms', () => {
   const geom = { screenX: 100, screenY: 200, width: 800, height: 600 };
 

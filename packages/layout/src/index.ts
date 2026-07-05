@@ -36,6 +36,18 @@ export {
 export { default as Dashboard } from './components/Dashboard';
 export type { DashboardProps } from './components/Dashboard';
 export { default as createLayoutState } from './components/createLayoutState';
+export { default as MaximizeBreadcrumb } from './components/MaximizeBreadcrumb';
+export type { MaximizeBreadcrumbProps } from './components/MaximizeBreadcrumb';
+export {
+  MaximizeProvider,
+  useMaximizeChain,
+} from './components/MaximizeContext';
+export type {
+  AddPanelFn,
+  BreadcrumbSegment,
+  MaximizeChain,
+  MaximizeProviderProps,
+} from './components/MaximizeContext';
 export type { DropZone } from './dnd/dropZone';
 export type {
   PanelContentProps,

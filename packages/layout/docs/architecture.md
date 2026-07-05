@@ -33,18 +33,20 @@ controlled — it holds no layout state of its own.
 
 ### `components/` — React rendering
 
-| File                                  | Responsibility                                                                                                      |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Dashboard.tsx`                       | The public component. Resolves state, owns panel hosts, wires context, dispatches transforms via `onChange`.        |
-| `RenderNode.tsx`                      | Switch on node type → `Row` / `Column` / `Stack`.                                                                   |
-| `Row.tsx` / `Column.tsx`              | Flex containers with `Splitter`s between children.                                                                  |
-| `Stack.tsx`                           | Tab strip + active-panel slot.                                                                                      |
-| `Panel.tsx` / `PanelContentMount.tsx` | The persistent-host portal model (see [components.md](components.md)).                                              |
-| `Splitter.tsx` / `splitterMath.ts`    | Resize handles; convert drags to `setSizes` transforms.                                                             |
-| `LayoutContext.tsx`                   | Internal context (`state`, `dispatch`, `components`, `editMode`, `focusedPanelId`, `getPanelHost`). Never exported. |
-| `createLayoutState.ts`                | Public helper: normalize a tree into a `LayoutState`.                                                               |
-| `mergeTransform.ts`                   | Append a transform, coalescing consecutive `setSizes` for the same container.                                       |
-| `findFocusedPanelId.ts`               | Map `document.activeElement` to the enclosing panel id.                                                             |
+| File                                  | Responsibility                                                                                                                                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Dashboard.tsx`                       | The public component. Resolves state, owns panel hosts, wires context, dispatches transforms via `onChange`.                                          |
+| `RenderNode.tsx`                      | Switch on node type → `Row` / `Column` / `Stack`.                                                                                                     |
+| `Row.tsx` / `Column.tsx`              | Flex containers with `Splitter`s between children.                                                                                                    |
+| `Stack.tsx`                           | Tab strip + active-panel slot.                                                                                                                        |
+| `Panel.tsx` / `PanelContentMount.tsx` | The persistent-host portal model (see [components.md](components.md)).                                                                                |
+| `Splitter.tsx` / `splitterMath.ts`    | Resize handles; convert drags to `setSizes` transforms.                                                                                               |
+| `LayoutContext.tsx`                   | Internal context (`state`, `dispatch`, `components`, `editMode`, `focusedPanelId`, `getPanelHost`, maximize state). Never exported.                   |
+| `MaximizeContext.tsx`                 | `MaximizeProvider` + `useMaximizeChain`: shares the zoom breadcrumb across nested dashboards; `PanelBranchContext` marks the active maximized branch. |
+| `MaximizeBreadcrumb.tsx`              | Lightweight `Home > … > …` breadcrumb bar reading `useMaximizeChain`.                                                                                 |
+| `createLayoutState.ts`                | Public helper: normalize a tree into a `LayoutState`.                                                                                                 |
+| `mergeTransform.ts`                   | Append a transform, coalescing consecutive `setSizes` for the same container.                                                                         |
+| `findFocusedPanelId.ts`               | Map `document.activeElement` to the enclosing panel id.                                                                                               |
 
 ### `dnd/` — drag-and-drop
 

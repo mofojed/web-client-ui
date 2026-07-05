@@ -85,6 +85,12 @@ export type Transform =
   | { kind: 'closePanel'; panelId: NodeId }
   | { kind: 'reorderTab'; stackId: NodeId; panelId: NodeId; index: number }
   | { kind: 'setActive'; stackId: NodeId; panelId: NodeId }
+  /**
+   * Maximize a single panel so it fills the whole dashboard, or clear the
+   * maximized panel when `panelId` is `null`. A dashboard tracks at most one
+   * maximized panel at a time. Nested dashboards each track their own.
+   */
+  | { kind: 'setMaximized'; panelId: NodeId | null }
   | {
       kind: 'setSizes';
       containerId: NodeId;
@@ -114,6 +120,13 @@ export interface LayoutState {
    * cleanly.
    */
   popouts?: Record<NodeId, PopoutEntry>;
+  /**
+   * The panel currently maximized to fill the dashboard, or null/undefined
+   * when nothing is maximized. Like `popouts`, this is folded from the
+   * `setMaximized` transforms and carried across `compact()` so it survives
+   * checkpointing. Optional so older serialized states hydrate cleanly.
+   */
+  maximizedId?: NodeId | null;
 }
 
 export interface DehydrateOptions {

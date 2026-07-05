@@ -53,4 +53,19 @@ describe('compact', () => {
     const after = resolveLayout(compacted);
     expect(after).toEqual(before);
   });
+
+  it('carries the maximized panel across compaction', () => {
+    const initial = row('r', [
+      stack('s1', [panel('p1')]),
+      stack('s2', [panel('p2')]),
+    ]);
+    const state: LayoutState = {
+      initial,
+      transforms: [{ kind: 'setMaximized', panelId: 'p1' }],
+    };
+    const compacted = compact(state);
+    expect(compacted.transforms).toEqual([]);
+    expect(compacted.maximizedId).toBe('p1');
+    expect(resolveLayout(compacted).maximizedId).toBe('p1');
+  });
 });

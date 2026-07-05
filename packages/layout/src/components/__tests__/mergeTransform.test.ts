@@ -79,4 +79,11 @@ describe('mergeTransform', () => {
     >[];
     expect(result[0].sizes).toEqual({ s1: 0.4, s2: 0.2, s3: 0.4 });
   });
+
+  it('coalesces consecutive setMaximized toggles to the latest', () => {
+    const list: Transform[] = [{ kind: 'setMaximized', panelId: 'p1' }];
+    const next: Transform = { kind: 'setMaximized', panelId: null };
+    const result = mergeTransform(list, next);
+    expect(result).toEqual([next]);
+  });
 });

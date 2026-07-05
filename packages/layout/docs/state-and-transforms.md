@@ -10,15 +10,16 @@ interface LayoutState {
   initial: LayoutNode; // baseline tree
   transforms: Transform[]; // append-only user edits
   popouts?: Record<NodeId, PopoutEntry>; // torn-out windows (optional)
+  maximizedId?: NodeId | null; // panel maximized to fill the dashboard (optional)
 }
 ```
 
 The **effective** layout is `initial` with every transform folded over it:
 
 ```ts
-resolveLayout(state); // -> ResolvedState { root, popouts }
-applyTransforms(initial, transforms, popouts); // the underlying fold
-compact(state); // -> { initial: root, transforms: [], popouts }
+resolveLayout(state); // -> ResolvedState { root, popouts, maximizedId }
+applyTransforms(initial, transforms, popouts, maximizedId); // the underlying fold
+compact(state); // -> { initial: root, transforms: [], popouts, maximizedId }
 ```
 
 Why this shape:
@@ -54,19 +55,20 @@ Each is a plain, serializable object with a `kind` discriminator. The full union
 is in [../src/types.ts](../src/types.ts); the reducer that applies them is in
 [../src/state/reducer.ts](../src/state/reducer.ts).
 
-| Kind                   | Payload                                        | Effect                                                                  |
-| ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- |
-| `movePanel`            | `panelId`, `target: DropTarget`                | Move an existing panel to a drop target.                                |
-| `addPanel`             | `panel: PanelNode`, `target: DropTarget`       | Insert a new panel.                                                     |
-| `closePanel`           | `panelId`                                      | Remove a panel (collapsing empty containers).                           |
-| `reorderTab`           | `stackId`, `panelId`, `index`                  | Reorder a tab within its stack.                                         |
-| `setActive`            | `stackId`, `panelId`                           | Select the active tab.                                                  |
-| `setSizes`             | `containerId`, `sizes: Record<NodeId, number>` | Set child weights. Idempotent; coalesced.                               |
-| `updatePanelState`     | `panelId`, `state`                             | Replace a panel's opaque state.                                         |
-| `popoutPanel`          | `panelId`, `geometry`                          | Tear a panel into a child window.                                       |
-| `closePopoutPanel`     | `panelId`                                      | Close a popped-out panel.                                               |
-| `updatePopoutGeometry` | `panelId`, `geometry`                          | Track a moved/resized child window.                                     |
-| `popoutScope`          | `popoutId`, `inner: Transform`                 | Apply `inner` to one popout's sub-tree. Drops the popout if it empties. |
+| Kind                   | Payload                                        | Effect                                                                                                           |
+| ---------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `movePanel`            | `panelId`, `target: DropTarget`                | Move an existing panel to a drop target.                                                                         |
+| `addPanel`             | `panel: PanelNode`, `target: DropTarget`       | Insert a new panel.                                                                                              |
+| `closePanel`           | `panelId`                                      | Remove a panel (collapsing empty containers).                                                                    |
+| `reorderTab`           | `stackId`, `panelId`, `index`                  | Reorder a tab within its stack.                                                                                  |
+| `setActive`            | `stackId`, `panelId`                           | Select the active tab.                                                                                           |
+| `setMaximized`         | `panelId: NodeId \| null`                      | Maximize a panel to fill the dashboard, or clear it (`null`). Folds into `ResolvedState.maximizedId`; coalesced. |
+| `setSizes`             | `containerId`, `sizes: Record<NodeId, number>` | Set child weights. Idempotent; coalesced.                                                                        |
+| `updatePanelState`     | `panelId`, `state`                             | Replace a panel's opaque state.                                                                                  |
+| `popoutPanel`          | `panelId`, `geometry`                          | Tear a panel into a child window.                                                                                |
+| `closePopoutPanel`     | `panelId`                                      | Close a popped-out panel.                                                                                        |
+| `updatePopoutGeometry` | `panelId`, `geometry`                          | Track a moved/resized child window.                                                                              |
+| `popoutScope`          | `popoutId`, `inner: Transform`                 | Apply `inner` to one popout's sub-tree. Drops the popout if it empties.                                          |
 
 ### `DropTarget`
 
@@ -80,6 +82,20 @@ type DropTarget =
   | { type: 'container'; containerId; index } // into a row/column at an index
   | { type: 'rootSibling'; side }; // split against the current root
 ```
+
+### Maximize
+
+`setMaximized` records a single maximized panel per dashboard. Like `popouts`,
+it is **view state that is still folded and persisted**: the transform folds
+into `ResolvedState.maximizedId`, `compact()`/`resolveLayout()` carry it, and
+`dehydrate`/`hydrate` round-trip the `maximizedId` field. The reducer clears it
+automatically when the maximized panel is closed or popped out, and ignores a
+request to maximize a panel that is not in the tree.
+
+Nested dashboards each track their own `maximizedId`. The cross-dashboard
+breadcrumb (`Home > Dashboard 1 > Child Dashboard A`) is assembled at runtime
+by `MaximizeProvider` / `useMaximizeChain` — see
+[components.md](components.md#maximize-and-the-zoom-breadcrumb).
 
 ## Normalization is the contract
 

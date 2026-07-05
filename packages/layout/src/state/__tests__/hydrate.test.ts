@@ -27,6 +27,17 @@ describe('dehydrate / hydrate', () => {
     expect(round).toEqual(state);
   });
 
+  it('round-trips the maximized panel id', () => {
+    const state: LayoutState = {
+      initial: stack('s', [panel('p1'), panel('p2')]),
+      transforms: [],
+      maximizedId: 'p2',
+    };
+    const json = JSON.stringify(dehydrate(state));
+    const round = hydrate(JSON.parse(json));
+    expect(round.maximizedId).toBe('p2');
+  });
+
   it('applies dehydratePanelState to every panel in initial and transforms', () => {
     const fn = jest.fn(
       (component: string, s: unknown) =>

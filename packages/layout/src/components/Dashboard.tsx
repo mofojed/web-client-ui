@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -23,6 +24,11 @@ import PanelContentMount from './PanelContentMount';
 import mergeTransform from './mergeTransform';
 import findFocusedPanelId from './findFocusedPanelId';
 import type { PanelRegistry } from './types';
+import {
+  type AddPanelFn,
+  PanelBranchContext,
+  useMaximizeActions,
+} from './MaximizeContext';
 import DragLayer from '../dnd/DragLayer';
 import PopoutController from '../popout/PopoutController';
 import './Layout.scss';
@@ -117,10 +123,11 @@ export default function Dashboard({
   onChangeRef.current = onChange;
 
   const dispatch = useCallback((transform: Transform) => {
-    const { initial, transforms } = layoutRef.current;
+    const { initial, transforms, maximizedId } = layoutRef.current;
     const nextState: LayoutState = {
       initial,
       transforms: mergeTransform(transforms, transform),
+      maximizedId,
     };
     onChangeRef.current?.(nextState, transform);
   }, []);
@@ -186,6 +193,83 @@ export default function Dashboard({
     [resolvedRoot]
   );
 
+  const { maximizedId } = resolved;
+  const maximizedPanel = maximizedId != null ? getPanel(maximizedId) : null;
+  const maximizedTitle =
+    maximizedPanel != null ? maximizedPanel.title ?? maximizedPanel.id : null;
+
+  const toggleMaximize = useCallback(
+    (panelId: NodeId) => {
+      dispatch({
+        kind: 'setMaximized',
+        panelId: maximizedId === panelId ? null : panelId,
+      });
+    },
+    [dispatch, maximizedId]
+  );
+
+  // Maximize/zoom breadcrumb wiring. `branchActive`/`depth` come from the
+  // enclosing panel's content context (null for the outermost dashboard).
+  const branch = useContext(PanelBranchContext);
+  const branchActive = branch?.activeBranch ?? true;
+  const depth = branch?.depth ?? 0;
+  const maximizeActions = useMaximizeActions();
+  const instanceId = useId();
+
+  const addPanel = useCallback<AddPanelFn>(
+    (panel, target) => {
+      dispatch({
+        kind: 'addPanel',
+        panel,
+        target: target ?? { type: 'rootSibling', side: 'right' },
+      });
+    },
+    [dispatch]
+  );
+
+  useEffect(() => {
+    if (maximizeActions == null) return undefined;
+    const crumb =
+      branchActive && maximizedId != null && maximizedTitle != null
+        ? {
+            title: maximizedTitle,
+            clear: () => dispatch({ kind: 'setMaximized', panelId: null }),
+          }
+        : null;
+    // The active-branch leaf (nothing maximized here) is where sidebar adds
+    // should land.
+    const leafAddPanel = branchActive && maximizedId == null ? addPanel : null;
+    maximizeActions.set(instanceId, {
+      depth,
+      crumb,
+      addPanel: leafAddPanel,
+    });
+    return () => maximizeActions.remove(instanceId);
+  }, [
+    maximizeActions,
+    instanceId,
+    depth,
+    branchActive,
+    maximizedId,
+    maximizedTitle,
+    addPanel,
+    dispatch,
+  ]);
+
+  // Persistent host for the maximized panel is moved into the overlay while
+  // maximized (same portal-host trick as a normal panel slot), so its content
+  // never remounts on maximize/restore.
+  const attachMaximizedHost = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (el == null || maximizedId == null) return;
+      const host = getPanelHost(maximizedId);
+      if (host.parentNode !== el) {
+        el.appendChild(host);
+      }
+    },
+    [getPanelHost, maximizedId]
+  );
+
   const [focusedPanelId, setFocusedPanelId] = useState<NodeId | null>(null);
   useEffect(() => {
     const el = dashboardRef.current;
@@ -231,8 +315,23 @@ export default function Dashboard({
       draggingPanelId: null,
       focusedPanelId,
       getPanelHost,
+      maximizedId,
+      toggleMaximize,
+      branchActive,
+      depth,
     }),
-    [layout, dispatch, components, editMode, focusedPanelId, getPanelHost]
+    [
+      layout,
+      dispatch,
+      components,
+      editMode,
+      focusedPanelId,
+      getPanelHost,
+      maximizedId,
+      toggleMaximize,
+      branchActive,
+      depth,
+    ]
   );
 
   // a Dashboard rendered inside another Dashboard's panel inherits the outer
@@ -270,6 +369,13 @@ export default function Dashboard({
               />
             ))}
             <RenderNode node={resolvedRoot} />
+            {maximizedId != null && maximizedPanel != null && (
+              <div
+                className="dh-layout-maximized"
+                ref={attachMaximizedHost}
+                data-maximized-id={maximizedId}
+              />
+            )}
           </DragLayer>
         </PopoutController>
       </LayoutContext.Provider>

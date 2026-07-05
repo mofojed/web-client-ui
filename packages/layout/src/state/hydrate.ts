@@ -68,6 +68,7 @@ export function dehydrate(
       initial: state.initial,
       transforms: state.transforms,
       popouts: state.popouts,
+      maximizedId: state.maximizedId,
     };
   }
   const mapPanel = (p: PanelNode): PanelNode => ({
@@ -78,6 +79,7 @@ export function dehydrate(
     initial: transformPanels(state.initial, mapPanel),
     transforms: transformPanelsInTransforms(state.transforms, mapPanel),
     popouts: mapPopouts(state.popouts, mapPanel),
+    maximizedId: state.maximizedId,
   };
 }
 
@@ -104,5 +106,6 @@ export function hydrate(
     initial: normalize(initial),
     transforms,
     popouts,
+    maximizedId: serialized.maximizedId,
   };
 }

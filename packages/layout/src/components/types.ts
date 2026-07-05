@@ -62,4 +62,19 @@ export interface LayoutContextValue {
    * portaled React content stays mounted across rearrangements.
    */
   getPanelHost: (panelId: NodeId) => HTMLDivElement;
+  /**
+   * The panel currently maximized to fill this dashboard, or null. Nested
+   * dashboards each track their own maximized panel.
+   */
+  maximizedId: NodeId | null;
+  /** Maximize the panel if not already maximized, otherwise restore it. */
+  toggleMaximize: (panelId: NodeId) => void;
+  /**
+   * Whether this dashboard sits on the active maximized branch (true for the
+   * outermost dashboard; for a nested one, true only when its host panel is
+   * the maximized panel of an active-branch parent).
+   */
+  branchActive: boolean;
+  /** Nesting depth of this dashboard (0 for the outermost). */
+  depth: number;
 }

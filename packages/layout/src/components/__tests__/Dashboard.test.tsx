@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
 import type { LayoutState, Transform } from '../../types';
 import { applyTransform } from '../../state/reducer';
@@ -6,6 +6,8 @@ import { resolveLayout } from '../../state/compact';
 import { panel, row, stack } from '../../state/__tests__/fixtures';
 import Dashboard from '../Dashboard';
 import createLayoutState from '../createLayoutState';
+import MaximizeBreadcrumb from '../MaximizeBreadcrumb';
+import { MaximizeProvider } from '../MaximizeContext';
 import type { PanelRegistry } from '../types';
 
 beforeEach(() => {
@@ -265,5 +267,113 @@ describe('onChange contract', () => {
       transforms: [transform],
     };
     expect(resolveLayout(next).root).toEqual(expected);
+  });
+});
+
+describe('maximize on tab double-click', () => {
+  it('maximizes a panel when its tab is double-clicked and restores on a second double-click', () => {
+    const state = createLayoutState(
+      stack('s', [panel('p1', { title: 'A' }), panel('p2', { title: 'B' })])
+    );
+    const { container } = render(<Harness initial={state} editMode />);
+
+    expect(container.querySelector('.dh-layout-maximized')).toBeNull();
+
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /A/ }));
+    const overlay = container.querySelector('.dh-layout-maximized');
+    expect(overlay).not.toBeNull();
+    expect(overlay).toHaveAttribute('data-maximized-id', 'p1');
+
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /A/ }));
+    expect(container.querySelector('.dh-layout-maximized')).toBeNull();
+  });
+});
+
+describe('maximize breadcrumb', () => {
+  it('shows nothing until a panel is maximized', () => {
+    const state = createLayoutState(
+      stack('s', [panel('p1', { title: 'A' }), panel('p2', { title: 'B' })])
+    );
+    const { container } = render(
+      <MaximizeProvider>
+        <MaximizeBreadcrumb />
+        <Harness initial={state} editMode />
+      </MaximizeProvider>
+    );
+    expect(container.querySelector('.dh-layout-breadcrumb')).toBeNull();
+
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /A/ }));
+    const nav = container.querySelector('.dh-layout-breadcrumb');
+    expect(nav).not.toBeNull();
+    expect(within(nav as HTMLElement).getByText('A')).toBeInTheDocument();
+  });
+
+  it('zooms out when Home is clicked', () => {
+    const state = createLayoutState(
+      stack('s', [panel('p1', { title: 'A' }), panel('p2', { title: 'B' })])
+    );
+    const { container } = render(
+      <MaximizeProvider>
+        <MaximizeBreadcrumb />
+        <Harness initial={state} editMode />
+      </MaximizeProvider>
+    );
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /A/ }));
+    expect(container.querySelector('.dh-layout-maximized')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Home' }));
+    expect(container.querySelector('.dh-layout-maximized')).toBeNull();
+    expect(container.querySelector('.dh-layout-breadcrumb')).toBeNull();
+  });
+
+  it('builds a path across nested dashboards', () => {
+    function InnerHost(): JSX.Element {
+      const [inner, setInner] = useState(() =>
+        createLayoutState(
+          stack('inner', [panel('inner-1', { title: 'Inner A' })])
+        )
+      );
+      return (
+        <Dashboard
+          layout={inner}
+          components={components}
+          editMode
+          onChange={(next, transform) =>
+            setInner(prev => ({
+              initial: next.initial,
+              transforms: [...prev.transforms, transform],
+            }))
+          }
+        />
+      );
+    }
+    const registry: PanelRegistry = {
+      ...components,
+      host: { component: InnerHost as never },
+    };
+    const outer = createLayoutState(
+      stack('outer', [
+        { type: 'panel', id: 'p1', component: 'host', title: 'Dashboard 1' },
+      ])
+    );
+
+    const { container } = render(
+      <MaximizeProvider>
+        <MaximizeBreadcrumb />
+        <Harness initial={outer} editMode registry={registry} />
+      </MaximizeProvider>
+    );
+
+    // Maximize the outer "Dashboard 1" panel.
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /Dashboard 1/ }));
+    let nav = container.querySelector('.dh-layout-breadcrumb') as HTMLElement;
+    expect(within(nav).getByText('Dashboard 1')).toBeInTheDocument();
+    expect(within(nav).queryByText('Inner A')).not.toBeInTheDocument();
+
+    // Now maximize the inner "Inner A" panel; the breadcrumb should extend.
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /Inner A/ }));
+    nav = container.querySelector('.dh-layout-breadcrumb') as HTMLElement;
+    expect(within(nav).getByText('Dashboard 1')).toBeInTheDocument();
+    expect(within(nav).getByText('Inner A')).toBeInTheDocument();
   });
 });
