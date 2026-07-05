@@ -198,21 +198,41 @@ export default function Dashboard({
   const maximizedTitle =
     maximizedPanel != null ? maximizedPanel.title ?? maximizedPanel.id : null;
 
-  const toggleMaximize = useCallback(
-    (panelId: NodeId) => {
-      dispatch({
-        kind: 'setMaximized',
-        panelId: maximizedId === panelId ? null : panelId,
-      });
-    },
-    [dispatch, maximizedId]
-  );
-
-  // Maximize/zoom breadcrumb wiring. `branchActive`/`depth` come from the
-  // enclosing panel's content context (null for the outermost dashboard).
+  // `branch` describes how this dashboard is hosted in its parent (null for the
+  // outermost). `branchActive`/`depth` drive the breadcrumb; `requestMaximize`/
+  // `requestRestore` let a maximize bubble up so a nested dashboard fills the
+  // whole layout rather than just its own panel.
   const branch = useContext(PanelBranchContext);
   const branchActive = branch?.activeBranch ?? true;
   const depth = branch?.depth ?? 0;
+
+  const setMaximized = useCallback(
+    (panelId: NodeId | null) => {
+      dispatch({ kind: 'setMaximized', panelId });
+    },
+    [dispatch]
+  );
+
+  const toggleMaximize = useCallback(
+    (panelId: NodeId) => {
+      const willMaximize = maximizedId !== panelId;
+      dispatch({
+        kind: 'setMaximized',
+        panelId: willMaximize ? panelId : null,
+      });
+      // Maximize (or restore) this dashboard's host all the way up the parent
+      // chain, so a nested dashboard becomes the maximized view for the whole
+      // layout with the full breadcrumb trail.
+      if (willMaximize) {
+        branch?.requestMaximize();
+      } else {
+        branch?.requestRestore();
+      }
+    },
+    [dispatch, maximizedId, branch]
+  );
+
+  // Maximize/zoom breadcrumb wiring.
   const maximizeActions = useMaximizeActions();
   const instanceId = useId();
 
@@ -317,6 +337,7 @@ export default function Dashboard({
       getPanelHost,
       maximizedId,
       toggleMaximize,
+      setMaximized,
       branchActive,
       depth,
     }),
@@ -329,6 +350,7 @@ export default function Dashboard({
       getPanelHost,
       maximizedId,
       toggleMaximize,
+      setMaximized,
       branchActive,
       depth,
     ]

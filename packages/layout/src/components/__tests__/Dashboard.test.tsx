@@ -376,4 +376,59 @@ describe('maximize breadcrumb', () => {
     expect(within(nav).getByText('Dashboard 1')).toBeInTheDocument();
     expect(within(nav).getByText('Inner A')).toBeInTheDocument();
   });
+
+  it('bubbles a nested maximize up so the whole chain maximizes', () => {
+    function InnerHost(): JSX.Element {
+      const [inner, setInner] = useState(() =>
+        createLayoutState(
+          stack('inner', [panel('inner-1', { title: 'Inner A' })])
+        )
+      );
+      return (
+        <Dashboard
+          layout={inner}
+          components={components}
+          editMode
+          onChange={(next, transform) =>
+            setInner(prev => ({
+              initial: next.initial,
+              transforms: [...prev.transforms, transform],
+            }))
+          }
+        />
+      );
+    }
+    const registry: PanelRegistry = {
+      ...components,
+      host: { component: InnerHost as never },
+    };
+    const outer = createLayoutState(
+      stack('outer', [
+        { type: 'panel', id: 'p1', component: 'host', title: 'Dashboard 1' },
+      ])
+    );
+
+    const { container } = render(
+      <MaximizeProvider>
+        <MaximizeBreadcrumb />
+        <Harness initial={outer} editMode registry={registry} />
+      </MaximizeProvider>
+    );
+
+    // Maximize the inner panel directly, without maximizing the outer first.
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /Inner A/ }));
+
+    // Both dashboards should now show a maximize overlay (outer host + inner
+    // panel), and the breadcrumb shows the full parent trail.
+    const overlays = container.querySelectorAll('.dh-layout-maximized');
+    expect(overlays).toHaveLength(2);
+    const nav = container.querySelector('.dh-layout-breadcrumb') as HTMLElement;
+    expect(within(nav).getByText('Dashboard 1')).toBeInTheDocument();
+    expect(within(nav).getByText('Inner A')).toBeInTheDocument();
+
+    // Toggling the same tab off restores the whole chain.
+    fireEvent.doubleClick(screen.getByRole('tab', { name: /Inner A/ }));
+    expect(container.querySelectorAll('.dh-layout-maximized')).toHaveLength(0);
+    expect(container.querySelector('.dh-layout-breadcrumb')).toBeNull();
+  });
 });

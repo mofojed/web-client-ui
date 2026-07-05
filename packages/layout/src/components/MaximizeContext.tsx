@@ -25,6 +25,14 @@ export interface PanelBranch {
   activeBranch: boolean;
   /** Nesting depth of the dashboard rendered in this panel's content. */
   depth: number;
+  /**
+   * Ask the parent chain to maximize this panel's host all the way up, so the
+   * dashboard rendered in this panel's content fills the whole layout. Called
+   * by a nested dashboard when one of its own panels is maximized.
+   */
+  requestMaximize: () => void;
+  /** Inverse of {@link requestMaximize}: restore this panel's host chain. */
+  requestRestore: () => void;
 }
 
 export const PanelBranchContext = createContext<PanelBranch | null>(null);

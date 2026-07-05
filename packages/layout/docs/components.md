@@ -141,9 +141,14 @@ assembled at runtime rather than from a single state blob:
   _rendering_ works without the provider — it only gates the breadcrumb and the
   "add to the maximized dashboard" routing.
 - `PanelBranchContext` is provided around each panel's content with
-  `{ activeBranch, depth }`. A dashboard is on the active branch when its host
-  panel is the maximized panel of an already-active parent, so only the visible
-  maximized chain contributes crumbs.
+  `{ activeBranch, depth, requestMaximize, requestRestore }`. A dashboard is on
+  the active branch when its host panel is the maximized panel of an
+  already-active parent, so only the visible maximized chain contributes crumbs.
+  `requestMaximize`/`requestRestore` let a nested dashboard bubble a maximize
+  **up the whole ancestor chain**: double-clicking a tab inside a nested
+  dashboard maximizes that panel _and_ every host panel above it, so the nested
+  dashboard fills the whole layout with the full breadcrumb trail (toggling the
+  tab off restores the chain).
 - `useMaximizeChain()` returns `{ segments, zoomTo, addToActiveDashboard }`.
   `zoomTo(index)` clears every maximized dashboard deeper than `index` (`-1` =
   Home clears all); `addToActiveDashboard` dispatches an `addPanel` on the

@@ -69,6 +69,8 @@ export interface LayoutContextValue {
   maximizedId: NodeId | null;
   /** Maximize the panel if not already maximized, otherwise restore it. */
   toggleMaximize: (panelId: NodeId) => void;
+  /** Set (or clear, with null) the maximized panel of this dashboard. */
+  setMaximized: (panelId: NodeId | null) => void;
   /**
    * Whether this dashboard sits on the active maximized branch (true for the
    * outermost dashboard; for a nested one, true only when its host panel is

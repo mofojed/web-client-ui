@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { PanelNode } from '../types';
 import { useLayoutContext } from './LayoutContext';
@@ -26,9 +26,20 @@ export default function PanelContentMount({
   isActive,
   host,
 }: PanelContentMountProps): JSX.Element | null {
-  const { components, editMode, dispatch, maximizedId, branchActive, depth } =
-    useLayoutContext();
+  const {
+    components,
+    editMode,
+    dispatch,
+    maximizedId,
+    branchActive,
+    depth,
+    setMaximized,
+  } = useLayoutContext();
   const definition = components[panel.component];
+
+  // How the dashboard that owns this panel is itself hosted in its parent
+  // (null for the outermost). Used to bubble a maximize up the whole chain.
+  const parentBranch = useContext(PanelBranchContext);
 
   const setState = useCallback(
     (state: unknown) => {
@@ -44,8 +55,18 @@ export default function PanelContentMount({
     () => ({
       activeBranch: branchActive && panel.id === maximizedId,
       depth: depth + 1,
+      // Maximize this panel in its dashboard, then bubble up so every ancestor
+      // host is maximized too and the nested dashboard fills the whole layout.
+      requestMaximize: () => {
+        setMaximized(panel.id);
+        parentBranch?.requestMaximize();
+      },
+      requestRestore: () => {
+        setMaximized(null);
+        parentBranch?.requestRestore();
+      },
     }),
-    [branchActive, panel.id, maximizedId, depth]
+    [branchActive, panel.id, maximizedId, depth, setMaximized, parentBranch]
   );
 
   if (definition == null) return null;
