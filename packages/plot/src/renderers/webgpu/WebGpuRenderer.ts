@@ -20,7 +20,11 @@ import type {
   PlotRendererFactory,
 } from '../PlotRenderer';
 import { applyDeltaToSeriesData } from '../applyDeltaToSeriesData';
-import { getSharedWebGpu, type SharedWebGpu } from './sharedWebGpu';
+import {
+  getSharedWebGpu,
+  requestAdapter,
+  type SharedWebGpu,
+} from './sharedWebGpu';
 
 const CAPABILITIES: PlotRendererCapabilities = {
   seriesTypes: ['scatter', 'line'],
@@ -375,13 +379,7 @@ export class WebGpuRenderer implements PlotRenderer {
 export const webGpuRendererFactory: PlotRendererFactory = {
   name: 'webgpu',
   capabilities: CAPABILITIES,
-  isSupported: async () => {
-    if (typeof navigator === 'undefined' || navigator.gpu == null) {
-      return false;
-    }
-    const adapter = await navigator.gpu.requestAdapter();
-    return adapter != null;
-  },
+  isSupported: async () => (await requestAdapter()) != null,
   create: () => new WebGpuRenderer(),
 };
 

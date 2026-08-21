@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   defaultPlotTheme,
+  defaultRendererRegistry,
   Plot,
   StreamingDataSource,
   type PlotDataSource,
@@ -36,6 +37,24 @@ export function App(): JSX.Element {
   const [isStreaming, setIsStreaming] = useState(false);
   const [fullFidelity, setFullFidelity] = useState(false);
   const [firstFrameMs, setFirstFrameMs] = useState<number | null>(null);
+  const [isWebGpuSupported, setIsWebGpuSupported] = useState<boolean | null>(
+    null
+  );
+
+  useEffect(function probeWebGpu() {
+    let cancelled = false;
+    defaultRendererRegistry
+      .isSupported('webgpu')
+      .then(supported => {
+        if (!cancelled) {
+          setIsWebGpuSupported(supported);
+        }
+      })
+      .catch(() => setIsWebGpuSupported(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const example = getExample(exampleId);
   const plotCount = example.plotCount ?? 1;
@@ -153,7 +172,11 @@ export function App(): JSX.Element {
           }
         >
           <option value="auto">Auto (WebGPU, then Canvas)</option>
-          <option value="webgpu">WebGPU only</option>
+          <option value="webgpu" data-testid="renderer-option-webgpu">
+            {isWebGpuSupported === false
+              ? 'WebGPU only (unavailable here)'
+              : 'WebGPU only'}
+          </option>
           <option value="canvas">Canvas only</option>
         </select>
 

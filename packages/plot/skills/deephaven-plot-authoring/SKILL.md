@@ -126,6 +126,12 @@ See `packages/plot/docs/data-sources.md` for the full contract.
   `PlotRenderer` for `PlotView` tests, and stub
   `HTMLElement.prototype.getBoundingClientRect` since jsdom reports zero size.
 - **E2E** (`tests/plot-demo.spec.ts`) — wait on
-  `[data-dh-plot-status=ready]` rather than a timeout. Assert that something was
-  drawn with the `drawImage` readback helper, which works for both the 2D and
-  WebGPU canvases. Guard WebGPU tests with `test.skip` on adapter availability.
+  `[data-dh-plot-status=ready]` rather than a timeout, then poll for pixels;
+  ready means the data loaded, and the paint lands a frame later. Assert that
+  something was drawn with `expectDrawn` from `tests/plot-demo.utils.ts`, which
+  measures a Playwright element screenshot. Do **not** read a WebGPU canvas with
+  `toDataURL`, `drawImage`, or `createImageBitmap`: Chromium returns a blank
+  image once several WebGPU canvases are live.
+- **WebGPU e2e** (`tests/plot-demo-webgpu.spec.ts`) — runs only in the
+  `chromium-webgpu` project, which forces WebGPU on over SwiftShader so the
+  tests fail rather than skip. Put anything renderer specific there.

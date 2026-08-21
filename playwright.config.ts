@@ -11,6 +11,9 @@ const TIMEOUT_MS = 120 * 1000;
 const TIMEOUT_ACTION_MS = 15 * 1000;
 const TIMEOUT_EXPECT_MS = 15 * 1000;
 
+/** Only run in the project that launches a browser with WebGPU enabled. */
+const WEBGPU_TESTS = /.*-webgpu\.spec\.ts/;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -66,6 +69,7 @@ const config: PlaywrightTestConfig = {
   projects: [
     {
       name: 'chromium',
+      testIgnore: WEBGPU_TESTS,
       use: {
         ...devices['Desktop Chrome'],
       },
@@ -73,6 +77,7 @@ const config: PlaywrightTestConfig = {
 
     {
       name: 'firefox',
+      testIgnore: WEBGPU_TESTS,
       use: {
         ...devices['Desktop Firefox'],
         // https://playwright.dev/docs/test-use-options#more-browser-and-context-options
@@ -104,8 +109,32 @@ const config: PlaywrightTestConfig = {
 
     {
       name: 'webkit',
+      testIgnore: WEBGPU_TESTS,
       use: {
         ...devices['Desktop Safari'],
+      },
+    },
+
+    /**
+     * WebGPU is off by default in headless browsers, so it gets its own project
+     * with it forced on over SwiftShader. Software rendering is slow, hence the
+     * longer timeout.
+     */
+    {
+      name: 'chromium-webgpu',
+      testMatch: WEBGPU_TESTS,
+      timeout: TIMEOUT_MS * 2,
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--enable-unsafe-webgpu',
+            '--enable-features=Vulkan',
+            '--use-angle=swiftshader',
+            '--use-gl=angle',
+            '--enable-gpu',
+          ],
+        },
       },
     },
   ],

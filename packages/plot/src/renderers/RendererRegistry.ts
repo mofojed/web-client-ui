@@ -93,6 +93,38 @@ export class RendererRegistry {
     }
     return undefined;
   }
+
+  /**
+   * Explains, in preference order, why each candidate was rejected.
+   *
+   * Only meaningful after {@link resolve} returned undefined. Support results
+   * are cached, so this does not re-probe.
+   */
+  async describeUnavailable({
+    preference,
+    seriesTypes = [],
+  }: RendererResolveOptions = {}): Promise<string> {
+    const names = preference ?? this.getNames();
+    if (names.length === 0) {
+      return 'no renderers are registered';
+    }
+    const reasons = await Promise.all(
+      names.map(async name => {
+        const factory = this.factories.get(name);
+        if (factory == null) {
+          return `${name} is not registered`;
+        }
+        const missing = seriesTypes.filter(
+          type => !factory.capabilities.seriesTypes.includes(type)
+        );
+        if (missing.length > 0) {
+          return `${name} cannot draw ${missing.join(', ')}`;
+        }
+        return `${name} is not available in this browser`;
+      })
+    );
+    return reasons.join('; ');
+  }
 }
 
 export default RendererRegistry;

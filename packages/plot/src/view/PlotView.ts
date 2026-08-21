@@ -88,10 +88,7 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
 
   private dirty = false;
 
-  private isRequestScheduled = false;
-
-  /** Set when data has loaded but the frame showing it has not been drawn yet. */
-  private isReadyPending = false;
+  private requestTimeout: ReturnType<typeof setTimeout> | undefined;
 
   /** True once the user has zoomed or panned, which stops viewport following. */
   private isViewportPinned = false;
@@ -169,11 +166,11 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       return;
     }
     if (factory == null) {
-      throw new Error(
-        `No registered renderer supports series types: ${seriesTypes.join(
-          ', '
-        )}`
-      );
+      const reason = await this.registry.describeUnavailable({
+        preference: this.options.rendererPreference,
+        seriesTypes,
+      });
+      throw new Error(`No renderer could be used for this plot: ${reason}`);
     }
 
     const renderer = factory.create();
@@ -333,26 +330,26 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
   }
 
   /**
-   * Queues a data request for the next animation frame.
+   * Queues a data request.
    *
-   * A ticking source can fire several times between frames, and each request
-   * supersedes the last anyway, so there is no point issuing more than one.
+   * A ticking source can fire several times in a turn, and each request
+   * supersedes the last anyway, so they collapse into one. This deliberately
+   * does not use `requestAnimationFrame`: that never fires in a hidden tab, and
+   * a plot should still have its data ready when the tab is brought forward.
    */
   private scheduleDataRequest(): void {
-    this.isRequestScheduled = true;
-    this.invalidate();
+    if (this.requestTimeout != null || this.isDestroyed) {
+      return;
+    }
+    this.requestTimeout = setTimeout(() => {
+      this.requestTimeout = undefined;
+      this.requestData();
+    }, 0);
   }
 
   private renderFrame(): void {
     this.frame = undefined;
-    if (this.isDestroyed) {
-      return;
-    }
-    if (this.isRequestScheduled) {
-      this.isRequestScheduled = false;
-      this.requestData();
-    }
-    if (!this.dirty) {
+    if (!this.dirty || this.isDestroyed) {
       return;
     }
     this.dirty = false;
@@ -366,11 +363,6 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     );
     this.renderer?.render();
     this.emit('frame', {});
-
-    if (this.isReadyPending && this.pendingRequests === 0) {
-      this.isReadyPending = false;
-      this.container.setAttribute('data-dh-plot-status', 'ready');
-    }
   }
 
   /**
@@ -422,9 +414,7 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       .finally(() => {
         this.pendingRequests -= 1;
         if (this.pendingRequests === 0 && !this.isDestroyed) {
-          // Report ready only once the data is actually on screen
-          this.isReadyPending = true;
-          this.invalidate();
+          this.container.setAttribute('data-dh-plot-status', 'ready');
           this.emit('idle', {});
         }
       });
@@ -521,6 +511,10 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
   destroy(): void {
     this.isDestroyed = true;
     this.abortController?.abort();
+    if (this.requestTimeout != null) {
+      clearTimeout(this.requestTimeout);
+      this.requestTimeout = undefined;
+    }
     this.resizeObserver?.disconnect();
     this.removeInteractionListeners();
     this.source.removeEventListener('shapechanged', this.handleShapeChanged);

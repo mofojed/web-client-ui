@@ -108,3 +108,31 @@ it('lists and removes renderers', () => {
   expect(registry.getNames()).toEqual(['canvas']);
   expect(registry.get('webgpu')).toBeUndefined();
 });
+
+describe('describeUnavailable', () => {
+  it('distinguishes an unsupported renderer from an incapable one', async () => {
+    registry.register(makeFactory('webgpu', { supported: false }));
+    registry.register(makeFactory('lines-only', { seriesTypes: ['line'] }));
+
+    expect(
+      await registry.describeUnavailable({
+        preference: ['webgpu', 'lines-only'],
+        seriesTypes: ['scatter'],
+      })
+    ).toBe(
+      'webgpu is not available in this browser; lines-only cannot draw scatter'
+    );
+  });
+
+  it('reports renderers that were never registered', async () => {
+    expect(await registry.describeUnavailable({ preference: ['svg'] })).toBe(
+      'svg is not registered'
+    );
+  });
+
+  it('reports an empty registry', async () => {
+    expect(await registry.describeUnavailable()).toBe(
+      'no renderers are registered'
+    );
+  });
+});

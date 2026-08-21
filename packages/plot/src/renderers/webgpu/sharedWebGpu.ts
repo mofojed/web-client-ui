@@ -71,10 +71,30 @@ function createPipelines(
   };
 }
 
+/**
+ * Requests an adapter, falling back to a software one.
+ *
+ * Plenty of otherwise capable browsers return null for the default adapter,
+ * usually because the GPU is blocklisted or the browser was started without GPU
+ * access. A software adapter still beats having no WebGPU at all.
+ */
+export async function requestAdapter(): Promise<GPUAdapter | null> {
+  if (typeof navigator === 'undefined' || navigator.gpu == null) {
+    return null;
+  }
+  const adapter = await navigator.gpu.requestAdapter();
+  if (adapter != null) {
+    return adapter;
+  }
+  return navigator.gpu.requestAdapter({ forceFallbackAdapter: true });
+}
+
 async function createShared(): Promise<SharedWebGpu> {
-  const adapter = await navigator.gpu?.requestAdapter();
+  const adapter = await requestAdapter();
   if (adapter == null) {
-    throw new Error('No WebGPU adapter available');
+    throw new Error(
+      'WebGPU is not available: the browser returned no GPU adapter'
+    );
   }
   const device = await adapter.requestDevice();
   const format = navigator.gpu.getPreferredCanvasFormat();

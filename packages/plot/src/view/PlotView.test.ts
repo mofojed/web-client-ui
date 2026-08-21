@@ -72,10 +72,10 @@ function waitForIdle(view: PlotView): Promise<void> {
   });
 }
 
-/** Data requests are coalesced onto an animation frame, so tests have to wait one out. */
+/** Data requests are coalesced onto a timer, so tests have to let it run. */
 function nextFrame(): Promise<void> {
   return new Promise(resolve => {
-    requestAnimationFrame(() => resolve());
+    setTimeout(resolve, 0);
   });
 }
 
@@ -106,10 +106,6 @@ it('resolves a renderer and marks it on the container', async () => {
 
   expect(view.getRendererName()).toBe('mock');
   expect(container.getAttribute('data-dh-plot-renderer')).toBe('mock');
-
-  // Ready is only reported once the loaded data has actually been drawn
-  expect(container.getAttribute('data-dh-plot-status')).toBe('loading');
-  await nextFrame();
   expect(container.getAttribute('data-dh-plot-status')).toBe('ready');
   view.destroy();
 });
@@ -146,7 +142,29 @@ it('fails when no registered renderer supports the series types', async () => {
 
   const view = new PlotView(container, makeSource(), { registry });
   await expect(view.initialize()).rejects.toThrow(
-    'No registered renderer supports series types: line'
+    'No renderer could be used for this plot: scatter-only cannot draw line'
+  );
+  view.destroy();
+});
+
+it('says a renderer is unavailable rather than blaming the series type', async () => {
+  const registry = new RendererRegistry();
+  registry.register({
+    name: 'webgpu',
+    capabilities: {
+      seriesTypes: ['scatter', 'line'],
+      incrementalUpdates: true,
+    },
+    isSupported: async () => false,
+    create: () => makeRenderer(),
+  });
+
+  const view = new PlotView(container, makeSource(), {
+    registry,
+    rendererPreference: ['webgpu'],
+  });
+  await expect(view.initialize()).rejects.toThrow(
+    'No renderer could be used for this plot: webgpu is not available in this browser'
   );
   view.destroy();
 });

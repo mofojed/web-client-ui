@@ -1,4 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  DATA_CANVAS,
+  expectDrawn,
+  expectReady,
+  INK_GRID_CELL,
+  PLOT,
+} from './plot-demo.utils';
 
 /**
  * The plot demo runs on its own server and needs no Deephaven backend, so these
@@ -6,45 +13,6 @@ import { expect, test, type Page } from '@playwright/test';
  */
 const PLOT_DEMO_URL =
   process.env.PLOT_DEMO_URL ?? 'http://localhost:4020/plot/';
-
-const PLOT = '.plot-demo-plot';
-const DATA_CANVAS = `${PLOT} canvas[data-dh-plot-layer=data]`;
-
-/** Waits until exactly `count` plots have finished their outstanding data requests. */
-async function expectReady(page: Page, count = 1): Promise<void> {
-  await expect(
-    page.locator(`${PLOT}[data-dh-plot-status="ready"]`)
-  ).toHaveCount(count);
-}
-
-/**
- * Fraction of the data canvas that has been drawn to.
- *
- * Both renderers clear the data layer to transparent, so any non-transparent
- * pixel is series data. `drawImage` reads back a WebGPU canvas as well as a 2D
- * one, which keeps this check renderer agnostic.
- */
-async function getDrawnFraction(page: Page): Promise<number> {
-  return page.evaluate(selector => {
-    const canvas = document.querySelector(selector) as HTMLCanvasElement;
-    const scratch = document.createElement('canvas');
-    scratch.width = canvas.width;
-    scratch.height = canvas.height;
-    const context = scratch.getContext('2d');
-    if (context == null) {
-      return 0;
-    }
-    context.drawImage(canvas, 0, 0);
-    const { data } = context.getImageData(0, 0, scratch.width, scratch.height);
-    let drawn = 0;
-    for (let i = 3; i < data.length; i += 4) {
-      if (data[i] > 0) {
-        drawn += 1;
-      }
-    }
-    return drawn / (data.length / 4);
-  }, DATA_CANVAS);
-}
 
 async function hoverPlotCenter(page: Page): Promise<void> {
   const box = await page.locator(DATA_CANVAS).boundingBox();
@@ -92,7 +60,7 @@ test('renders 64 plots at once', async ({ page }) => {
   await expect(page.getByTestId('plot-stats')).toContainText('64 plots');
   await expect(page.getByTestId('plot-stats')).not.toContainText('measuring');
   await expect(page.getByTestId('plot-error')).toHaveCount(0);
-  expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
+  await expectDrawn(page, INK_GRID_CELL);
 });
 
 test('ticks all 64 plots at once', async ({ page }) => {
@@ -129,7 +97,7 @@ EXAMPLES.forEach(example => {
     await expectReady(page);
 
     await expect(page.getByTestId('plot-error')).toHaveCount(0);
-    expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
+    await expectDrawn(page);
   });
 });
 
@@ -146,7 +114,7 @@ test('zooming redraws with data for the new viewport', async ({ page }) => {
   await expectReady(page);
 
   expect((await canvas.screenshot()).equals(before)).toBe(false);
-  expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
+  await expectDrawn(page);
 });
 
 test('double click resets the viewport', async ({ page }) => {
@@ -182,19 +150,5 @@ test('streaming appends points over time', async ({ page }) => {
   await page.getByTestId('toggle-streaming').click();
 });
 
-test('renders with WebGPU when the browser supports it', async ({ page }) => {
-  const hasWebGpu = await page.evaluate(async () => {
-    if (navigator.gpu == null) {
-      return false;
-    }
-    return (await navigator.gpu.requestAdapter()) != null;
-  });
-  test.skip(!hasWebGpu, 'WebGPU is not available in this browser');
-
-  await page.getByTestId('renderer-select').selectOption('webgpu');
-  await expect(page.getByTestId('active-renderer')).toHaveText('webgpu');
-  await expectReady(page);
-
-  await expect(page.getByTestId('plot-error')).toHaveCount(0);
-  expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
-});
+// WebGPU coverage lives in plot-demo-webgpu.spec.ts, which runs in a browser
+// launched with WebGPU enabled rather than skipping when it is unavailable.

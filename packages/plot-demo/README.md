@@ -62,6 +62,29 @@ npm run start:plot-demo
 npx playwright test tests/plot-demo.spec.ts
 ```
 
-WebGPU is unavailable in stock headless browsers, so those tests exercise the
-Canvas renderer and skip the WebGPU case. To exercise WebGPU locally, launch
-Chromium with `--enable-unsafe-webgpu --use-angle=swiftshader`.
+Those tests are renderer agnostic and run against the canvas renderer, because
+stock headless browsers have no WebGPU adapter. WebGPU has its own suite in
+[tests/plot-demo-webgpu.spec.ts](../../tests/plot-demo-webgpu.spec.ts), which
+only runs in the `chromium-webgpu` Playwright project. That project launches
+Chromium with WebGPU forced on over SwiftShader, so the tests fail rather than
+skip if WebGPU stops working:
+
+```bash
+npx playwright test --project=chromium-webgpu
+```
+
+## WebGPU says it is unavailable
+
+If the renderer dropdown shows **WebGPU only (unavailable here)**, the browser
+returned no GPU adapter. That is a browser or driver limitation, not a plot
+problem, and the plot falls back to canvas. Common causes:
+
+- Firefox ships WebGPU on Windows only; elsewhere it needs
+  `dom.webgpu.enabled` in `about:config`.
+- Chrome on Linux often blocklists the GPU. `chrome://gpu` says why, and
+  `--enable-unsafe-webgpu --use-angle=swiftshader` forces a software adapter.
+- Embedded browsers such as the VS Code Simple Browser generally have no
+  adapter at all.
+
+Check it directly with `await navigator.gpu.requestAdapter()` in the console; a
+`null` result means no adapter is available.
