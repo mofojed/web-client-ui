@@ -10,11 +10,11 @@ const PLOT_DEMO_URL =
 const PLOT = '.plot-demo-plot';
 const DATA_CANVAS = `${PLOT} canvas[data-dh-plot-layer=data]`;
 
-async function expectReady(page: Page): Promise<void> {
-  await expect(page.locator(PLOT)).toHaveAttribute(
-    'data-dh-plot-status',
-    'ready'
-  );
+/** Waits until exactly `count` plots have finished their outstanding data requests. */
+async function expectReady(page: Page, count = 1): Promise<void> {
+  await expect(
+    page.locator(`${PLOT}[data-dh-plot-status="ready"]`)
+  ).toHaveCount(count);
 }
 
 /**
@@ -80,6 +80,19 @@ test('honours a canvas only renderer preference', async ({ page }) => {
     'data-dh-plot-renderer',
     'canvas'
   );
+});
+
+test('renders 64 plots at once', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('canvas');
+  await page.getByTestId('example-many').click();
+
+  // Every plot gets its own pair of canvases and all of them must resolve
+  await expectReady(page, 64);
+  await expect(page.locator(DATA_CANVAS)).toHaveCount(64);
+  await expect(page.getByTestId('plot-stats')).toContainText('64 plots');
+  await expect(page.getByTestId('plot-stats')).not.toContainText('measuring');
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+  expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
 });
 
 const EXAMPLES = ['scatter', 'line', 'mixed', 'downsample', 'streaming'];

@@ -1,5 +1,4 @@
 /// <reference types="@webgpu/types" />
-import Log from '@deephaven/log';
 import {
   copySeriesData,
   createSeriesData,
@@ -21,9 +20,7 @@ import type {
   PlotRendererFactory,
 } from '../PlotRenderer';
 import { applyDeltaToSeriesData } from '../applyDeltaToSeriesData';
-import { LINE_SHADER, SCATTER_SHADER } from './shaders';
-
-const log = Log.module('WebGpuRenderer');
+import { getSharedWebGpu, type SharedWebGpu } from './sharedWebGpu';
 
 const CAPABILITIES: PlotRendererCapabilities = {
   seriesTypes: ['scatter', 'line'],
@@ -66,23 +63,18 @@ function nextCapacity(required: number): number {
  * that buffer at the relevant offset, so appending to a streaming series costs
  * one `writeBuffer` of just the new points rather than a full re-upload. Pan
  * and zoom only change a uniform, so no point data moves at all.
+ *
+ * The device and pipelines come from {@link getSharedWebGpu}, so a page can
+ * hold many plots without running into the context limits that cap WebGL.
  */
 export class WebGpuRenderer implements PlotRenderer {
   readonly name = 'webgpu';
 
   readonly capabilities = CAPABILITIES;
 
-  private device: GPUDevice | null = null;
+  private shared: SharedWebGpu | null = null;
 
   private context: GPUCanvasContext | null = null;
-
-  private format: GPUTextureFormat = 'bgra8unorm';
-
-  private bindGroupLayout: GPUBindGroupLayout | null = null;
-
-  private scatterPipeline: GPURenderPipeline | null = null;
-
-  private linePipeline: GPURenderPipeline | null = null;
 
   private theme: PlotTheme = defaultPlotTheme;
 
@@ -103,103 +95,30 @@ export class WebGpuRenderer implements PlotRenderer {
   async initialize(canvas: HTMLCanvasElement, theme: PlotTheme): Promise<void> {
     this.theme = theme;
 
-    const adapter = await navigator.gpu?.requestAdapter();
-    if (adapter == null) {
-      throw new Error('No WebGPU adapter available');
-    }
-    const device = await adapter.requestDevice();
+    const shared = await getSharedWebGpu();
     const context = canvas.getContext('webgpu');
     if (context == null) {
       throw new Error('Unable to acquire a webgpu canvas context');
     }
 
-    this.device = device;
+    this.shared = shared;
     this.context = context;
-    this.format = navigator.gpu.getPreferredCanvasFormat();
     context.configure({
-      device,
-      format: this.format,
+      device: shared.device,
+      format: shared.format,
       alphaMode: 'premultiplied',
     });
-
-    device.lost
-      .then(info => {
-        log.warn('WebGPU device lost', info.reason, info.message);
-        this.device = null;
-      })
-      .catch(error => log.error('Error waiting on device loss', error));
-
-    // Validation errors are asynchronous, so without this they vanish silently
-    device.addEventListener('uncapturederror', event => {
-      log.error(
-        'WebGPU error',
-        (event as GPUUncapturedErrorEvent).error.message
-      );
-    });
-
-    this.createPipelines(device);
-  }
-
-  private createPipelines(device: GPUDevice): void {
-    const bindGroupLayout = device.createBindGroupLayout({
-      entries: [
-        {
-          binding: 0,
-          visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, // eslint-disable-line no-bitwise
-          buffer: { type: 'uniform' },
-        },
-        {
-          binding: 1,
-          visibility: GPUShaderStage.VERTEX,
-          buffer: { type: 'read-only-storage' },
-        },
-      ],
-    });
-    const layout = device.createPipelineLayout({
-      bindGroupLayouts: [bindGroupLayout],
-    });
-
-    const blend: GPUBlendState = {
-      // Fragment shaders output premultiplied alpha
-      color: {
-        srcFactor: 'one',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-      },
-      alpha: {
-        srcFactor: 'one',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-      },
-    };
-
-    const createPipeline = (code: string): GPURenderPipeline => {
-      const shaderModule = device.createShaderModule({ code });
-      return device.createRenderPipeline({
-        layout,
-        vertex: { module: shaderModule, entryPoint: 'vertexMain' },
-        fragment: {
-          module: shaderModule,
-          entryPoint: 'fragmentMain',
-          targets: [{ format: this.format, blend }],
-        },
-        primitive: { topology: 'triangle-strip' },
-      });
-    };
-
-    this.bindGroupLayout = bindGroupLayout;
-    this.scatterPipeline = createPipeline(SCATTER_SHADER);
-    this.linePipeline = createPipeline(LINE_SHADER);
   }
 
   private createResources(
     seriesId: string,
     capacity: number
   ): SeriesResources | undefined {
-    const { device, bindGroupLayout } = this;
-    if (device == null || bindGroupLayout == null) {
+    const { shared } = this;
+    if (shared == null) {
       return undefined;
     }
+    const { device, bindGroupLayout } = shared;
     const buffer = device.createBuffer({
       label: `plot-points-${seriesId}`,
       size: capacity * BYTES_PER_POINT,
@@ -246,7 +165,7 @@ export class WebGpuRenderer implements PlotRenderer {
     offset: number,
     count: number
   ): void {
-    const { device } = this;
+    const device = this.shared?.device;
     if (device == null || count <= 0) {
       return;
     }
@@ -272,10 +191,11 @@ export class WebGpuRenderer implements PlotRenderer {
     resources: SeriesResources,
     required: number
   ): boolean {
-    const { device } = this;
-    if (device == null || required <= resources.capacity) {
+    const { shared } = this;
+    if (shared == null || required <= resources.capacity) {
       return false;
     }
+    const { device } = shared;
     const capacity = nextCapacity(required);
     resources.buffer.destroy();
     const buffer = device.createBuffer({
@@ -286,7 +206,7 @@ export class WebGpuRenderer implements PlotRenderer {
     resources.capacity = capacity;
     resources.uploadedLength = 0;
     resources.bindGroup = device.createBindGroup({
-      layout: this.bindGroupLayout as GPUBindGroupLayout,
+      layout: shared.bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: resources.uniformBuffer } },
         { binding: 1, resource: { buffer } },
@@ -375,7 +295,7 @@ export class WebGpuRenderer implements PlotRenderer {
     color: string,
     size: number
   ): void {
-    const device = this.device as GPUDevice;
+    const { device } = this.shared as SharedWebGpu;
     const values = this.uniformValues;
     const [red, green, blue, alpha] = parseColor(color);
     values[0] = this.viewport.xMin - resources.origin.x;
@@ -394,15 +314,11 @@ export class WebGpuRenderer implements PlotRenderer {
   }
 
   render(): void {
-    const { context, device, scatterPipeline, linePipeline, theme } = this;
-    if (
-      context == null ||
-      device == null ||
-      scatterPipeline == null ||
-      linePipeline == null
-    ) {
+    const { context, shared, theme } = this;
+    if (context == null || shared == null) {
       return;
     }
+    const { device, scatterPipeline, linePipeline } = shared;
 
     const encoder = device.createCommandEncoder();
     const pass = encoder.beginRenderPass({
@@ -449,9 +365,10 @@ export class WebGpuRenderer implements PlotRenderer {
     });
     this.resources.clear();
     this.descriptors = [];
+    // The device is shared with every other plot, so only this canvas is released
+    this.context?.unconfigure();
     this.context = null;
-    this.device?.destroy();
-    this.device = null;
+    this.shared = null;
   }
 }
 

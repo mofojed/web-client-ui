@@ -12,6 +12,10 @@ export interface PlotArea {
 const LEGEND_SWATCH_SIZE = 8;
 const LEGEND_GAP = 16;
 
+function clampTickCount(value: number): number {
+  return Math.max(2, Math.min(10, Math.round(value)));
+}
+
 /**
  * Draws everything that is not series data: background, gridlines, axis ticks,
  * labels, and the legend.
@@ -58,8 +62,17 @@ export class AxisPainter {
     context.font = `${theme.fontSize}px ${theme.fontFamily}`;
     context.textBaseline = 'middle';
 
-    const xTicks = generateTicks(viewport.xMin, viewport.xMax, 8);
-    const yTicks = generateTicks(viewport.yMin, viewport.yMax, 6);
+    // Tick density follows the plot area so labels do not collide when small
+    const xTicks = generateTicks(
+      viewport.xMin,
+      viewport.xMax,
+      clampTickCount(area.width / 90)
+    );
+    const yTicks = generateTicks(
+      viewport.yMin,
+      viewport.yMax,
+      clampTickCount(area.height / 45)
+    );
     const xStep = xTicks.length > 1 ? xTicks[1] - xTicks[0] : 1;
     const yStep = yTicks.length > 1 ? yTicks[1] - yTicks[0] : 1;
     const xSpan = viewport.xMax - viewport.xMin;

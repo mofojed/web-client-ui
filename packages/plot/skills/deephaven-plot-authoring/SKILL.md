@@ -25,6 +25,11 @@ rules below depend on.
    plot area. Do not reimplement margins or chrome in a renderer.
 4. **Never draw synchronously.** Call `invalidate()`; a single
    `requestAnimationFrame` coalesces the frame.
+5. **The WebGPU device is shared by every plot on the page.** Get it from
+   `getSharedWebGpu()`, never call `requestDevice` in a renderer, and never
+   destroy it in `destroy()` — that would kill every other plot. Sharing is what
+   lets a page hold dozens of plots, which is a main reason WebGPU is preferred
+   over WebGL here.
 
 ## Iterating
 

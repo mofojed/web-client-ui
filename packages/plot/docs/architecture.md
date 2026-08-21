@@ -93,9 +93,27 @@ from a superseded revision are discarded, so only the latest viewport wins.
 
 `PlotView` never draws synchronously. Changes call `invalidate()`, which
 schedules one `requestAnimationFrame`, so a burst of deltas or resize events
-coalesces into a single frame.
+coalesces into a single frame. A `frame` event is emitted after each draw.
+
+Note that a WebGPU frame is submitted, not completed, by the time `frame` fires.
+Measuring it tells you the CPU cost of a draw, not the GPU cost.
 
 ## WebGPU renderer
+
+Every WebGPU plot on the page shares one `GPUDevice`, its shader modules, and
+its pipelines, resolved once through `getSharedWebGpu()`. Only the canvas
+context is per plot.
+
+This is a large part of why WebGPU is the primary renderer rather than WebGL. A
+document can hold roughly 8-16 live WebGL contexts before the browser starts
+dropping the oldest, which makes a dashboard of many charts unworkable. WebGPU
+canvas contexts are cheap views onto a shared device, so the count is bounded by
+memory rather than by a hard context limit. Sharing also means shaders compile
+once instead of once per plot. The `Many plots` example in `plot-demo` puts 64
+plots on screen at once to exercise this.
+
+Destroying a plot unconfigures its own canvas and frees its buffers; the shared
+device stays alive for the others and is only rebuilt if it is lost.
 
 Each series owns:
 

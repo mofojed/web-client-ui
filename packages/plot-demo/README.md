@@ -25,9 +25,23 @@ happened. Scroll to zoom, drag to pan, and double click to reset.
 | Downsample (1M)   | One million points reduced with the min/max downsampler |
 | Downsample (LTTB) | The same points with LTTB, which clips spikes           |
 | Streaming         | Four random walks appended as incremental deltas        |
+| Many plots (64)   | 64 plots of 50,000 points each, 3.2M points on one page |
 
 Every example is seeded, so the output is identical on every run. That is what
 lets the e2e tests compare renders directly.
+
+## Comparing renderers
+
+**Many plots** is the example to reach for. WebGL caps a document at roughly
+8-16 live contexts and drops the oldest beyond that, so a grid like this is not
+something it can render; every WebGPU plot here shares a single device. The
+header reports how long all 64 plots took to load their data and submit a first
+frame. Tick **Draw every point** to skip downsampling and push all 3.2M points
+through the renderer.
+
+A WebGPU frame is submitted rather than completed by the time it is counted, so
+read that number as the CPU cost of getting 64 plots on screen rather than as a
+GPU benchmark.
 
 ## Tests
 

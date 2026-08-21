@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  defaultPlotTheme,
   Plot,
   StreamingDataSource,
   type PlotDataSource,
+  type PlotTheme,
 } from '@deephaven/plot';
 import { examples, getExample } from './examples';
 import './App.scss';
 
 type RendererChoice = 'auto' | 'webgpu' | 'canvas';
 
-/** Stable identities keep the plot from being torn down on every render. */
+/** Stable identities keep the plots from being torn down on every render. */
 const RENDERER_PREFERENCES: Record<
   RendererChoice,
   readonly string[] | undefined
@@ -19,37 +21,65 @@ const RENDERER_PREFERENCES: Record<
   canvas: ['canvas'],
 };
 
+/** Tighter margins so axes still fit in a small grid cell. */
+const COMPACT_THEME: PlotTheme = {
+  ...defaultPlotTheme,
+  fontSize: 9,
+  margin: { top: 4, right: 6, bottom: 14, left: 26 },
+};
+
 export function App(): JSX.Element {
   const [exampleId, setExampleId] = useState(examples[0].id);
   const [rendererChoice, setRendererChoice] = useState<RendererChoice>('auto');
   const [activeRenderer, setActiveRenderer] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [fullFidelity, setFullFidelity] = useState(false);
+  const [firstFrameMs, setFirstFrameMs] = useState<number | null>(null);
 
   const example = getExample(exampleId);
-  const source = useMemo<PlotDataSource>(
-    () => getExample(exampleId).createSource(),
-    [exampleId]
-  );
+  const plotCount = example.plotCount ?? 1;
+
+  const sources = useMemo<PlotDataSource[]>(() => {
+    const { createSource, plotCount: count = 1 } = getExample(exampleId);
+    return Array.from({ length: count }, (_unused, index) =>
+      createSource(index, { fullFidelity })
+    );
+  }, [exampleId, fullFidelity]);
+
+  const startedAtRef = useRef(0);
+  const paintedRef = useRef(new Set<number>());
 
   useEffect(
-    function closeSourceOnChange() {
-      return () => source.close?.();
-    },
-    [source]
-  );
-
-  useEffect(
-    function resetStateOnChange() {
+    function resetOnChange() {
       setActiveRenderer('');
       setError('');
       setIsStreaming(false);
+      setFirstFrameMs(null);
+      paintedRef.current = new Set();
+      startedAtRef.current = performance.now();
+      return () => sources.forEach(source => source.close?.());
     },
-    [source, rendererChoice]
+    [sources, rendererChoice]
+  );
+
+  // Only the first paint of each plot counts, so this fires at most once per plot
+  const handleFrame = useCallback(
+    (index: number) => {
+      const painted = paintedRef.current;
+      if (painted.has(index)) {
+        return;
+      }
+      painted.add(index);
+      if (painted.size === sources.length) {
+        setFirstFrameMs(performance.now() - startedAtRef.current);
+      }
+    },
+    [sources]
   );
 
   const streamingSource =
-    source instanceof StreamingDataSource ? source : undefined;
+    sources[0] instanceof StreamingDataSource ? sources[0] : undefined;
 
   const handleToggleStreaming = useCallback(() => {
     if (streamingSource == null) {
@@ -68,6 +98,8 @@ export function App(): JSX.Element {
     setError(value instanceof Error ? value.message : String(value));
   }, []);
 
+  const totalPoints = (example.pointsPerPlot ?? 0) * plotCount;
+
   return (
     <div className="plot-demo">
       <header className="plot-demo-header">
@@ -78,6 +110,17 @@ export function App(): JSX.Element {
         >
           {activeRenderer === '' ? 'resolving…' : activeRenderer}
         </span>
+        {plotCount > 1 && (
+          <span className="plot-demo-stats" data-testid="plot-stats">
+            {`${plotCount} plots`}
+            {totalPoints > 0 && ` · ${totalPoints.toLocaleString()} points`}
+            {fullFidelity ? ' · full fidelity' : ' · downsampled'}
+            {' · first frame '}
+            {firstFrameMs == null
+              ? 'measuring…'
+              : `${Math.round(firstFrameMs)} ms`}
+          </span>
+        )}
       </header>
 
       <aside className="plot-demo-sidebar">
@@ -124,6 +167,19 @@ export function App(): JSX.Element {
           </button>
         )}
 
+        {example.supportsFullFidelity === true && (
+          <label className="plot-demo-checkbox" htmlFor="full-fidelity">
+            <input
+              id="full-fidelity"
+              type="checkbox"
+              data-testid="toggle-full-fidelity"
+              checked={fullFidelity}
+              onChange={event => setFullFidelity(event.target.checked)}
+            />
+            Draw every point (no downsampling)
+          </label>
+        )}
+
         <p className="plot-demo-description">{example.description}</p>
         <p className="plot-demo-hint">
           Scroll to zoom, drag to pan, double click to reset.
@@ -136,14 +192,22 @@ export function App(): JSX.Element {
             {error}
           </div>
         )}
-        <Plot
-          key={`${exampleId}-${rendererChoice}`}
-          className="plot-demo-plot"
-          source={source}
-          rendererPreference={RENDERER_PREFERENCES[rendererChoice]}
-          onRendererChanged={setActiveRenderer}
-          onError={handleError}
-        />
+        <div className={plotCount > 1 ? 'plot-demo-grid' : 'plot-demo-single'}>
+          {sources.map((source, index) => (
+            <Plot
+              // Sources are positional and are recreated whenever the example changes
+              // eslint-disable-next-line react/no-array-index-key
+              key={`${exampleId}-${rendererChoice}-${index}`}
+              className="plot-demo-plot"
+              source={source}
+              theme={plotCount > 1 ? COMPACT_THEME : undefined}
+              rendererPreference={RENDERER_PREFERENCES[rendererChoice]}
+              onRendererChanged={setActiveRenderer}
+              onFrame={() => handleFrame(index)}
+              onError={handleError}
+            />
+          ))}
+        </div>
       </main>
     </div>
   );

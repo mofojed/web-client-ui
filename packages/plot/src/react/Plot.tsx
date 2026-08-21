@@ -17,6 +17,8 @@ export interface PlotProps {
   style?: CSSProperties;
   onRendererChanged?: (name: string) => void;
   onViewportChanged?: (viewport: Bounds) => void;
+  /** Called after every frame the renderer draws. */
+  onFrame?: () => void;
   onError?: (error: unknown) => void;
 }
 
@@ -38,6 +40,7 @@ export function Plot({
   style,
   onRendererChanged,
   onViewportChanged,
+  onFrame,
   onError,
 }: PlotProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,9 +50,15 @@ export function Plot({
   const callbacksRef = useRef({
     onRendererChanged,
     onViewportChanged,
+    onFrame,
     onError,
   });
-  callbacksRef.current = { onRendererChanged, onViewportChanged, onError };
+  callbacksRef.current = {
+    onRendererChanged,
+    onViewportChanged,
+    onFrame,
+    onError,
+  };
 
   const themeRef = useRef(theme);
   themeRef.current = theme;
@@ -77,6 +86,10 @@ export function Plot({
       plotView.addEventListener(
         'error',
         ({ error }) => callbacksRef.current.onError?.(error)
+      );
+      plotView.addEventListener(
+        'frame',
+        () => callbacksRef.current.onFrame?.()
       );
       plotView.initialize().catch(error => {
         callbacksRef.current.onError?.(error);

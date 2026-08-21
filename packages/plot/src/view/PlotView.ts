@@ -36,6 +36,8 @@ export interface PlotViewEventMap {
   rendererchanged: { name: string };
   viewportchanged: { viewport: Bounds };
   shapechanged: { shape: PlotShape };
+  /** Fired after the renderer has drawn a frame. */
+  frame: Record<string, never>;
   /** Fired once the plot has drawn all outstanding data requests. */
   idle: Record<string, never>;
   error: { error: unknown };
@@ -320,6 +322,7 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       this.theme
     );
     this.renderer?.render();
+    this.emit('frame', {});
   }
 
   /**

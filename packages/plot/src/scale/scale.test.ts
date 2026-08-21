@@ -38,6 +38,12 @@ describe('generateTicks', () => {
     expect(generateTicks(-1, 1, 4)).toEqual([-1, -0.5, 0, 0.5, 1]);
   });
 
+  it('produces fewer ticks for a smaller target, so small plots stay readable', () => {
+    expect(generateTicks(0, 50000, 2).length).toBeLessThan(
+      generateTicks(0, 50000, 8).length
+    );
+  });
+
   it('returns nothing for an invalid range', () => {
     expect(generateTicks(1, 1)).toEqual([]);
     expect(generateTicks(NaN, 10)).toEqual([]);

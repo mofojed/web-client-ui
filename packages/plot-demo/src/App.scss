@@ -57,6 +57,11 @@ body {
   padding: 1px 6px;
 }
 
+.plot-demo-stats {
+  color: #8b898c;
+  font-family: 'Fira Mono', monospace;
+}
+
 .plot-demo-sidebar {
   border-right: 1px solid $border;
   display: flex;
@@ -122,6 +127,13 @@ body {
   padding: 6px 8px;
 }
 
+.plot-demo-checkbox {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 6px;
+}
+
 .plot-demo-description,
 .plot-demo-hint {
   margin: 0;
@@ -140,6 +152,20 @@ body {
 }
 
 .plot-demo-plot {
+  height: 100%;
+  width: 100%;
+}
+
+.plot-demo-single {
+  height: 100%;
+  width: 100%;
+}
+
+.plot-demo-grid {
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   height: 100%;
   width: 100%;
 }

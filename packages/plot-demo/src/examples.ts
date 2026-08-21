@@ -1,19 +1,36 @@
 import {
+  identityDownsampler,
+  lttbDownsampler,
   StaticDataSource,
   StreamingDataSource,
   generateCluster,
   generateSine,
   generateSpikes,
-  lttbDownsampler,
   type PlotDataSource,
 } from '@deephaven/plot';
+
+export interface ExampleOptions {
+  /** Skip downsampling so the renderer draws every point. */
+  fullFidelity: boolean;
+}
 
 export interface PlotExample {
   id: string;
   name: string;
   description: string;
-  createSource: () => PlotDataSource;
+  /** How many plots to lay out side by side. Defaults to 1. */
+  plotCount?: number;
+  /** Points per plot, used for the stats readout. */
+  pointsPerPlot?: number;
+  /** Whether the full fidelity toggle applies to this example. */
+  supportsFullFidelity?: boolean;
+  createSource: (index: number, options: ExampleOptions) => PlotDataSource;
 }
+
+/** Plots in the "many plots" example. 8x8 grid. */
+export const GRID_PLOT_COUNT = 64;
+
+const GRID_POINTS_PER_PLOT = 50_000;
 
 /**
  * Every example is seeded so the demo renders identically on every run, which
@@ -199,6 +216,33 @@ export const examples: PlotExample[] = [
           intervalMs: 100,
           title: 'Streaming',
         }
+      ),
+  },
+  {
+    id: 'many',
+    name: `Many plots (${GRID_PLOT_COUNT})`,
+    description:
+      `${GRID_PLOT_COUNT} independent plots of ` +
+      `${GRID_POINTS_PER_PLOT.toLocaleString()} points each. WebGL caps a page ` +
+      'at roughly 8-16 live contexts and drops the oldest beyond that; every ' +
+      'WebGPU plot here shares a single device.',
+    plotCount: GRID_PLOT_COUNT,
+    pointsPerPlot: GRID_POINTS_PER_PLOT,
+    supportsFullFidelity: true,
+    createSource: (index, { fullFidelity }) =>
+      new StaticDataSource(
+        [
+          {
+            id: 'series',
+            name: `#${index + 1}`,
+            type: 'line',
+            data: generateSpikes(GRID_POINTS_PER_PLOT, {
+              seed: index + 1,
+              spikeEvery: 6000,
+            }),
+          },
+        ],
+        fullFidelity ? { downsampler: identityDownsampler } : {}
       ),
   },
 ];

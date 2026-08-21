@@ -98,6 +98,27 @@ it('resolves a renderer and marks it on the container', async () => {
   view.destroy();
 });
 
+it('emits a frame event once the renderer has drawn', async () => {
+  const renderer = makeRenderer();
+  const view = new PlotView(container, makeSource(), {
+    registry: makeRegistry(renderer),
+  });
+  const onFrame = jest.fn();
+  view.addEventListener('frame', onFrame);
+
+  const idle = waitForIdle(view);
+  await view.initialize();
+  await idle;
+
+  await new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+
+  expect(onFrame).toHaveBeenCalled();
+  expect(renderer.render).toHaveBeenCalled();
+  view.destroy();
+});
+
 it('fails when no registered renderer supports the series types', async () => {
   const registry = new RendererRegistry();
   registry.register({
