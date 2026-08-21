@@ -89,6 +89,21 @@ from a superseded revision are discarded, so only the latest viewport wins.
    indexes no longer line up with the source, so a fresh request is made
    instead.
 
+Requests are coalesced onto an animation frame. A source that ticks faster than
+the display would otherwise queue work that is immediately superseded, so at
+most one request goes out per frame no matter how many things asked for one.
+
+A viewport change on a series the renderer already holds in full skips the
+request entirely: the source has nothing more to give, so panning and zooming
+cost only a redraw. This is what keeps the delta path cheap for a live plot
+whose viewport is following its data.
+
+## Viewport following
+
+A plot starts unpinned and keeps its viewport on the full extent of the data, so
+a streaming source stays in frame as it grows. The first zoom or pan pins the
+viewport and stops the following; double clicking resets and unpins it again.
+
 ## Rendering
 
 `PlotView` never draws synchronously. Changes call `invalidate()`, which
@@ -110,7 +125,7 @@ dropping the oldest, which makes a dashboard of many charts unworkable. WebGPU
 canvas contexts are cheap views onto a shared device, so the count is bounded by
 memory rather than by a hard context limit. Sharing also means shaders compile
 once instead of once per plot. The `Many plots` example in `plot-demo` puts 64
-plots on screen at once to exercise this.
+plots on screen at once, all ticking, to exercise this.
 
 Destroying a plot unconfigures its own canvas and frees its buffers; the shared
 device stays alive for the others and is only rebuilt if it is lost.

@@ -223,26 +223,30 @@ export const examples: PlotExample[] = [
     name: `Many plots (${GRID_PLOT_COUNT})`,
     description:
       `${GRID_PLOT_COUNT} independent plots of ` +
-      `${GRID_POINTS_PER_PLOT.toLocaleString()} points each. WebGL caps a page ` +
-      'at roughly 8-16 live contexts and drops the oldest beyond that; every ' +
-      'WebGPU plot here shares a single device.',
+      `${GRID_POINTS_PER_PLOT.toLocaleString()} points each, all ticking at ` +
+      'once. WebGL caps a page at roughly 8-16 live contexts and drops the ' +
+      'oldest beyond that; every WebGPU plot here shares a single device.',
     plotCount: GRID_PLOT_COUNT,
     pointsPerPlot: GRID_POINTS_PER_PLOT,
     supportsFullFidelity: true,
     createSource: (index, { fullFidelity }) =>
-      new StaticDataSource(
+      new StreamingDataSource(
         [
           {
             id: 'series',
             name: `#${index + 1}`,
             type: 'line',
-            data: generateSpikes(GRID_POINTS_PER_PLOT, {
-              seed: index + 1,
-              spikeEvery: 6000,
-            }),
+            start: 0,
+            volatility: 1 + (index % 4) * 0.5,
           },
         ],
-        fullFidelity ? { downsampler: identityDownsampler } : {}
+        {
+          seed: index + 1,
+          initialPoints: GRID_POINTS_PER_PLOT,
+          pointsPerTick: 25,
+          intervalMs: 250,
+          ...(fullFidelity ? { downsampler: identityDownsampler } : {}),
+        }
       ),
   },
 ];

@@ -95,6 +95,31 @@ test('renders 64 plots at once', async ({ page }) => {
   expect(await getDrawnFraction(page)).toBeGreaterThan(0.001);
 });
 
+test('ticks all 64 plots at once', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('canvas');
+  await page.getByTestId('example-many').click();
+  await expectReady(page, 64);
+
+  const first = page.locator(DATA_CANVAS).first();
+  const last = page.locator(DATA_CANVAS).last();
+  const firstBefore = await first.screenshot();
+  const lastBefore = await last.screenshot();
+
+  await page.getByTestId('toggle-streaming').click();
+  await expect(page.getByTestId('toggle-streaming')).toHaveText('Stop stream');
+
+  // Both ends of the grid must be updating, not just the plot that was mounted first
+  await expect
+    .poll(async () => (await first.screenshot()).equals(firstBefore))
+    .toBe(false);
+  await expect
+    .poll(async () => (await last.screenshot()).equals(lastBefore))
+    .toBe(false);
+
+  await page.getByTestId('toggle-streaming').click();
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+});
+
 const EXAMPLES = ['scatter', 'line', 'mixed', 'downsample', 'streaming'];
 
 EXAMPLES.forEach(example => {

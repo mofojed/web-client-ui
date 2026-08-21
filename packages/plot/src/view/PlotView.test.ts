@@ -1,5 +1,6 @@
 import {
   seriesDataFromArrays,
+  type Bounds,
   type SeriesData,
   type SeriesDelta,
 } from '../model/PlotTypes';
@@ -12,10 +13,14 @@ import { StaticDataSource } from '../sources/StaticDataSource';
 import { generateSine } from '../sources/generators';
 import { PlotView } from './PlotView';
 
-/** Exposes the protected delta notification so tests can drive updates. */
+/** Exposes the protected notifications so tests can drive updates. */
 class TestDataSource extends StaticDataSource {
   push(deltas: SeriesDelta[]): void {
     this.fireDataChanged(deltas);
+  }
+
+  pushBounds(bounds: Bounds): void {
+    this.fireShapeChanged({ ...this.buildShape(), bounds });
   }
 }
 
@@ -67,6 +72,13 @@ function waitForIdle(view: PlotView): Promise<void> {
   });
 }
 
+/** Data requests are coalesced onto an animation frame, so tests have to wait one out. */
+function nextFrame(): Promise<void> {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
 let container: HTMLDivElement;
 let boundingRectSpy: jest.SpyInstance;
 
@@ -94,6 +106,10 @@ it('resolves a renderer and marks it on the container', async () => {
 
   expect(view.getRendererName()).toBe('mock');
   expect(container.getAttribute('data-dh-plot-renderer')).toBe('mock');
+
+  // Ready is only reported once the loaded data has actually been drawn
+  expect(container.getAttribute('data-dh-plot-status')).toBe('loading');
+  await nextFrame();
   expect(container.getAttribute('data-dh-plot-status')).toBe('ready');
   view.destroy();
 });
@@ -196,6 +212,68 @@ it('starts at the padded bounds of the data and resets back to them', async () =
   view.destroy();
 });
 
+it('follows growing data until the user takes control of the viewport', async () => {
+  const renderer = makeRenderer();
+  const source = makeSource();
+  const view = new PlotView(container, source, {
+    registry: makeRegistry(renderer),
+  });
+  const idle = waitForIdle(view);
+  await view.initialize();
+  await idle;
+
+  source.pushBounds({ xMin: 0, xMax: 100, yMin: 0, yMax: 1 });
+  expect(view.getViewport().xMax).toBeGreaterThan(100);
+
+  // Zooming pins the viewport, so later data must not move it
+  view.setViewport({ xMin: 0, xMax: 10, yMin: 0, yMax: 1 });
+  source.pushBounds({ xMin: 0, xMax: 500, yMin: 0, yMax: 1 });
+  expect(view.getViewport()).toEqual({ xMin: 0, xMax: 10, yMin: 0, yMax: 1 });
+
+  // Resetting hands control back
+  view.resetViewport();
+  source.pushBounds({ xMin: 0, xMax: 900, yMin: 0, yMax: 1 });
+  expect(view.getViewport().xMax).toBeGreaterThan(900);
+  view.destroy();
+});
+
+it('does not refetch on viewport change when the renderer holds every point', async () => {
+  const renderer = makeRenderer();
+  const source = makeSource();
+  const view = new PlotView(container, source, {
+    registry: makeRegistry(renderer),
+  });
+  const idle = waitForIdle(view);
+  await view.initialize();
+  await idle;
+
+  const requestSpy = jest.spyOn(source, 'requestSeriesData');
+  view.setViewport({ xMin: 0, xMax: 1, yMin: 0, yMax: 1 });
+  await nextFrame();
+
+  expect(requestSpy).not.toHaveBeenCalled();
+  expect(renderer.setViewport).toHaveBeenCalled();
+  view.destroy();
+});
+
+it('refetches on viewport change when the data was downsampled', async () => {
+  const renderer = makeRenderer();
+  const source = makeSource(generateSine(200_000, { frequency: 0.001 }));
+  const view = new PlotView(container, source, {
+    registry: makeRegistry(renderer),
+  });
+  const idle = waitForIdle(view);
+  await view.initialize();
+  await idle;
+
+  const requestSpy = jest.spyOn(source, 'requestSeriesData');
+  view.setViewport({ xMin: 0, xMax: 100, yMin: -1, yMax: 1 });
+  await nextFrame();
+
+  expect(requestSpy).toHaveBeenCalled();
+  view.destroy();
+});
+
 it('applies deltas directly when the renderer holds complete data', async () => {
   const renderer = makeRenderer();
   const source = makeSource();
@@ -235,6 +313,7 @@ it('refetches instead of applying deltas when the data was downsampled', async (
       data: seriesDataFromArrays([1], [1]),
     },
   ]);
+  await nextFrame();
 
   expect(renderer.applyDeltas).not.toHaveBeenCalled();
   expect(requestSpy).toHaveBeenCalled();

@@ -78,21 +78,22 @@ export function App(): JSX.Element {
     [sources]
   );
 
-  const streamingSource =
-    sources[0] instanceof StreamingDataSource ? sources[0] : undefined;
+  const streamingSources = useMemo(
+    () =>
+      sources.filter(
+        (source): source is StreamingDataSource =>
+          source instanceof StreamingDataSource
+      ),
+    [sources]
+  );
 
   const handleToggleStreaming = useCallback(() => {
-    if (streamingSource == null) {
-      return;
-    }
-    if (streamingSource.isRunning()) {
-      streamingSource.stop();
-      setIsStreaming(false);
-    } else {
-      streamingSource.start();
-      setIsStreaming(true);
-    }
-  }, [streamingSource]);
+    const shouldStart = !streamingSources.some(source => source.isRunning());
+    streamingSources.forEach(source =>
+      shouldStart ? source.start() : source.stop()
+    );
+    setIsStreaming(shouldStart);
+  }, [streamingSources]);
 
   const handleError = useCallback((value: unknown) => {
     setError(value instanceof Error ? value.message : String(value));
@@ -156,7 +157,7 @@ export function App(): JSX.Element {
           <option value="canvas">Canvas only</option>
         </select>
 
-        {streamingSource != null && (
+        {streamingSources.length > 0 && (
           <button
             type="button"
             data-testid="toggle-streaming"

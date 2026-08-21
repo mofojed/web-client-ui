@@ -36,12 +36,21 @@ lets the e2e tests compare renders directly.
 8-16 live contexts and drops the oldest beyond that, so a grid like this is not
 something it can render; every WebGPU plot here shares a single device. The
 header reports how long all 64 plots took to load their data and submit a first
-frame. Tick **Draw every point** to skip downsampling and push all 3.2M points
-through the renderer.
+frame.
+
+**Start stream** ticks all 64 plots at once, appending to every one of them four
+times a second. Plots follow their data until you zoom or pan, so they stay in
+frame as they grow.
+
+Tick **Draw every point** to skip downsampling and push all 3.2M points through
+the renderer. In that mode every series is complete, so ticks apply as
+incremental deltas and the viewport can follow without refetching anything. It
+is a deliberate stress test: on a software rasterizer such as SwiftShader it
+will crawl.
 
 A WebGPU frame is submitted rather than completed by the time it is counted, so
-read that number as the CPU cost of getting 64 plots on screen rather than as a
-GPU benchmark.
+read the reported time as the CPU cost of getting 64 plots on screen rather than
+as a GPU benchmark.
 
 ## Tests
 

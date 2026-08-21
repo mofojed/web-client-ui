@@ -88,6 +88,14 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
 
   private dirty = false;
 
+  private isRequestScheduled = false;
+
+  /** Set when data has loaded but the frame showing it has not been drawn yet. */
+  private isReadyPending = false;
+
+  /** True once the user has zoomed or panned, which stops viewport following. */
+  private isViewportPinned = false;
+
   private resizeObserver: ResizeObserver | undefined;
 
   private abortController: AbortController | undefined;
@@ -194,7 +202,7 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       this.addInteractionListeners();
     }
 
-    this.requestData();
+    this.scheduleDataRequest();
   }
 
   private observeSize(): void {
@@ -273,23 +281,40 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     this.dataCanvas.style.height = `${area.height}px`;
     this.renderer?.resize(area.width, area.height, ratio);
 
-    this.requestData();
-    this.invalidate();
+    // The pixel budget changed, so even complete series may need more detail
+    this.scheduleDataRequest();
   }
 
   setViewport(viewport: Bounds): void {
+    // An explicit viewport stops the plot from following incoming data
+    this.isViewportPinned = true;
+    this.applyViewport(viewport);
+  }
+
+  private applyViewport(viewport: Bounds): void {
     if (boundsEqual(viewport, this.viewport)) {
       return;
     }
     this.viewport = viewport;
     this.renderer?.setViewport(viewport);
     this.emit('viewportchanged', { viewport });
-    this.requestData();
+    // A series the renderer holds in full cannot yield more data for a new
+    // viewport, so panning and zooming it costs nothing but a redraw
+    if (this.hasIncompleteSeries()) {
+      this.scheduleDataRequest();
+    }
     this.invalidate();
   }
 
+  private hasIncompleteSeries(): boolean {
+    return this.shape.series.some(
+      descriptor => this.seriesStates.get(descriptor.id)?.complete !== true
+    );
+  }
+
   resetViewport(): void {
-    this.setViewport(this.homeViewport);
+    this.isViewportPinned = false;
+    this.applyViewport(this.homeViewport);
   }
 
   setTheme(theme: PlotTheme): void {
@@ -307,9 +332,27 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     }
   }
 
+  /**
+   * Queues a data request for the next animation frame.
+   *
+   * A ticking source can fire several times between frames, and each request
+   * supersedes the last anyway, so there is no point issuing more than one.
+   */
+  private scheduleDataRequest(): void {
+    this.isRequestScheduled = true;
+    this.invalidate();
+  }
+
   private renderFrame(): void {
     this.frame = undefined;
-    if (!this.dirty || this.isDestroyed) {
+    if (this.isDestroyed) {
+      return;
+    }
+    if (this.isRequestScheduled) {
+      this.isRequestScheduled = false;
+      this.requestData();
+    }
+    if (!this.dirty) {
       return;
     }
     this.dirty = false;
@@ -323,6 +366,11 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     );
     this.renderer?.render();
     this.emit('frame', {});
+
+    if (this.isReadyPending && this.pendingRequests === 0) {
+      this.isReadyPending = false;
+      this.container.setAttribute('data-dh-plot-status', 'ready');
+    }
   }
 
   /**
@@ -374,7 +422,9 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       .finally(() => {
         this.pendingRequests -= 1;
         if (this.pendingRequests === 0 && !this.isDestroyed) {
-          this.container.setAttribute('data-dh-plot-status', 'ready');
+          // Report ready only once the data is actually on screen
+          this.isReadyPending = true;
+          this.invalidate();
           this.emit('idle', {});
         }
       });
@@ -384,8 +434,11 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     this.shape = shape;
     this.renderer?.setShape(shape);
     if (shape.bounds != null) {
-      // Keep "reset" meaningful as a streaming source grows
       this.homeViewport = padBounds(shape.bounds);
+      // Until the user takes control, keep newly appended data in view
+      if (!this.isViewportPinned) {
+        this.applyViewport(this.homeViewport);
+      }
     }
     this.emit('shapechanged', { shape });
     this.invalidate();
@@ -406,7 +459,7 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
       this.invalidate();
     }
     if (applicable.length < deltas.length) {
-      this.requestData();
+      this.scheduleDataRequest();
     }
   }
 
