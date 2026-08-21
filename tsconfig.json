@@ -28,6 +28,7 @@
     { "path": "./packages/code-studio" },
     { "path": "./packages/embed-widget" },
     { "path": "./packages/jsapi-nodejs" },
-    { "path": "./packages/playwright-grid" }
+    { "path": "./packages/playwright-grid" },
+    { "path": "./packages/plot-demo" }
   ]
 }

@@ -17,6 +17,12 @@ const config: PlaywrightTestConfig = {
       timeout: 60 * 1000,
       reuseExistingServer: false,
     },
+    {
+      command: 'BASE_URL=/plot/ npm run preview:plot-demo -- -- -- --no-open',
+      port: 4020,
+      timeout: 60 * 1000,
+      reuseExistingServer: false,
+    },
   ],
 
   // Applies to the npm command and CI, but CI will get overwritten in the CI config
