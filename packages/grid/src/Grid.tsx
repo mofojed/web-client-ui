@@ -81,6 +81,12 @@ import {
   type CellInputRendererRegistry,
   type CellInputProps,
 } from './GridRendererTypes';
+import {
+  createGridA11yApi,
+  GRID_A11Y_KEY,
+  type GridA11yApi,
+  type GridA11yCanvas,
+} from './GridA11y';
 
 type LegacyCanvasRenderingContext2D = CanvasRenderingContext2D & {
   webkitBackingStorePixelRatio?: number;
@@ -373,6 +379,10 @@ class Grid extends PureComponent<GridProps, GridState> {
 
   mouseHandlers: readonly GridMouseHandler[];
 
+  // API attached to the canvas element to expose grid contents to accessibility
+  // and testing tooling
+  a11yApi: GridA11yApi;
+
   /* eslint-enable react/sort-comp */
 
   constructor(props: GridProps) {
@@ -448,6 +458,14 @@ class Grid extends PureComponent<GridProps, GridState> {
       new GridTokenMouseHandler(875),
       new GridSelectionMouseHandler(900),
     ];
+
+    // Getters rather than values so the API reflects the current model,
+    // renderer, and metrics even after they are swapped at runtime
+    this.a11yApi = createGridA11yApi({
+      getModel: () => this.props.model,
+      getRenderer: () => this.renderer,
+      getMetrics: () => this.metrics,
+    });
 
     this.state = {
       // Top/left visible cell in the grid. Note that it's visible row/column index, not the model index (ie. if columns are re-ordered)
@@ -2457,6 +2475,9 @@ class Grid extends PureComponent<GridProps, GridState> {
           className={classNames('grid-canvas', Grid.getCursorClassName(cursor))}
           ref={canvas => {
             this.canvas = canvas;
+            if (canvas != null) {
+              (canvas as GridA11yCanvas)[GRID_A11Y_KEY] = this.a11yApi;
+            }
           }}
           onClick={this.handleClick}
           onContextMenu={this.handleContextMenu}

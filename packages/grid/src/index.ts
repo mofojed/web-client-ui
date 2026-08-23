@@ -16,6 +16,7 @@ export * from './GridMouseHandler';
 export * from './GridRange';
 export * from './GridAxisRange';
 export * from './GridRenderer';
+export * from './GridA11y';
 export { default as GridTestUtils } from './GridTestUtils';
 export * from './GridTheme';
 export { default as GridTheme } from './GridTheme';

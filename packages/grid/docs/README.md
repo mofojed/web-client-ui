@@ -30,6 +30,7 @@ Bring your own server-side data model:
 - Customizable themes
 - Row, column and range selections
 - Input for editable models
+- An accessibility API for reading the rendered contents of the canvas
 
 </div>
 <div className="col">
