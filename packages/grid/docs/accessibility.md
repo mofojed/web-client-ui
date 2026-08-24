@@ -35,17 +35,6 @@ if (api?.metrics != null) {
 
 `model` and `renderer` are getters, so they stay correct even if you swap either one at runtime.
 
-## Visible indexes
-
-Every index accepted and returned by the API is a **visible** index — the position of the row or column on screen, after any moves or hidden columns are applied. This is deliberately different from the model index, so that a coordinate you read from the API can be turned into a screen position and back again.
-
-Anything that is not currently rendered resolves to `null` rather than throwing. Scroll it into view first:
-
-```ts
-// null if row 5000 is outside the current viewport
-const text = api.getCellText(0, 5000);
-```
-
 ## Locating a cell on screen
 
 `getCellRect` and `getColumnHeaderRect` return coordinates relative to the top left of the canvas. Add the canvas position to convert to page coordinates, for example to dispatch a click at the centre of a cell:
