@@ -1,6 +1,7 @@
 import type GridMetrics from './GridMetrics';
 import { type VisibleIndex } from './GridMetrics';
 import type GridModel from './GridModel';
+import GridRange, { type GridCell } from './GridRange';
 import type GridRenderer from './GridRenderer';
 
 /**
@@ -48,6 +49,24 @@ export interface GridA11yApi {
 
   /** Get the visible index of the column with the given header text, or null if it is not in the viewport */
   getVisibleColumnByHeader(headerText: string): VisibleIndex | null;
+
+  /** Get the currently selected ranges. Empty if nothing is selected */
+  getSelectedRanges(): readonly GridRange[];
+
+  /** Get the cursor (the highlighted cell within the selection), or null if there is no selection */
+  getCursor(): GridCell | null;
+
+  /**
+   * Get a brief description of the grid size, cursor, and selection. Cheap
+   * enough to regenerate on every render
+   */
+  getSummary(): string;
+
+  /**
+   * Get the summary plus a description of the viewport. Iterates every visible
+   * column, so generate it on demand rather than on every render
+   */
+  getDescription(): string;
 }
 
 /** A grid canvas element with the accessibility API attached */
@@ -64,6 +83,8 @@ export type GridA11yHost = {
   getModel: () => GridModel;
   getRenderer: () => GridRenderer;
   getMetrics: () => GridMetrics | null;
+  getSelectedRanges: () => readonly GridRange[];
+  getCursor: () => GridCell | null;
 };
 
 /**
@@ -72,7 +93,8 @@ export type GridA11yHost = {
  * @returns The API to attach to the grid canvas
  */
 export function createGridA11yApi(host: GridA11yHost): GridA11yApi {
-  const { getModel, getRenderer, getMetrics } = host;
+  const { getModel, getRenderer, getMetrics, getSelectedRanges, getCursor } =
+    host;
 
   function getModelColumn(
     metrics: GridMetrics,
@@ -93,6 +115,87 @@ export function createGridA11yApi(host: GridA11yHost): GridA11yApi {
     return getModel().textForColumnHeader(modelColumn, 0) ?? null;
   }
 
+  function getCellText(column: VisibleIndex, row: VisibleIndex): string | null {
+    const metrics = getMetrics();
+    if (metrics == null) {
+      return null;
+    }
+    const modelColumn = getModelColumn(metrics, column);
+    const modelRow = metrics.modelRows.get(row);
+    if (modelColumn == null || modelRow == null) {
+      return null;
+    }
+    return getModel().textForCell(modelColumn, modelRow);
+  }
+
+  function getViewportDescription(metrics: GridMetrics): string {
+    const { topVisible, bottomVisible, visibleColumns } = metrics;
+    const headers = visibleColumns
+      .map(column => getColumnHeaderText(column))
+      .filter((text): text is string => text != null && text !== '');
+    const rows = `Showing rows ${topVisible + 1} to ${bottomVisible + 1}`;
+    return headers.length > 0
+      ? `${rows}, columns ${headers.join(', ')}.`
+      : `${rows}.`;
+  }
+
+  function getCursorDescription(cursor: GridCell): string {
+    const { column, row } = cursor;
+    const columnLabel = getColumnHeaderText(column) ?? `${column + 1}`;
+    const text = getCellText(column, row);
+    const cell = `Cursor on row ${row + 1}, column ${columnLabel}`;
+    return text != null && text !== '' ? `${cell}, ${text}.` : `${cell}.`;
+  }
+
+  function getSelectionDescription(ranges: readonly GridRange[]): string {
+    const cellCount = GridRange.cellCount(ranges);
+    // Unbounded ranges (whole rows or columns) have no countable cells
+    if (Number.isNaN(cellCount)) {
+      return ranges.length === 1
+        ? '1 range selected.'
+        : `${ranges.length} ranges selected.`;
+    }
+    return cellCount === 1
+      ? '1 cell selected.'
+      : `${cellCount} cells selected.`;
+  }
+
+  function getSizeDescription(): string {
+    const { columnCount, rowCount } = getModel();
+    return `Grid with ${rowCount} rows and ${columnCount} columns.`;
+  }
+
+  function getCursorAndSelectionDescription(): string[] {
+    const parts: string[] = [];
+
+    const cursor = getCursor();
+    if (cursor != null) {
+      parts.push(getCursorDescription(cursor));
+    }
+
+    const selectedRanges = getSelectedRanges();
+    if (selectedRanges.length > 0) {
+      parts.push(getSelectionDescription(selectedRanges));
+    }
+
+    return parts;
+  }
+
+  function getSummary(): string {
+    return [getSizeDescription(), ...getCursorAndSelectionDescription()].join(
+      ' '
+    );
+  }
+
+  function getDescription(): string {
+    const metrics = getMetrics();
+    return [
+      getSizeDescription(),
+      ...(metrics != null ? [getViewportDescription(metrics)] : []),
+      ...getCursorAndSelectionDescription(),
+    ].join(' ');
+  }
+
   return {
     get model() {
       return getModel();
@@ -106,18 +209,7 @@ export function createGridA11yApi(host: GridA11yHost): GridA11yApi {
       return getMetrics();
     },
 
-    getCellText(column, row) {
-      const metrics = getMetrics();
-      if (metrics == null) {
-        return null;
-      }
-      const modelColumn = getModelColumn(metrics, column);
-      const modelRow = metrics.modelRows.get(row);
-      if (modelColumn == null || modelRow == null) {
-        return null;
-      }
-      return getModel().textForCell(modelColumn, modelRow);
-    },
+    getCellText,
 
     getCellRect(column, row) {
       const metrics = getMetrics();
@@ -172,5 +264,13 @@ export function createGridA11yApi(host: GridA11yHost): GridA11yApi {
         ) ?? null
       );
     },
+
+    getSelectedRanges,
+
+    getCursor,
+
+    getSummary,
+
+    getDescription,
   };
 }

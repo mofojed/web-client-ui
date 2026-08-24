@@ -232,6 +232,9 @@ export type GridState = {
    */
   renderError?: unknown;
 
+  /** Full description of the grid contents, generated when a user asks for it from the canvas fallback content */
+  a11yDescription: string | null;
+
   /** What revision the grid is drawing. Automatically increments when a forceUpdate is called. */
   updateRevision: number;
 };
@@ -404,6 +407,7 @@ class Grid extends PureComponent<GridProps, GridState> {
     this.handleMouseUp = this.handleMouseUp.bind(this);
     this.handleResize = this.handleResize.bind(this);
     this.handleWheel = this.handleWheel.bind(this);
+    this.handleA11yDescribe = this.handleA11yDescribe.bind(this);
     this.getSelectedRanges = this.getSelectedRanges.bind(this);
 
     const {
@@ -465,6 +469,11 @@ class Grid extends PureComponent<GridProps, GridState> {
       getModel: () => this.props.model,
       getRenderer: () => this.renderer,
       getMetrics: () => this.metrics,
+      getSelectedRanges: () => this.getSelectedRanges(),
+      getCursor: () => {
+        const { cursorColumn: column, cursorRow: row } = this.state;
+        return column != null && row != null ? { column, row } : null;
+      },
     });
 
     this.state = {
@@ -525,6 +534,8 @@ class Grid extends PureComponent<GridProps, GridState> {
 
       isStuckToBottom,
       isStuckToRight,
+
+      a11yDescription: null,
 
       /** What revision the grid is drawing. Automatically increments when a forceUpdate is called. */
       updateRevision: 0,
@@ -599,6 +610,7 @@ class Grid extends PureComponent<GridProps, GridState> {
       movedRows: prevStateMovedRows,
     } = prevState;
     const {
+      a11yDescription,
       draggingColumn,
       draggingRow,
       movedColumns: currentStateMovedColumns,
@@ -606,6 +618,14 @@ class Grid extends PureComponent<GridProps, GridState> {
     } = this.state;
 
     const stateUpdates: Partial<GridState> = {};
+
+    // The description names the rows and columns that were on screen when it was generated
+    if (
+      a11yDescription != null &&
+      (changedState.includes('top') || changedState.includes('left'))
+    ) {
+      stateUpdates.a11yDescription = null;
+    }
 
     if (prevPropMovedColumns !== movedColumns) {
       stateUpdates.movedColumns = movedColumns;
@@ -2208,6 +2228,15 @@ class Grid extends PureComponent<GridProps, GridState> {
   }
 
   /**
+   * Generate the full description of the grid contents for the canvas fallback content.
+   * Triggered from the fallback content, so the click must not reach the canvas handlers.
+   */
+  handleA11yDescribe(event: React.MouseEvent): void {
+    event.stopPropagation();
+    this.setState({ a11yDescription: this.a11yApi.getDescription() });
+  }
+
+  /**
    * Handle cancelling the cell edit action
    */
   handleEditCellCancel(): void {
@@ -2467,7 +2496,7 @@ class Grid extends PureComponent<GridProps, GridState> {
 
   render(): ReactNode {
     const { children } = this.props;
-    const { cursor } = this.state;
+    const { a11yDescription, cursor } = this.state;
 
     return (
       <div className="grid-wrapper" ref={this.canvasWrapper}>
@@ -2489,7 +2518,13 @@ class Grid extends PureComponent<GridProps, GridState> {
           onMouseLeave={this.handleMouseLeave}
           tabIndex={0}
         >
-          Your browser does not support HTML canvas. Update your browser?
+          {/* Canvas fallback content is never painted, but assistive technology reads it in place of the pixels */}
+          <p>{this.a11yApi.getSummary()}</p>
+          {/* Kept out of the tab order so sighted keyboard users don't land on an element they can't see */}
+          <button type="button" tabIndex={-1} onClick={this.handleA11yDescribe}>
+            Describe the grid contents
+          </button>
+          {a11yDescription != null && <p role="status">{a11yDescription}</p>}
         </canvas>
         {this.renderInputField()}
         {children}

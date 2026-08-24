@@ -22,18 +22,32 @@ if (api?.metrics != null) {
 
 ## API surface
 
-| Member                           | Description                                                                 |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| `model`                          | The `GridModel` currently backing the grid                                  |
-| `renderer`                       | The `GridRenderer` currently drawing the grid                               |
-| `metrics`                        | The `GridMetrics` from the last render, or `null` before the first render   |
-| `getCellText(column, row)`       | The text rendered in a cell                                                 |
-| `getCellRect(column, row)`       | The bounds of a cell, relative to the top left of the canvas, in CSS pixels |
-| `getColumnHeaderText(column)`    | The text of a column header                                                 |
-| `getColumnHeaderRect(column)`    | The bounds of a column header                                               |
-| `getVisibleColumnByHeader(text)` | The visible index of the column with the given header text                  |
+| Member                           | Description                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| `model`                          | The `GridModel` currently backing the grid                                   |
+| `renderer`                       | The `GridRenderer` currently drawing the grid                                |
+| `metrics`                        | The `GridMetrics` from the last render, or `null` before the first render    |
+| `getCellText(column, row)`       | The text rendered in a cell                                                  |
+| `getCellRect(column, row)`       | The bounds of a cell, relative to the top left of the canvas, in CSS pixels  |
+| `getColumnHeaderText(column)`    | The text of a column header                                                  |
+| `getColumnHeaderRect(column)`    | The bounds of a column header                                                |
+| `getVisibleColumnByHeader(text)` | The visible index of the column with the given header text                   |
+| `getSelectedRanges()`            | The currently selected `GridRange`s, empty if nothing is selected            |
+| `getCursor()`                    | The `{ column, row }` of the cursor cell, or `null` if there is no selection |
+| `getSummary()`                   | A sentence describing the grid size, cursor, and selection                   |
+| `getDescription()`               | The summary, plus the visible row range and column headers                   |
 
 `model` and `renderer` are getters, so they stay correct even if you swap either one at runtime.
+
+## Screen readers
+
+The children of a `<canvas>` element are its fallback content: they are never painted, but assistive technology reads them in place of the pixels. Grid renders `getSummary()` there so a screen reader announces what the grid holds rather than nothing at all:
+
+```text
+Grid with 20 rows and 100 columns. Cursor on row 4, column x, 2,3. 1 cell selected.
+```
+
+The summary is regenerated on every render, so it only reads values the grid already has on hand. `getDescription()` walks every visible column, which is too expensive to do while the mouse is moving, so it is opt-in: the fallback content includes a "Describe the grid contents" button that generates it on request. The button is kept out of the tab order so sighted keyboard users are not sent to an element they cannot see.
 
 ## Locating a cell on screen
 
