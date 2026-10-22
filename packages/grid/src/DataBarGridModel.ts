@@ -9,7 +9,7 @@ export type DirectionOption = 'LTR' | 'RTL';
 /** Map from ModelIndex to the axis option of the column */
 export type ColumnAxisMap = Map<ModelIndex, AxisOption>;
 /** Map from ModelIndex to a color or an array of colors
- * If given an array, then the bar will be a gradient
+ * If given an array, then the bar will be a gradient.
  * The colors should be given left to right (e.g. it should be like ['yellow', 'green'] for positive color and ['red', 'yellow'] for negative color)
  */
 export type ColorMap = Map<ModelIndex, GridColor | GridColor[]>;
