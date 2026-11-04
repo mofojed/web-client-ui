@@ -26,9 +26,36 @@ happened. Scroll to zoom, drag to pan, and double click to reset.
 | Downsample (LTTB) | The same points with LTTB, which clips spikes           |
 | Streaming         | Four random walks appended as incremental deltas        |
 | Many plots (64)   | 64 plots of 50,000 points each, 3.2M points on one page |
+| Plot cube         | Six different streaming plots on a rotating 3D cube     |
+| Scatter stress    | Up to 10M streaming scatter points, never downsampled   |
 
 Every example is seeded, so the output is identical on every run. That is what
 lets the e2e tests compare renders directly.
+
+## Plot cube
+
+Six plots stream on the faces of a CSS 3D cube: an oscilloscope, orbiting
+scatter clusters, random walks, Lissajous figures, an ECG style heartbeat, and a
+line with noisy samples overlaid. Drag to fling it around, or focus it and use
+the arrow keys. **Explode** pulls the faces apart, and **Auto rotate** keeps it
+spinning while idle. Plot interaction is off on the faces so that dragging always
+rotates the cube.
+
+It doubles as a check that plots size themselves from their layout box rather
+than their on screen projection, so a face that loads edge on is not squashed.
+
+## Scatter stress
+
+A rotating spiral galaxy that measures raw renderer throughput. It is never
+downsampled: the renderer holds and draws every point on every frame. Pick the
+**Points** (10K to 10M), how many are **Replaced per frame**, and the **Point
+size**. Points live in a fixed size ring buffer and the oldest are overwritten
+once per animation frame as incremental `update` deltas, so WebGPU only uploads
+the points that changed. The header reports the frame rate the plot actually
+achieves.
+
+Use WebGPU for the large counts. Canvas draws every point as a path on the main
+thread and drops to a few frames a second around a million points.
 
 ## Comparing renderers
 

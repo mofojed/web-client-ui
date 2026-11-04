@@ -116,3 +116,32 @@ test('renders 64 WebGPU plots from a single shared device', async ({
   await expect(page.getByTestId('plot-error')).toHaveCount(0);
   await expectDrawn(page, INK_GRID_CELL);
 });
+
+test('streams every face of the cube with WebGPU', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('webgpu');
+  await page.getByTestId('example-cube').click();
+  await expectReady(page, 6);
+
+  await expect(page.getByTestId('active-renderer')).toHaveText('webgpu');
+  await expect(page.locator(DATA_CANVAS)).toHaveCount(6);
+  await expect(page.getByTestId('toggle-streaming')).toHaveText('Stop stream');
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+});
+
+test('applies scatter stress updates on the GPU', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('webgpu');
+  await page.getByTestId('example-scatter-stress').click();
+  await page.getByTestId('stress-point-count').selectOption('10000');
+  await expectReady(page);
+
+  const canvas = page.locator(DATA_CANVAS);
+  await expectDrawn(page);
+  const before = await canvas.screenshot();
+  await expect
+    .poll(async () => (await canvas.screenshot()).equals(before))
+    .toBe(false);
+
+  await expect(page.getByTestId('active-renderer')).toHaveText('webgpu');
+  await expect(page.getByTestId('plot-fps')).toHaveText(/^\d+ fps$/);
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+});

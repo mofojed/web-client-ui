@@ -202,14 +202,29 @@ export class PlotView extends PlotEventEmitter<PlotViewEventMap> {
     this.scheduleDataRequest();
   }
 
+  /**
+   * Sizes the plot to the container's layout box. The bounding client rect is
+   * avoided where possible because it reports the transformed box, so a plot
+   * on a rotated or scaled element would size itself to its projection.
+   */
   private observeSize(): void {
-    const applySize = (): void => {
+    const { offsetWidth, offsetHeight } = this.container;
+    if (offsetWidth > 0 && offsetHeight > 0) {
+      this.setSize(offsetWidth, offsetHeight);
+    } else {
       const rect = this.container.getBoundingClientRect();
       this.setSize(rect.width, rect.height);
-    };
-    applySize();
+    }
     if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(applySize);
+      this.resizeObserver = new ResizeObserver(entries => {
+        const entry = entries[entries.length - 1];
+        const box = entry?.borderBoxSize?.[0];
+        if (box != null) {
+          this.setSize(box.inlineSize, box.blockSize);
+        } else if (entry != null) {
+          this.setSize(entry.contentRect.width, entry.contentRect.height);
+        }
+      });
       this.resizeObserver.observe(this.container);
     }
   }

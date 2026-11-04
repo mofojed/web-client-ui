@@ -184,6 +184,29 @@ it('sizes the data canvas to the plot area inside the axis margins', async () =>
   view.destroy();
 });
 
+it('sizes to the layout box rather than the transformed bounding box', async () => {
+  // A container rotated in 3D reports a squashed projection as its bounding rect
+  boundingRectSpy.mockReturnValue(new DOMRect(0, 0, 80, 600));
+  Object.defineProperty(container, 'offsetWidth', { value: 800 });
+  Object.defineProperty(container, 'offsetHeight', { value: 600 });
+
+  const renderer = makeRenderer();
+  const view = new PlotView(container, makeSource(), {
+    registry: makeRegistry(renderer),
+  });
+  const idle = waitForIdle(view);
+  await view.initialize();
+  await idle;
+
+  expect(view.getPlotArea()).toEqual({
+    left: 56,
+    top: 16,
+    width: 728,
+    height: 552,
+  });
+  view.destroy();
+});
+
 it('requests data for the initial viewport and hands it to the renderer', async () => {
   const renderer = makeRenderer();
   const source = makeSource();

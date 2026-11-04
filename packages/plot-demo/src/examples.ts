@@ -8,22 +8,45 @@ import {
   generateSpikes,
   type PlotDataSource,
 } from '@deephaven/plot';
+import { CUBE_FACES } from './cubeFaces';
+import { spiralArm } from './samplers';
+import { RollingScatterSource } from './sources/RollingScatterSource';
+
+export interface StressOptions {
+  /** Total points across every series. */
+  pointCount: number;
+  /** Fraction of the points replaced on every frame, from 0 to 1. */
+  refreshFraction: number;
+  pointSize: number;
+}
 
 export interface ExampleOptions {
   /** Skip downsampling so the renderer draws every point. */
   fullFidelity: boolean;
+  /** Only read by examples with `supportsStressControls`. */
+  stress: StressOptions;
 }
+
+export type ExampleLayout = 'single' | 'grid' | 'cube';
 
 export interface PlotExample {
   id: string;
   name: string;
   description: string;
+  /** How the plots are arranged. Defaults to `grid` for many plots, otherwise `single`. */
+  layout?: ExampleLayout;
   /** How many plots to lay out side by side. Defaults to 1. */
   plotCount?: number;
+  /** Labels shown with each plot, by index. */
+  plotTitles?: string[];
   /** Points per plot, used for the stats readout. */
   pointsPerPlot?: number;
   /** Whether the full fidelity toggle applies to this example. */
   supportsFullFidelity?: boolean;
+  /** Whether the point count, refresh rate, and point size controls apply. */
+  supportsStressControls?: boolean;
+  /** Starts streaming as soon as the example loads. */
+  autoStart?: boolean;
   createSource: (index: number, options: ExampleOptions) => PlotDataSource;
 }
 
@@ -31,6 +54,54 @@ export interface PlotExample {
 export const GRID_PLOT_COUNT = 64;
 
 const GRID_POINTS_PER_PLOT = 50_000;
+
+/** Spiral arms in the scatter stress example, one series and color each. */
+export const STRESS_SERIES_COUNT = 4;
+
+export const STRESS_POINT_COUNTS = [
+  10_000, 100_000, 250_000, 500_000, 1_000_000, 2_000_000, 5_000_000,
+  10_000_000,
+];
+
+export const STRESS_REFRESH_FRACTIONS = [0.01, 0.1, 0.25, 1];
+
+export const STRESS_POINT_SIZES = [1, 2, 3, 5];
+
+export const DEFAULT_STRESS_OPTIONS: StressOptions = {
+  pointCount: 100_000,
+  refreshFraction: 0.1,
+  pointSize: 2,
+};
+
+const GALAXY_RADIUS = 10;
+
+function createStressSource({
+  pointCount,
+  refreshFraction,
+  pointSize,
+}: StressOptions): RollingScatterSource {
+  const pointsPerSeries = Math.ceil(pointCount / STRESS_SERIES_COUNT);
+  const bound = GALAXY_RADIUS * 1.2;
+  return new RollingScatterSource(
+    Array.from({ length: STRESS_SERIES_COUNT }, (_unused, index) => ({
+      id: `arm-${index}`,
+      name: `Arm ${index + 1}`,
+      style: { pointSize },
+      sample: spiralArm({
+        angle: (index * 2 * Math.PI) / STRESS_SERIES_COUNT,
+        radius: GALAXY_RADIUS,
+        speed: 0.004,
+      }),
+    })),
+    {
+      seed: 42,
+      pointsPerSeries,
+      pointsPerTick: Math.ceil(pointsPerSeries * refreshFraction),
+      bounds: { xMin: -bound, xMax: bound, yMin: -bound, yMax: bound },
+      title: 'Scatter stress',
+    }
+  );
+}
 
 /**
  * Every example is seeded so the demo renders identically on every run, which
@@ -248,6 +319,31 @@ export const examples: PlotExample[] = [
           ...(fullFidelity ? { downsampler: identityDownsampler } : {}),
         }
       ),
+  },
+  {
+    id: 'cube',
+    name: 'Plot cube',
+    description:
+      'Six different streaming plots on the faces of a cube. Drag or use the ' +
+      'arrow keys to spin it, and explode it to pull the faces apart. Every ' +
+      'face keeps streaming while it rotates.',
+    layout: 'cube',
+    plotCount: CUBE_FACES.length,
+    plotTitles: CUBE_FACES.map(face => face.title),
+    autoStart: true,
+    createSource: index => CUBE_FACES[index].createSource(),
+  },
+  {
+    id: 'scatter-stress',
+    name: 'Scatter stress',
+    description:
+      'A rotating spiral galaxy that is never downsampled, so every point is ' +
+      'drawn on every frame. Points are replaced oldest first, once per ' +
+      'animation frame, as incremental updates. Raise the point count to find ' +
+      "where the renderer's frame rate drops.",
+    supportsStressControls: true,
+    autoStart: true,
+    createSource: (_index, { stress }) => createStressSource(stress),
   },
 ];
 

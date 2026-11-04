@@ -3,11 +3,22 @@ import {
   defaultPlotTheme,
   defaultRendererRegistry,
   Plot,
-  StreamingDataSource,
   type PlotDataSource,
   type PlotTheme,
 } from '@deephaven/plot';
-import { examples, getExample } from './examples';
+import {
+  DEFAULT_STRESS_OPTIONS,
+  examples,
+  getExample,
+  STRESS_POINT_COUNTS,
+  STRESS_POINT_SIZES,
+  STRESS_REFRESH_FRACTIONS,
+  type ExampleLayout,
+  type StressOptions,
+} from './examples';
+import { PlotCube } from './PlotCube';
+import { RollingScatterSource } from './sources/RollingScatterSource';
+import { isStreamable } from './sources/StreamableSource';
 import './App.scss';
 
 type RendererChoice = 'auto' | 'webgpu' | 'canvas';
@@ -29,6 +40,31 @@ const COMPACT_THEME: PlotTheme = {
   margin: { top: 4, right: 6, bottom: 14, left: 26 },
 };
 
+const CUBE_THEME: PlotTheme = {
+  ...defaultPlotTheme,
+  fontSize: 10,
+  margin: { top: 6, right: 10, bottom: 20, left: 38 },
+};
+
+const LAYOUT_THEMES: Record<ExampleLayout, PlotTheme | undefined> = {
+  single: undefined,
+  grid: COMPACT_THEME,
+  cube: CUBE_THEME,
+};
+
+/** How often the frame rate readout refreshes. */
+const FPS_SAMPLE_MS = 500;
+
+function formatCount(value: number): string {
+  if (value >= 1_000_000) {
+    return `${value / 1_000_000}M`;
+  }
+  if (value >= 1_000) {
+    return `${value / 1_000}K`;
+  }
+  return `${value}`;
+}
+
 export function App(): JSX.Element {
   const [exampleId, setExampleId] = useState(examples[0].id);
   const [rendererChoice, setRendererChoice] = useState<RendererChoice>('auto');
@@ -36,6 +72,10 @@ export function App(): JSX.Element {
   const [error, setError] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [fullFidelity, setFullFidelity] = useState(false);
+  const [stressOptions, setStressOptions] = useState<StressOptions>(
+    DEFAULT_STRESS_OPTIONS
+  );
+  const [fps, setFps] = useState<number | null>(null);
   const [firstFrameMs, setFirstFrameMs] = useState<number | null>(null);
   const [isWebGpuSupported, setIsWebGpuSupported] = useState<boolean | null>(
     null
@@ -58,33 +98,68 @@ export function App(): JSX.Element {
 
   const example = getExample(exampleId);
   const plotCount = example.plotCount ?? 1;
+  const layout: ExampleLayout =
+    example.layout ?? (plotCount > 1 ? 'grid' : 'single');
+  const showFps = example.supportsStressControls === true;
 
   const sources = useMemo<PlotDataSource[]>(() => {
     const { createSource, plotCount: count = 1 } = getExample(exampleId);
     return Array.from({ length: count }, (_unused, index) =>
-      createSource(index, { fullFidelity })
+      createSource(index, { fullFidelity, stress: stressOptions })
     );
-  }, [exampleId, fullFidelity]);
+  }, [exampleId, fullFidelity, stressOptions]);
+
+  const streamingSources = useMemo(
+    () => sources.filter(isStreamable),
+    [sources]
+  );
 
   const startedAtRef = useRef(0);
   const paintedRef = useRef(new Set<number>());
+  const frameCountRef = useRef(0);
 
   useEffect(
     function resetOnChange() {
       setActiveRenderer('');
       setError('');
-      setIsStreaming(false);
       setFirstFrameMs(null);
       paintedRef.current = new Set();
       startedAtRef.current = performance.now();
+      const shouldStart = getExample(exampleId).autoStart === true;
+      if (shouldStart) {
+        streamingSources.forEach(source => source.start());
+      }
+      setIsStreaming(shouldStart && streamingSources.length > 0);
       return () => sources.forEach(source => source.close?.());
     },
-    [sources, rendererChoice]
+    [exampleId, sources, streamingSources, rendererChoice]
   );
 
-  // Only the first paint of each plot counts, so this fires at most once per plot
+  useEffect(
+    function sampleFrameRate() {
+      setFps(null);
+      if (!showFps) {
+        return undefined;
+      }
+      frameCountRef.current = 0;
+      let sampledAt = performance.now();
+      const interval = setInterval(() => {
+        const now = performance.now();
+        setFps((frameCountRef.current * 1000) / (now - sampledAt));
+        frameCountRef.current = 0;
+        sampledAt = now;
+      }, FPS_SAMPLE_MS);
+      return () => clearInterval(interval);
+    },
+    [showFps, sources, rendererChoice]
+  );
+
   const handleFrame = useCallback(
     (index: number) => {
+      if (index === 0) {
+        frameCountRef.current += 1;
+      }
+      // Only the first paint of each plot counts towards the first frame time
       const painted = paintedRef.current;
       if (painted.has(index)) {
         return;
@@ -94,15 +169,6 @@ export function App(): JSX.Element {
         setFirstFrameMs(performance.now() - startedAtRef.current);
       }
     },
-    [sources]
-  );
-
-  const streamingSources = useMemo(
-    () =>
-      sources.filter(
-        (source): source is StreamingDataSource =>
-          source instanceof StreamingDataSource
-      ),
     [sources]
   );
 
@@ -120,6 +186,28 @@ export function App(): JSX.Element {
 
   const totalPoints = (example.pointsPerPlot ?? 0) * plotCount;
 
+  const stressSource = sources.find(
+    (source): source is RollingScatterSource =>
+      source instanceof RollingScatterSource
+  );
+
+  const plots = sources.map((source, index) => (
+    <Plot
+      // Sources are positional and are recreated whenever the example changes
+      // eslint-disable-next-line react/no-array-index-key
+      key={`${exampleId}-${rendererChoice}-${index}`}
+      className="plot-demo-plot"
+      source={source}
+      theme={LAYOUT_THEMES[layout]}
+      // Dragging a face rotates the cube rather than panning the plot
+      interactive={layout !== 'cube'}
+      rendererPreference={RENDERER_PREFERENCES[rendererChoice]}
+      onRendererChanged={setActiveRenderer}
+      onFrame={() => handleFrame(index)}
+      onError={handleError}
+    />
+  ));
+
   return (
     <div className="plot-demo">
       <header className="plot-demo-header">
@@ -130,11 +218,24 @@ export function App(): JSX.Element {
         >
           {activeRenderer === '' ? 'resolving…' : activeRenderer}
         </span>
+        {showFps && stressSource != null && (
+          <span className="plot-demo-stats" data-testid="plot-stats">
+            {`${stressSource.getPointCount().toLocaleString()} points`}
+            {` · ${stressSource
+              .getPointsPerTick()
+              .toLocaleString()} replaced per frame`}
+            {' · full fidelity · '}
+            <span data-testid="plot-fps">
+              {fps == null ? 'measuring…' : `${Math.round(fps)} fps`}
+            </span>
+          </span>
+        )}
         {plotCount > 1 && (
           <span className="plot-demo-stats" data-testid="plot-stats">
             {`${plotCount} plots`}
             {totalPoints > 0 && ` · ${totalPoints.toLocaleString()} points`}
-            {fullFidelity ? ' · full fidelity' : ' · downsampled'}
+            {example.supportsFullFidelity === true &&
+              (fullFidelity ? ' · full fidelity' : ' · downsampled')}
             {' · first frame '}
             {firstFrameMs == null
               ? 'measuring…'
@@ -191,6 +292,67 @@ export function App(): JSX.Element {
           </button>
         )}
 
+        {example.supportsStressControls === true && (
+          <div className="plot-demo-stress-controls">
+            <label htmlFor="stress-point-count">Points</label>
+            <select
+              id="stress-point-count"
+              data-testid="stress-point-count"
+              value={stressOptions.pointCount}
+              onChange={event =>
+                setStressOptions(options => ({
+                  ...options,
+                  pointCount: Number(event.target.value),
+                }))
+              }
+            >
+              {STRESS_POINT_COUNTS.map(count => (
+                <option key={count} value={count}>
+                  {formatCount(count)}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="stress-refresh">Replaced per frame</label>
+            <select
+              id="stress-refresh"
+              data-testid="stress-refresh"
+              value={stressOptions.refreshFraction}
+              onChange={event =>
+                setStressOptions(options => ({
+                  ...options,
+                  refreshFraction: Number(event.target.value),
+                }))
+              }
+            >
+              {STRESS_REFRESH_FRACTIONS.map(fraction => (
+                <option key={fraction} value={fraction}>
+                  {`${fraction * 100}%`}
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="stress-point-size">Point size</label>
+            <select
+              id="stress-point-size"
+              data-testid="stress-point-size"
+              value={stressOptions.pointSize}
+              onChange={event =>
+                setStressOptions(options => ({
+                  ...options,
+                  pointSize: Number(event.target.value),
+                }))
+              }
+            >
+              {STRESS_POINT_SIZES.map(pointSize => (
+                <option key={pointSize} value={pointSize}>
+                  {`${pointSize} px`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {example.supportsFullFidelity === true && (
           <label className="plot-demo-checkbox" htmlFor="full-fidelity">
             <input
@@ -206,7 +368,9 @@ export function App(): JSX.Element {
 
         <p className="plot-demo-description">{example.description}</p>
         <p className="plot-demo-hint">
-          Scroll to zoom, drag to pan, double click to reset.
+          {layout === 'cube'
+            ? 'Drag to spin, or focus the cube and use the arrow keys.'
+            : 'Scroll to zoom, drag to pan, double click to reset.'}
         </p>
       </aside>
 
@@ -216,22 +380,17 @@ export function App(): JSX.Element {
             {error}
           </div>
         )}
-        <div className={plotCount > 1 ? 'plot-demo-grid' : 'plot-demo-single'}>
-          {sources.map((source, index) => (
-            <Plot
-              // Sources are positional and are recreated whenever the example changes
-              // eslint-disable-next-line react/no-array-index-key
-              key={`${exampleId}-${rendererChoice}-${index}`}
-              className="plot-demo-plot"
-              source={source}
-              theme={plotCount > 1 ? COMPACT_THEME : undefined}
-              rendererPreference={RENDERER_PREFERENCES[rendererChoice]}
-              onRendererChanged={setActiveRenderer}
-              onFrame={() => handleFrame(index)}
-              onError={handleError}
-            />
-          ))}
-        </div>
+        {layout === 'cube' ? (
+          <PlotCube faces={plots} labels={example.plotTitles} />
+        ) : (
+          <div
+            className={
+              layout === 'grid' ? 'plot-demo-grid' : 'plot-demo-single'
+            }
+          >
+            {plots}
+          </div>
+        )}
       </main>
     </div>
   );

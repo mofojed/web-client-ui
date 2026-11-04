@@ -150,5 +150,75 @@ test('streaming appends points over time', async ({ page }) => {
   await page.getByTestId('toggle-streaming').click();
 });
 
+test('streams six plots on a rotating cube', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('canvas');
+  await page.getByTestId('example-cube').click();
+
+  await expectReady(page, 6);
+  await expect(page.locator('.plot-cube-face')).toHaveCount(6);
+  await expect(page.getByTestId('toggle-streaming')).toHaveText('Stop stream');
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+
+  // Faces are sized from layout, so a face turned edge on is not squashed
+  const sizes = await page
+    .locator(DATA_CANVAS)
+    .evaluateAll(canvases =>
+      canvases.map(canvas => (canvas as HTMLCanvasElement).width)
+    );
+  expect(new Set(sizes).size).toBe(1);
+  expect(sizes[0]).toBeGreaterThan(100);
+
+  const cube = page.locator('.plot-cube-body');
+  const transform = await cube.evaluate(element => element.style.transform);
+  await expect
+    .poll(() => cube.evaluate(element => element.style.transform))
+    .not.toBe(transform);
+});
+
+test('drags the cube to rotate it', async ({ page }) => {
+  await page.getByTestId('renderer-select').selectOption('canvas');
+  await page.getByTestId('example-cube').click();
+  await expectReady(page, 6);
+  await page.getByTestId('cube-auto-rotate').uncheck();
+
+  const cube = page.locator('.plot-cube-body');
+  const rotation = (): Promise<number> =>
+    cube.evaluate(element =>
+      Number(/rotateX\((-?[\d.]+)deg\)/.exec(element.style.transform)?.[1])
+    );
+  const before = await rotation();
+
+  const box = await page.getByTestId('plot-cube').boundingBox();
+  const x = (box?.x ?? 0) + (box?.width ?? 0) / 2;
+  const y = (box?.y ?? 0) + (box?.height ?? 0) / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 100, { steps: 5 });
+  await page.mouse.up();
+
+  expect(await rotation()).toBeLessThan(before);
+});
+
+test('scatter stress draws every point and reports a frame rate', async ({
+  page,
+}) => {
+  await page.getByTestId('renderer-select').selectOption('canvas');
+  await page.getByTestId('example-scatter-stress').click();
+  await expectReady(page);
+
+  await page.getByTestId('stress-point-count').selectOption('10000');
+  await expectReady(page);
+  await expect(page.getByTestId('plot-stats')).toContainText('10,000 points');
+  await expect(page.getByTestId('plot-fps')).toHaveText(/^\d+ fps$/);
+  await expect(page.getByTestId('plot-error')).toHaveCount(0);
+  await expectDrawn(page);
+
+  const canvas = page.locator(DATA_CANVAS);
+  const before = await canvas.screenshot();
+  await expect
+    .poll(async () => (await canvas.screenshot()).equals(before))
+    .toBe(false);
+});
+
 // WebGPU coverage lives in plot-demo-webgpu.spec.ts, which runs in a browser
 // launched with WebGPU enabled rather than skipping when it is unavailable.
